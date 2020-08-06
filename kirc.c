@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include <ctype.h>
 #include <stdarg.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -211,7 +212,6 @@ main(int argc, char **argv)
     {
         char usrin[CMAX];
         char cmd = '\n';
-        char *cmd_val = malloc(sizeof(char) * (CMAX - 3));
 
         while (waitpid(pid, NULL, WNOHANG) == 0)
         {
@@ -222,9 +222,10 @@ main(int argc, char **argv)
 
             fgets(usrin, CMAX, stdin);
 
-            if (usrin[0] == ':')
+            if (usrin[0] == ':' && usrin[1])
             {
-                sscanf(usrin, ":%c %s", &cmd, cmd_val);
+                char *cmd_val = &usrin[2];
+                cmd = usrin[1];
 
                 switch (cmd)
                 {
@@ -232,7 +233,11 @@ main(int argc, char **argv)
                         snprintf(usrin, CMAX, "quit"); 
                         break; 
                     case 'm':
-                        snprintf(usrin, CMAX, "privmsg #%s %s", chan, cmd_val);
+                        while (isspace(*cmd_val))
+                            cmd_val++;
+                        cmd_val = strdup(cmd_val);
+                        snprintf(usrin, CMAX, "privmsg #%s :%s", chan, cmd_val);
+                        free(cmd_val);
                         break; 
                 }
             }
