@@ -1,0 +1,44 @@
+kirc
+
+KISS for IRC, an IRC client written in POSIX C99.
+
+
+BACKGROUND
+----------
+
+After having tried multiple IRC clients, I decided to develope my own. The 
+result is a portable <250 sloc application that has no dependencies other 
+than a C99 compiler.
+
+
+FEATURES
+--------
+
+- automatic host PING response.
+- vi-like shortcuts:
+
+  :m <message> send a message to the connected channel
+  :q           close the host connection and quit kirc
+
+
+INSTALLATION
+------------
+
+Building and installing from source:
+
+    git clone https://github.com/mcpcpc/kirc.git
+	cd kirc
+	make
+	make install
+
+
+USAGE
+-----
+
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-v|V]
+-s     server address (default: 'irc.freenode.org')
+-p     server port (default: '6667')
+-c     channel name (default: '#kisslinux')
+-n     user nickname
+-v     version information
+-V     verbose output (e.g. raw stream)
