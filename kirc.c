@@ -232,7 +232,7 @@ main(int argc, char **argv)
                         snprintf(usrin, CMAX, "quit"); 
                         break; 
                     case 'm':
-                        snprintf(usrin, CMAX, "privmsg %s %s", chan, cmd_val);
+                        snprintf(usrin, CMAX, "privmsg #%s %s", chan, cmd_val);
                         break; 
                 }
             }
