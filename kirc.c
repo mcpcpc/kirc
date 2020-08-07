@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netdb.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
+#include <sys/select.h>
 #include <sys/wait.h>
 #include <termios.h>
 
@@ -29,14 +29,17 @@ kbhit(void)
 {
     int    byteswaiting;
     struct termios term;
-
+    fd_set fds;
+	struct timespec ts = {0};
     tcgetattr(0, &term);
 
     struct termios term2 = term;
 
     term2.c_lflag &= ~ICANON;
     tcsetattr(0, TCSANOW, &term2);
-    ioctl(0, FIONREAD, &byteswaiting);
+	FD_ZERO(&fds);
+	FD_SET(0, &fds);
+	byteswaiting = pselect(1, &fds, NULL, NULL, &ts, NULL);
     tcsetattr(0, TCSANOW, &term);
 
     return byteswaiting > 0;
@@ -58,11 +61,11 @@ raw(char *fmt, ...) {
 static void
 con(void)
 {
-    struct addrinfo hints, *res;
+    struct addrinfo *res, hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_STREAM
+    };
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
     getaddrinfo(host, port, &hints, &res);
     conn = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     connect(conn, res->ai_addr, res->ai_addrlen);
@@ -85,7 +88,6 @@ printw(const char *format, ...)
     if (strlen(line) <= CMAX) printf("%s", line);
     else if (strlen(line) > CMAX)
     {
-        
         for (i = 0; i < CMAX; i++)
         {
             if (line[i] == ' ') s1 = i;
@@ -106,7 +108,7 @@ printw(const char *format, ...)
             }
         }
     }
-    
+
 }
 
 static void
@@ -231,11 +233,11 @@ main(int argc, char **argv)
                 {
                     case 'q':
                         write(fd[1], "quit", sizeof("quit"));
-                        break; 
+                        break;
                     case 'm':
                         while (isspace(*cmd_val)) cmd_val++;
                         dprintf(fd[1], "privmsg #%s :%s", chan, cmd_val);
-                        break; 
+                        break;
                 }
             }
             else
@@ -245,6 +247,5 @@ main(int argc, char **argv)
             fflush(stdout);
         }
     }
-
     return 0;
 }
