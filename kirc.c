@@ -13,7 +13,7 @@
 #include <termios.h>
 
 #define BUFF 512                        /* buffer size (see RFC 2812)         */
-#define CMAX 102                        /* max number of columns              */
+#define CMAX 92                         /* max number of columns              */
 #define GUTL 10                         /* left gutter width and alignment    */
 
 static int  conn;                       /* socket connection                  */
@@ -212,9 +212,8 @@ main(int argc, char **argv)
     }
     else
     {
-        char usrin[CMAX - 12];
-        //char usrin[CMAX];
-        char usrin2[CMAX]; /* temporary */
+        char usrin[CMAX];
+		int l = CMAX - strlen(chan);
         char cmd = '\n';
 
         while (waitpid(pid, NULL, WNOHANG) == 0)
@@ -238,9 +237,7 @@ main(int argc, char **argv)
                         break;
                     case 'm':
                         while (isspace(*cmd_val)) cmd_val++;
-                        snprintf(usrin2, CMAX, "privmsg #%s :%s", chan, cmd_val);
-						write(fd[1], usrin2, CMAX);
-						//dprintf(fd[1], "privmsg #%s :%s", chan, cmd_val);
+						dprintf(fd[1], "privmsg #%s :%-*s", chan, l - 11, cmd_val);
                         break;
                 }
             }
