@@ -166,24 +166,20 @@ pars(int sl, char *buf)
 int
 main(int argc, char **argv)
 {
-    int         fd[2], cval;
+    int fd[2], cval;
 
     while ((cval = getopt(argc, argv, "s:p:n:k:c:vV")) != -1)
     {
         switch (cval)
         {
-            case 'v' : printf("kirc 0.0.1\n");                 break;
-            case 'V' : verb = 1;                               break;
-            case 's' : host = optarg;                          break;
-            case 'p' : port = optarg;                          break;
-            case 'n' : nick = optarg;                          break;
-            case 'c' : chan = optarg;                          break;
-            case '?' :
-                fprintf(stderr, "Unrecognized option: -%c\n", optopt); 
-                break;
-            case ':' :
-                fprintf(stderr, "-%c requires and operand\n", optopt); 
-                break;
+            case 'v' : printf("kirc 0.0.1\n"); break;
+            case 'V' : verb = 1;               break;
+            case 's' : host = optarg;          break;
+            case 'p' : port = optarg;          break;
+            case 'n' : nick = optarg;          break;
+            case 'c' : chan = optarg;          break;
+            case '?' : return 1;
+            case ':' : return 1;
         }
     }
 
