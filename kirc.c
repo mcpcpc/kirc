@@ -78,19 +78,20 @@ printw(const char *format, ...)
 {
     int     s1 = 0, s2, i, o;
     va_list argptr;
-    char   *line = malloc(sizeof(char) * (BUFF + 1));
+    char   line[BUFF + 1];
     va_start(argptr, format);
     vsnprintf(line, BUFF + 1, format, argptr);
-    if (strlen(line) <= CMAX) printf(line);
+    va_end(argptr);
+    if (strlen(line) <= CMAX) printf("%s", line);
     else if (strlen(line) > CMAX)
     {
         
-		for (i = 0; i < CMAX; i++)
-		{
+        for (i = 0; i < CMAX; i++)
+        {
             if (line[i] == ' ') s1 = i;
-			if (i == CMAX - 1) printf("%-*.*s\n", s1, s1, line);
-		}
-		s2 = o = s1;
+            if (i == CMAX - 1) printf("%-*.*s\n", s1, s1, line);
+        }
+        s2 = o = s1;
         for (i = s1; line[i] != '\0'; i++)
         {
             if (line[i] == ' ') s2 = i;
@@ -99,14 +100,13 @@ printw(const char *format, ...)
                 printf("%*s %-*.*s\n", GUTL, " ", s2 - o, s2 - o, &line[o + 1]);
                 o = i = s2;
             }
-			else if (line[i + 1] == '\0')
+            else if (line[i + 1] == '\0')
             {
                 printf("%*s %-*.*s", GUTL, " ", i - o, i - o, &line[o + 1]);
             }
         }
     }
-    va_end(argptr);
-    free(line);
+    
 }
 
 static void
@@ -166,20 +166,24 @@ pars(int sl, char *buf)
 int
 main(int argc, char **argv)
 {
-    extern char *optarg;
-    extern int  optind, optopt;
     int         fd[2], cval;
 
     while ((cval = getopt(argc, argv, "s:p:n:k:c:vV")) != -1)
     {
         switch (cval)
         {
-            case 'v' : printf("kirc 0.0.1\n"); break;
-            case 'V' : verb = 1;               break;
-            case 's' : host = optarg;          break;
-            case 'p' : port = optarg;          break;
-            case 'n' : nick = optarg;          break;
-            case 'c' : chan = optarg;          break;
+            case 'v' : printf("kirc 0.0.1\n");                 break;
+            case 'V' : verb = 1;                               break;
+            case 's' : host = optarg;                          break;
+            case 'p' : port = optarg;                          break;
+            case 'n' : nick = optarg;                          break;
+            case 'c' : chan = optarg;                          break;
+            case '?' :
+                fprintf(stderr, "Unrecognized option: -%c\n", optopt); 
+                break;
+            case ':' :
+                fprintf(stderr, "-%c requires and operand\n", optopt); 
+                break;
         }
     }
 
@@ -230,18 +234,18 @@ main(int argc, char **argv)
                 switch (cmd)
                 {
                     case 'q':
-                        snprintf(usrin, CMAX, "quit"); 
+                        write(fd[1], "quit", sizeof("quit"));
                         break; 
                     case 'm':
-                        while (isspace(*cmd_val))
-                            cmd_val++;
-                        cmd_val = strdup(cmd_val);
-                        snprintf(usrin, CMAX, "privmsg #%s :%s", chan, cmd_val);
-                        free(cmd_val);
+                        while (isspace(*cmd_val)) cmd_val++;
+                        dprintf(fd[1], "privmsg #%s :%s", chan, cmd_val);
                         break; 
                 }
             }
-            write(fd[1], usrin, CMAX);
+            else
+            {
+                write(fd[1], usrin, CMAX);
+            }
             fflush(stdout);
         }
     }
