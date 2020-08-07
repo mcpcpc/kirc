@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
 #include <fcntl.h>
 #include <sys/select.h>
 #include <sys/wait.h>
@@ -116,10 +115,9 @@ pars(int sl, char *buf)
 {
     char buf_c[BUFF + 1], ltr[200], cha[200], nic[200], hos[200], \
          usr[200], cmd[200], msg[200], pre[200];
-    int  i = 0;
     int  o = -1;
 
-    for (i = 0; i < sl; i++)
+    for (int i = 0; i < sl; i++)
     {
         o++;
         buf_c[o] = buf[i];
