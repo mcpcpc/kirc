@@ -186,7 +186,7 @@ main(int argc, char **argv)
     if (pipe(fd) < 0)
     {
         fprintf(stderr, "pipe() failed");
-        exit(2);
+        return 2;
     }
 
     pid_t pid = fork();
