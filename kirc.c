@@ -179,7 +179,6 @@ main(int argc, char **argv)
             case 'n' : nick = optarg;          break;
             case 'c' : chan = optarg;          break;
             case '?' : return 1;
-            case ':' : return 1;
         }
     }
 
