@@ -11,6 +11,16 @@ result is a portable <250 sloc application that has no dependencies other
 than a C99 compiler.
 
 
+TODO
+----
+
+- [ ] capture CTRL-C for safer child process shutdown
+- [ ] better color default color scheme
+- [ ] dynamic word wrap based on column width
+- [ ] additional shortcut keys
+- [ ] fix default arrow key and backspace behavior
+
+
 FEATURES
 --------
 
@@ -35,10 +45,11 @@ Building and installing from source:
 USAGE
 -----
 
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-v|V]
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-k password] [-v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
 -c     channel name (default: '#kisslinux')
 -n     user nickname
+-n     user password
 -v     version information
 -V     verbose output (e.g. raw stream)

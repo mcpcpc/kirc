@@ -22,9 +22,11 @@ static char *host = "irc.freenode.org"; /* irc host address                   */
 static char *chan = "kisslinux";        /* channel                            */
 static char *port = "6667";             /* port                               */
 static char *nick = NULL;               /* nickname                           */
+static char *pass = NULL;               /* password                           */
 
 static int
 kbhit(void) {
+
     int    byteswaiting;
     struct termios term;
     fd_set fds;
@@ -45,6 +47,7 @@ kbhit(void) {
 
 static void
 raw(char *fmt, ...) {
+
     va_list ap;
 
     va_start(ap, fmt);
@@ -58,6 +61,7 @@ raw(char *fmt, ...) {
 
 static void
 con(void) {
+
     struct addrinfo *res, hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM
@@ -69,6 +73,7 @@ con(void) {
 
     if (nick) raw("NICK %s\r\n", nick);
     if (nick) raw("USER %s - - :%s\r\n", nick, nick);
+    if (pass) raw("PASS %s\r\n", pass);
 
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
@@ -83,13 +88,17 @@ printw(const char *format, ...) {
     va_start(argptr, format);
     vsnprintf(line, BUFF + 1, format, argptr);
     va_end(argptr);
+
     if (strlen(line) <= CMAX) printf("%s", line);
     else if (strlen(line) > CMAX) {
+
         for (i = 0; i < CMAX; i++) {
             if (line[i] == ' ') s1 = i;
             if (i == CMAX - 1) printf("%-*.*s\n", s1, s1, line);
         }
+
         s2 = o = s1;
+
         for (i = s1; line[i] != '\0'; i++) {
             if (line[i] == ' ') s2 = i;
             if ((i - o) == (CMAX - GUTL)) {
@@ -141,8 +150,7 @@ pars(int sl, char *buf) {
                         GUTL, GUTL, "-->", nic, cha);
                 }
                 else {
-                    printw("\x1b[1m%*.*s\x1b[0m %s\n", \
-                        GUTL, GUTL, nic, msg);
+                    printw("\x1b[1m%*.*s\x1b[0m %s\n", GUTL, GUTL, nic, msg);
                 }
             }
         }
@@ -157,11 +165,12 @@ main(int argc, char **argv) {
     while ((cval = getopt(argc, argv, "s:p:n:k:c:vV")) != -1) {
         switch (cval) {
             case 'v' : printf("kirc 0.0.1\n"); break;
-            case 'V' : verb = 1;               break;
-            case 's' : host = optarg;          break;
-            case 'p' : port = optarg;          break;
-            case 'n' : nick = optarg;          break;
-            case 'c' : chan = optarg;          break;
+            case 'V' : verb = 1; break;
+            case 's' : host = optarg; break;
+            case 'p' : port = optarg; break;
+            case 'n' : nick = optarg; break;
+            case 'k' : pass = optarg; break;
+            case 'c' : chan = optarg; break;
             case '?' : return 1;
         }
     }
