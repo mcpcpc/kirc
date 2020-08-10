@@ -29,9 +29,10 @@ kbhit(void) {
 
     int    byteswaiting;
     struct termios term;
+    term.c_cc[VERASE] = 127;
+    tcgetattr(0, &term);
     fd_set fds;
     struct timespec ts = {0};
-    tcgetattr(0, &term);
 
     struct termios term2 = term;
 
@@ -54,7 +55,7 @@ raw(char *fmt, ...) {
     vsnprintf(sbuf, BUFF, fmt, ap);
     va_end(ap);
 
-    if (verb) printf("<< %s", sbuf);
+    if (verb) printf("<< \x1b[33m%s\x1b[0m", sbuf);
 
     write(conn, sbuf, strlen(sbuf));
 }
@@ -127,7 +128,7 @@ pars(int sl, char *buf) {
             buf_c[o + 1] = '\0';
             o = -1;
 
-            if (verb) printf(">> %s", buf_c);
+            if (verb) printf(">> \x1b[33m%s\x1b[0m", buf_c);
 
             if (!strncmp(buf_c, "PING", 4)) {
                 buf_c[1] = 'O';
@@ -164,7 +165,7 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:n:k:c:vV")) != -1) {
         switch (cval) {
-            case 'v' : printf("kirc 0.0.1\n"); break;
+            case 'v' : puts("kirc 0.0.1"); break;
             case 'V' : verb = 1; break;
             case 's' : host = optarg; break;
             case 'p' : port = optarg; break;
@@ -188,15 +189,17 @@ main(int argc, char **argv) {
     pid_t pid = fork();
 
     if (pid == 0) {
-        int  sl;
+        int  sl, i, j;
         char u[CMAX];
 
         con();
 
         while ((sl = read(conn, sbuf, BUFF))) {
             pars(sl, sbuf);
-            if ((read(fd[0], u, CMAX) > 0) && !strstr(u, "WAIT_SIG")) {
-                raw("%s\r\n", u);
+            if (read(fd[0], u, CMAX) > 0) {
+                for (i = 0; u[i] != '\n'; i++) continue;
+                for (j = i; j < CMAX; j++) u[j] = ' ';
+                if (!strstr(u, "WAIT_SIG")) raw("%-*.*s\r\n", i, i, u);
             }
         }
         printf("(press <ENTER> to quit)\n");
@@ -216,12 +219,11 @@ main(int argc, char **argv) {
 
                 switch (usrin[1]) {
                     case 'q':
-                        write(fd[1], "quit", sizeof("quit"));
+                        dprintf(fd[1],"quit\n");
                         break;
                     case 'm':
                         while (isspace(*cmd_val)) cmd_val++;
-                        dprintf(fd[1], "privmsg #%s :%-*s", \
-                            chan, CMAX - strlen(chan) - 11, cmd_val);
+                        dprintf(fd[1], "privmsg #%s :%s", chan, cmd_val);
                         break;
                 }
             }
