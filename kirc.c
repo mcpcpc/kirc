@@ -203,7 +203,6 @@ main(int argc, char **argv) {
     }
     else {
         char usrin[CMAX];
-        char cmd = '\n';
 
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             while (!kbhit() && waitpid(pid, NULL, WNOHANG) == 0) {
@@ -214,9 +213,8 @@ main(int argc, char **argv) {
 
             if (usrin[0] == ':' && usrin[1]) {
                 char *cmd_val = &usrin[2];
-                cmd = usrin[1];
 
-                switch (cmd) {
+                switch (usrin[1]) {
                     case 'q':
                         write(fd[1], "quit", sizeof("quit"));
                         break;
