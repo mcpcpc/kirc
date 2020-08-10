@@ -189,7 +189,7 @@ main(int argc, char **argv) {
 
     if (pid == 0) {
         int  sl;
-        char u[BUFF];
+        char u[CMAX];
 
         con();
 
