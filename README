@@ -11,24 +11,23 @@ result is a portable <250 sloc application that has no dependencies other
 than a C99 compiler.
 
 
-TODO
-----
-
-- [ ] capture CTRL-C for safer child process shutdown
-- [ ] better color default color scheme
-- [ ] dynamic word wrap based on column width
-- [ ] additional shortcut keys
-- [ ] fix default arrow key and backspace behavior
-
-
 FEATURES
 --------
 
 - automatic host PING response.
+- automatic word wrapping based on default (or user defined) widths.
 - vi-like shortcuts:
 
-  :m <message> send a message to the connected channel
-  :q           close the host connection and quit kirc
+  :m <message>                send a message to the current channel
+  :M <nick|channel> <message> send a message to a specified nick or channel
+  :n <message>                send a message to NickServ
+  :j <channel>                join a specified channel
+  :p <channel>                leave a specified channel
+  :q                          close the host connection and quit kirc
+
+- Color scheme definition via ANSI 8-bit colors [1]. Therefore, one could
+  theoretically achieve uniform color definition across all shell applications
+  and tools.
 
 
 INSTALLATION
@@ -45,7 +44,8 @@ Building and installing from source:
 USAGE
 -----
 
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-k password] [-v|V]
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-k password] [-w
+columns] [-W columns] [-v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
 -c     channel name (default: '#kisslinux')
@@ -53,3 +53,27 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-k password] [-v|V]
 -k     user password
 -v     version information
 -V     verbose output (e.g. raw stream)
+-w     maximum width of the printed left column (default: '10')
+-W     maximum width of the entire printed stream (default '82')
+
+
+CUSTOMIZATION
+-------------
+
+- Regarding the behavior of the '-W' and '-w' arguments, these are intended to
+  allow the user to customize the "look abd feel" of the IRC stream. By fault,
+  kirc will only print the first 10 characters (as defined by the '-w' argument)
+  of any given nick.  this also sets the maximum character and word wrapping
+  width of the printed message. For example, any printed character or word
+  exceeding the defined '-W' argument will automatically be printed to a new
+  line, offset by '-w' plus 2 characters (which are the ":" and " " printed
+  after the nick in the left column). Therefore, assuming that the default
+  values are being used, an IRC message could never exceed 80 printed characters
+  before word wrapping.
+
+
+REFERENCES
+----------
+
+[0] https://tools.ietf.org/html/rfc2812
+[1] https://en.wikipedia.org/wiki/ANSI_escape_code

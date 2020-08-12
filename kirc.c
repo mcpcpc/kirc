@@ -12,12 +12,12 @@
 #include <termios.h>
 
 #define BUFF 512                        /* buffer size (see RFC 2812)         */
-#define CMAX 92                         /* max number of columns              */
-#define GUTL 10                         /* left gutter width and alignment    */
 
 static int  conn;                       /* socket connection                  */
 static char sbuf[BUFF];                 /* string buffer                      */
 static int  verb  = 0;                  /* verbose output (e.g. raw stream)   */
+static int  cmax  = 82;
+static int  gutl  = 10;
 static char *host = "irc.freenode.org"; /* irc host address                   */
 static char *chan = "kisslinux";        /* channel                            */
 static char *port = "6667";             /* port                               */
@@ -55,7 +55,7 @@ raw(char *fmt, ...) {
     vsnprintf(sbuf, BUFF, fmt, ap);
     va_end(ap);
 
-    if (verb) printf("<< \x1b[33m%s\x1b[0m", sbuf);
+    if (verb) printf("<< %s", sbuf);
 
     write(conn, sbuf, strlen(sbuf));
 }
@@ -82,7 +82,7 @@ con(void) {
 static void
 printw(const char *format, ...) {
 
-    int     s1 = 0, s2, i, o;
+    int     s1 = 0, s2, len, i;
     va_list argptr;
     char   line[BUFF + 1];
 
@@ -90,24 +90,25 @@ printw(const char *format, ...) {
     vsnprintf(line, BUFF + 1, format, argptr);
     va_end(argptr);
 
-    if (strlen(line) <= CMAX) printf("%s", line);
-    else if (strlen(line) > CMAX) {
+    len = strlen(line);
+    if (len <= cmax + gutl) printf("%s", &line[0]);
+    else if (len > cmax + gutl) {
 
-        for (i = 0; i < CMAX; i++) {
-            if (line[i] == ' ') s1 = i;
-            if (i == CMAX - 1) printf("%-*.*s\n", s1, s1, line);
+        for (i = gutl; i < cmax + gutl; i++) {
+            if (isspace(line[i])) s1 = i;
+            if (i == cmax + gutl - 1) printf("%-*.*s\n", s1, s1, &line[0]);
         }
 
-        s2 = o = s1;
+        s2 = s1;
 
         for (i = s1; line[i] != '\0'; i++) {
-            if (line[i] == ' ') s2 = i;
-            if ((i - o) == (CMAX - GUTL)) {
-                printf("%*s %-*.*s\n", GUTL, " ", s2 - o, s2 - o, &line[o + 1]);
-                o = i = s2;
+            if (isspace(line[i])) s2 = i;
+            if ((i - s1) == (cmax - gutl)) {
+                printf("%*s %-*.*s\n", gutl, "", s2 - s1, s2 - s1, &line[s1 + 1]);
+                s1 = s2;
             }
             else if (line[i + 1] == '\0') {
-                printf("%*s %-*.*s", GUTL, " ", i - o, i - o, &line[o + 1]);
+                printf("%*s %-*.*s", gutl, "", i - s1, i - s1, &line[s1 + 1]);
             }
         }
     }
@@ -128,7 +129,7 @@ pars(int sl, char *buf) {
             buf_c[o + 1] = '\0';
             o = -1;
 
-            if (verb) printf(">> \x1b[33m%s\x1b[0m", buf_c);
+            if (verb) printf(">> %s", buf_c);
 
             if (!strncmp(buf_c, "PING", 4)) {
                 buf_c[1] = 'O';
@@ -143,15 +144,13 @@ pars(int sl, char *buf) {
                 if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
 
                 if (!strncmp(ltr, "QUIT", 4)) {
-                    printw("%*.*s \x1b[34;1m%s\x1b[0m left %s\n", \
-                        GUTL, GUTL, "<--", nic, cha);
+                    printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
                 }
                 else if (!strncmp(ltr, "JOIN", 4)) {
-                    printw("%*.*s \x1b[32;1m%s\x1b[0m joined %s\n", \
-                        GUTL, GUTL, "-->", nic, cha);
+                    printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
                 }
                 else {
-                    printw("\x1b[1m%*.*s\x1b[0m %s\n", GUTL, GUTL, nic, msg);
+                    printw("\x1b[33;1m%*.*s\x1b[0m %s\n", gutl, gutl, nic, msg);
                 }
             }
         }
@@ -163,11 +162,14 @@ main(int argc, char **argv) {
 
     int fd[2], cval;
 
-    while ((cval = getopt(argc, argv, "s:p:n:k:c:vV")) != -1) {
+
+    while ((cval = getopt(argc, argv, "s:p:n:k:c:w:W:vV")) != -1) {
         switch (cval) {
             case 'v' : puts("kirc 0.0.1"); break;
             case 'V' : verb = 1; break;
             case 's' : host = optarg; break;
+            case 'w' : gutl = atoi(optarg); break;
+            case 'W' : cmax = atoi(optarg); break;
             case 'p' : port = optarg; break;
             case 'n' : nick = optarg; break;
             case 'k' : pass = optarg; break;
@@ -189,46 +191,64 @@ main(int argc, char **argv) {
     pid_t pid = fork();
 
     if (pid == 0) {
-        int  sl, i, j;
-        char u[CMAX];
+        int  sl, i;
+        char u[cmax];
 
         con();
 
         while ((sl = read(conn, sbuf, BUFF))) {
             pars(sl, sbuf);
-            if (read(fd[0], u, CMAX) > 0) {
+            if (read(fd[0], u, cmax) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
-                for (j = i; j < CMAX; j++) u[j] = ' ';
-                if (!strstr(u, "WAIT_SIG")) raw("%-*.*s\r\n", i, i, u);
+                if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
             }
         }
-        printf("(press <ENTER> to quit)\n");
+        printf("%*s \x1b[31mpress <RETURN> key to quit...\x1b[0m", gutl, " ");
     }
     else {
-        char usrin[CMAX];
+        char usrin[cmax], val1[cmax], val2[20];
 
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             while (!kbhit() && waitpid(pid, NULL, WNOHANG) == 0) {
-                write(fd[1], "WAIT_SIG", CMAX);
+                dprintf(fd[1], ":\n");
             }
 
-            fgets(usrin, CMAX, stdin);
+            fgets(usrin, cmax, stdin);
 
-            if (usrin[0] == ':' && usrin[1]) {
-                char *cmd_val = &usrin[2];
-
+            if (usrin[0] == ':') {
                 switch (usrin[1]) {
                     case 'q':
                         dprintf(fd[1],"quit\n");
                         break;
                     case 'm':
-                        while (isspace(*cmd_val)) cmd_val++;
-                        dprintf(fd[1], "privmsg #%s :%s", chan, cmd_val);
+                        sscanf(usrin, ":m %[^\n]\n", val1);
+                        dprintf(fd[1], "privmsg #%s :%s\n", chan, val1);
+                        break;
+                    case 'n':
+                        sscanf(usrin, ":n %[^\n]\n", val1);
+                        dprintf(fd[1], "privmsg nickserv :%s\n", val1);
+                        break;
+                    case 'j':
+                        sscanf(usrin, ":j %[^\n]\n", val1);
+                        dprintf(fd[1], "join %s\n", val1);
+                        break;
+                    case 'p':
+                        sscanf(usrin, ":p %[^\n]\n", val1);
+                        dprintf(fd[1], "part %s\n", val1);
+                        break;
+                    case 'M':
+                        sscanf(usrin, ":M %s %[^\n]\n", val2, val1);
+                        dprintf(fd[1], "privmsg %s :%s\n", val2, val1);
+                        break;
+                    case '\n':
+                        break;
+                    default:
+                        printf("\x1b[31munknown ':%c' \x1b[0m\n", usrin[1]);
                         break;
                 }
             }
             else {
-                write(fd[1], usrin, CMAX);
+                dprintf(fd[1], "%s", usrin);
             }
             fflush(stdout);
         }
