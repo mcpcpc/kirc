@@ -200,7 +200,10 @@ main(int argc, char **argv) {
             pars(sl, sbuf);
             if (read(fd[0], u, cmax) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
-                if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
+                if (u[0] != ':') {
+				    raw("%-*.*s\r\n", i, i, u);
+                    printf("\x1b[1A\x1b[K\x1b[36m%-*.*s\x1b[0m\n", i, i, u);
+				}
             }
         }
         printf("%*s \x1b[31mpress <RETURN> key to quit...\x1b[0m", gutl, " ");

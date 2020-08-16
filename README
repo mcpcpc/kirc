@@ -36,9 +36,14 @@ INSTALLATION
 Building and installing from source:
 
     git clone https://github.com/mcpcpc/kirc.git
-	cd kirc
-	make
-	make install
+    tcd kirc
+    make
+    make install
+
+Building and installing using KISS Linux Community repository [2]:
+
+    kiss b kirc
+    kiss i kirc
 
 
 USAGE
@@ -77,3 +82,4 @@ REFERENCES
 
 [0] https://tools.ietf.org/html/rfc2812
 [1] https://en.wikipedia.org/wiki/ANSI_escape_code
+[2] https://github.com/kisslinux/community
