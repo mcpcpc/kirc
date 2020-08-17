@@ -76,37 +76,32 @@ con(void) {
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
 
+/* printf, using hanging indent and greedy algortihm for word wrapping */
 static void
 printw(const char *format, ...) {
 
-    int     s1 = 0, s2, len, i;
     va_list argptr;
-    char   line[BUFF + 1];
+    char    *tok, line[BUFF + 1];
+    int     len, i, s;
 
     va_start(argptr, format);
     vsnprintf(line, BUFF + 1, format, argptr);
     va_end(argptr);
+    /* need to pad first tok since strtok removes duplicate whitespace */
+    for (i = 0; isspace(line[i]); i++) printf("%c", line[i]);
 
-    len = strlen(line);
-    if (len <= cmax + gutl) printf("%s", &line[0]);
-    else if (len > cmax + gutl) {
+    s = cmax + gutl - (i - 1);
+    //s = cmax - (i - 1);
 
-        for (i = gutl; i < cmax + gutl; i++) {
-            if (isspace(line[i])) s1 = i;
-            if (i == cmax + gutl - 1) printf("%-*.*s\n", s1, s1, &line[0]);
+    for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
+        len = strlen(tok);
+        if ((len + 1) > s) {
+            printf("\n%*.s%s ", gutl + 2, "", tok);
+            s = cmax - (gutl + 2 + len);
         }
-
-        s2 = s1;
-
-        for (i = s1; line[i] != '\0'; i++) {
-            if (isspace(line[i])) s2 = i;
-            if ((i - s1) == (cmax - gutl)) {
-                printf("%*s %-*.*s\n", gutl, "", s2 - s1, s2 - s1, &line[s1 + 1]);
-                s1 = s2;
-            }
-            else if (line[i + 1] == '\0') {
-                printf("%*s %-*.*s", gutl, "", i - s1, i - s1, &line[s1 + 1]);
-            }
+        else {
+            printf("%s ", tok);
+            s = s - (len + 1);
         }
     }
 }
@@ -137,7 +132,6 @@ pars(int sl, char *buf) {
                 sscanf(buf_c, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
                 sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
                 sscanf(cmd, "%[^#& ]%s", ltr, cha);
-
                 if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
 
                 if (!strncmp(ltr, "QUIT", 4)) {
@@ -147,7 +141,9 @@ pars(int sl, char *buf) {
                     printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
                 }
                 else {
-                    printw("\x1b[33;1m%*.*s\x1b[0m %s\n", gutl, gutl, nic, msg);
+                    printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
+                        gutl-(strlen(nic) <= gutl ? strlen(nic) : gutl), \
+                        "", gutl, nic, msg);
                 }
             }
         }
