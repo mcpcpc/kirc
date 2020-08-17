@@ -29,7 +29,6 @@ kbhit(void) {
 
     int    byteswaiting;
     struct termios term;
-    term.c_cc[VERASE] = 127;
     tcgetattr(0, &term);
     fd_set fds;
     struct timespec ts = {0};
@@ -54,9 +53,7 @@ raw(char *fmt, ...) {
     va_start(ap, fmt);
     vsnprintf(sbuf, BUFF, fmt, ap);
     va_end(ap);
-
     if (verb) printf("<< %s", sbuf);
-
     write(conn, sbuf, strlen(sbuf));
 }
 
@@ -162,7 +159,6 @@ main(int argc, char **argv) {
 
     int fd[2], cval;
 
-
     while ((cval = getopt(argc, argv, "s:p:n:k:c:w:W:vV")) != -1) {
         switch (cval) {
             case 'v' : puts("kirc 0.0.1"); break;
@@ -200,23 +196,27 @@ main(int argc, char **argv) {
             pars(sl, sbuf);
             if (read(fd[0], u, cmax) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
-                if (u[0] != ':') {
-				    raw("%-*.*s\r\n", i, i, u);
-                    printf("\x1b[1A\x1b[K\x1b[36m%-*.*s\x1b[0m\n", i, i, u);
-				}
+                if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
             }
         }
-        printf("%*s \x1b[31mpress <RETURN> key to quit...\x1b[0m", gutl, " ");
+        printf("%*s \x1b[31mpress <RETURN> key to exit\x1b[0m\n", gutl, " ");
     }
     else {
         char usrin[cmax], val1[cmax], val2[20];
+        struct termios tp, save;
+
+        tcgetattr(STDIN_FILENO, &tp);
+        save = tp;
+        tp.c_cc[VERASE] = 127;
 
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             while (!kbhit() && waitpid(pid, NULL, WNOHANG) == 0) {
                 dprintf(fd[1], ":\n");
             }
 
+            tcsetattr(STDIN_FILENO, TCSANOW, &tp);
             fgets(usrin, cmax, stdin);
+            tcsetattr(STDIN_FILENO, TCSANOW, &save);
 
             if (usrin[0] == ':') {
                 switch (usrin[1]) {
