@@ -180,13 +180,13 @@ main(int argc, char **argv) {
 
     if (pid == 0) {
         int  sl, i;
-        char u[cmax];
+        char u[BUFF];
 
         con();
 
         while ((sl = read(conn, sbuf, BUFF))) {
             pars(sl, sbuf);
-            if (read(fd[0], u, cmax) > 0) {
+            if (read(fd[0], u, BUFF) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
                 if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
             }
@@ -194,7 +194,7 @@ main(int argc, char **argv) {
         printf("%*s press <RETURN> key to exit", gutl, " ");
     }
     else {
-        char usrin[cmax], v1[cmax], v2[20], c1;
+        char usrin[BUFF], v1[BUFF-20], v2[20], c1;
         struct termios tp, save;
 
         tcgetattr(STDIN_FILENO, &tp);
@@ -207,7 +207,7 @@ main(int argc, char **argv) {
             }
 
             tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-            fgets(usrin, cmax, stdin);
+            fgets(usrin, BUFF, stdin);
             tcsetattr(STDIN_FILENO, TCSANOW, &save);
 
             if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
