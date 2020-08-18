@@ -194,7 +194,7 @@ main(int argc, char **argv) {
         printf("%*s press <RETURN> key to exit", gutl, " ");
     }
     else {
-        char usrin[cmax], v1[cmax], v2[20];
+        char usrin[cmax], v1[cmax], v2[20], c1;
         struct termios tp, save;
 
         tcgetattr(STDIN_FILENO, &tp);
@@ -210,12 +210,12 @@ main(int argc, char **argv) {
             fgets(usrin, cmax, stdin);
             tcsetattr(STDIN_FILENO, TCSANOW, &save);
 
-            if (usrin[0] == ':') {
-                if (sscanf(usrin, ":%*[M] %s %[^\n]\n", v2, v1) != 3) {
-                    sscanf(usrin, ":%*[njpm] %[^\n]\n", v1);
-                }
+            if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
+                sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
+                sscanf(usrin, ":%[q]\n", &c1) == 1) {
                 switch (usrin[1]) {
                     case 'q': dprintf(fd[1], "quit\n"); break;
+                    case 'Q': dprintf(fd[1], "quit %s\n", v1); break;
                     case 'j': dprintf(fd[1], "join %s\n", v1); break;
                     case 'p': dprintf(fd[1], "part %s\n", v1); break;
                     case 'm': dprintf(fd[1], "privmsg #%s :%s\n", chan, v1); break;

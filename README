@@ -15,7 +15,6 @@ FEATURES
 --------
 
 - automatic host PING response.
-- automatic word wrapping based on default (or user defined) widths.
 - vi-like shortcuts:
 
   :m <message>                send a message to the current channel
@@ -23,9 +22,11 @@ FEATURES
   :n <message>                send a message to NickServ
   :j <channel>                join a specified channel
   :p <channel>                leave a specified channel
-  :q                          close the host connection and quit kirc
+  :Q <message>                send a message and close the host connection
+  :q                          close the host connection
 
-- Color scheme definition via ANSI 8-bit colors [1]. Therefore, one could
+- automatic word wrapping using the greedy algorithm.
+- color scheme definition via ANSI 8-bit colors [1]. Therefore, one could
   theoretically achieve uniform color definition across all shell applications
   and tools.
 
