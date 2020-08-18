@@ -32,7 +32,6 @@ kbhit(void) {
     tcgetattr(0, &term);
     fd_set fds;
     struct timespec ts = {0};
-
     struct termios term2 = term;
 
     term2.c_lflag &= ~ICANON;
@@ -76,7 +75,6 @@ con(void) {
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
 
-/* printf, using hanging indent and greedy algortihm for word wrapping */
 static void
 printw(const char *format, ...) {
 
@@ -87,11 +85,9 @@ printw(const char *format, ...) {
     va_start(argptr, format);
     vsnprintf(line, BUFF + 1, format, argptr);
     va_end(argptr);
-    /* need to pad first tok since strtok removes duplicate whitespace */
     for (i = 0; isspace(line[i]); i++) printf("%c", line[i]);
 
     s = cmax + gutl - (i - 1);
-    //s = cmax - (i - 1);
 
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
         len = strlen(tok);
@@ -109,11 +105,11 @@ printw(const char *format, ...) {
 static void
 pars(int sl, char *buf) {
 
-    char buf_c[BUFF + 1], ltr[200], cha[200], nic[200], hos[200], \
+    int  len, i, o = -1;
+    char buf_c[BUFF + 1], ltr[200], cha[50], nic[200], hos[200], \
          usr[200], cmd[200], msg[200], pre[200];
-    int  o = -1;
 
-    for (int i = 0; i < sl; i++) {
+    for (i = 0; i < sl; i++) {
         o++;
         buf_c[o] = buf[i];
 
@@ -141,9 +137,9 @@ pars(int sl, char *buf) {
                     printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
                 }
                 else {
+                    len = strlen(nic);
                     printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
-                        gutl-(strlen(nic) <= gutl ? strlen(nic) : gutl), \
-                        "", gutl, nic, msg);
+                        gutl-(len <= gutl ? len : gutl), "", gutl, nic, msg);
                 }
             }
         }
@@ -195,10 +191,10 @@ main(int argc, char **argv) {
                 if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
             }
         }
-        printf("%*s \x1b[31mpress <RETURN> key to exit\x1b[0m\n", gutl, " ");
+        printf("%*s press <RETURN> key to exit", gutl, " ");
     }
     else {
-        char usrin[cmax], val1[cmax], val2[20];
+        char usrin[cmax], v1[cmax], v2[20];
         struct termios tp, save;
 
         tcgetattr(STDIN_FILENO, &tp);
@@ -215,40 +211,21 @@ main(int argc, char **argv) {
             tcsetattr(STDIN_FILENO, TCSANOW, &save);
 
             if (usrin[0] == ':') {
+                if (sscanf(usrin, ":%*[M] %s %[^\n]\n", v2, v1) != 3) {
+                    sscanf(usrin, ":%*[njpm] %[^\n]\n", v1);
+                }
                 switch (usrin[1]) {
-                    case 'q':
-                        dprintf(fd[1],"quit\n");
-                        break;
-                    case 'm':
-                        sscanf(usrin, ":m %[^\n]\n", val1);
-                        dprintf(fd[1], "privmsg #%s :%s\n", chan, val1);
-                        break;
-                    case 'n':
-                        sscanf(usrin, ":n %[^\n]\n", val1);
-                        dprintf(fd[1], "privmsg nickserv :%s\n", val1);
-                        break;
-                    case 'j':
-                        sscanf(usrin, ":j %[^\n]\n", val1);
-                        dprintf(fd[1], "join %s\n", val1);
-                        break;
-                    case 'p':
-                        sscanf(usrin, ":p %[^\n]\n", val1);
-                        dprintf(fd[1], "part %s\n", val1);
-                        break;
-                    case 'M':
-                        sscanf(usrin, ":M %s %[^\n]\n", val2, val1);
-                        dprintf(fd[1], "privmsg %s :%s\n", val2, val1);
-                        break;
-                    case '\n':
-                        break;
-                    default:
-                        printf("\x1b[31munknown ':%c' \x1b[0m\n", usrin[1]);
-                        break;
+                    case 'q': dprintf(fd[1], "quit\n"); break;
+                    case 'j': dprintf(fd[1], "join %s\n", v1); break;
+                    case 'p': dprintf(fd[1], "part %s\n", v1); break;
+                    case 'm': dprintf(fd[1], "privmsg #%s :%s\n", chan, v1); break;
+                    case 'n': dprintf(fd[1], "privmsg nickserv :%s\n", v1); break;
+                    case 'M': dprintf(fd[1], "privmsg %s :%s\n", v2, v1); break;
+                    case '?': break;
                 }
             }
-            else {
-                dprintf(fd[1], "%s", usrin);
-            }
+            else dprintf(fd[1], "%s", usrin);
+
             fflush(stdout);
         }
     }
