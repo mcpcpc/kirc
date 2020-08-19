@@ -22,7 +22,9 @@ static char *host = "irc.freenode.org"; /* irc host address                   */
 static char *chan = "kisslinux";        /* channel                            */
 static char *port = "6667";             /* port                               */
 static char *nick = NULL;               /* nickname                           */
-static char *pass = NULL;               /* password                           */
+static char *pass = NULL;               /* server password                    */
+static char *user = NULL;               /* server username                    */
+static char *real = NULL;               /* real name                          */
 
 static int
 kbhit(void) {
@@ -69,7 +71,9 @@ con(void) {
     connect(conn, res->ai_addr, res->ai_addrlen);
 
     if (nick) raw("NICK %s\r\n", nick);
-    if (nick) raw("USER %s - - :%s\r\n", nick, nick);
+    if (user && real) raw("USER %s - - :%s\r\n", user, real);
+    if (user && !real && nick) raw("USER %s - - :%s\r\n", user, nick);
+    if (!user && !real && nick) raw("USER %s - - :%s\r\n", nick, nick);
     if (pass) raw("PASS %s\r\n", pass);
 
     fcntl(conn, F_SETFL, O_NONBLOCK);
@@ -151,7 +155,7 @@ main(int argc, char **argv) {
 
     int fd[2], cval;
 
-    while ((cval = getopt(argc, argv, "s:p:n:k:c:w:W:vV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:n:k:c:u:r:w:W:vV")) != -1) {
         switch (cval) {
             case 'v' : puts("kirc 0.0.1"); break;
             case 'V' : verb = 1; break;
@@ -159,6 +163,8 @@ main(int argc, char **argv) {
             case 'w' : gutl = atoi(optarg); break;
             case 'W' : cmax = atoi(optarg); break;
             case 'p' : port = optarg; break;
+            case 'r' : real = optarg; break;
+            case 'u' : user = optarg; break;
             case 'n' : nick = optarg; break;
             case 'k' : pass = optarg; break;
             case 'c' : chan = optarg; break;
