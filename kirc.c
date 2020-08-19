@@ -16,8 +16,8 @@
 static int  conn;                       /* socket connection                  */
 static char sbuf[BUFF];                 /* string buffer                      */
 static int  verb  = 0;                  /* verbose output (e.g. raw stream)   */
-static int  cmax  = 82;
-static int  gutl  = 10;
+static int  cmax  = 80;                 /* max number of characters per line  */
+static int  gutl  = 10;                 /* max character width of left column */
 static char *host = "irc.freenode.org"; /* irc host address                   */
 static char *chan = "kisslinux";        /* channel                            */
 static char *port = "6667";             /* port                               */
@@ -219,14 +219,14 @@ main(int argc, char **argv) {
             if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
                 sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
                 sscanf(usrin, ":%[q]\n", &c1) == 1) {
-                switch (usrin[1]) {
+                switch (c1) {
                     case 'q': dprintf(fd[1], "quit\n"); break;
                     case 'Q': dprintf(fd[1], "quit %s\n", v1); break;
                     case 'j': dprintf(fd[1], "join %s\n", v1); break;
                     case 'p': dprintf(fd[1], "part %s\n", v1); break;
                     case 'm': dprintf(fd[1], "privmsg #%s :%s\n", chan, v1); break;
-                    case 'n': dprintf(fd[1], "privmsg nickserv :%s\n", v1); break;
-                    case 'M': dprintf(fd[1], "privmsg %s :%s\n", v2, v1); break;
+                    case 'n': dprintf(fd[1], "privmsg nickserv :%s\n", v1);  break;
+                    case 'M': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);    break;
                     case '?': break;
                 }
             }
