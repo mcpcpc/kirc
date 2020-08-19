@@ -37,7 +37,7 @@ INSTALLATION
 Building and installing from source:
 
     git clone https://github.com/mcpcpc/kirc.git
-    tcd kirc
+    cd kirc
     make
     make install
 
@@ -50,17 +50,19 @@ Building and installing using KISS Linux Community repository [2]:
 USAGE
 -----
 
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-k password] [-w
-columns] [-W columns] [-v|V]
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name]
+[-u username] [-k password] [-w columns] [-W columns] [-v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
 -c     channel name (default: '#kisslinux')
--n     user nickname
--k     user password
+-n     nickname (required)
+-u     server username (optional)
+-k     server password (optional)
+-r     real name (optional)
 -v     version information
 -V     verbose output (e.g. raw stream)
 -w     maximum width of the printed left column (default: '10')
--W     maximum width of the entire printed stream (default '82')
+-W     maximum width of the entire printed stream (default '80')
 
 
 CUSTOMIZATION
@@ -76,6 +78,8 @@ CUSTOMIZATION
   after the nick in the left column). Therefore, assuming that the default
   values are being used, an IRC message could never exceed 80 printed characters
   before word wrapping.
+- In order to connect to an IRC server, a nickname must be specified. Server 
+  username (-u), password (-k) and real name (-r) are optional. 
 
 
 REFERENCES

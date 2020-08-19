@@ -92,11 +92,11 @@ printw(const char *format, ...) {
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
         len = strlen(tok);
         if ((len + 1) > s) {
-            printf("\n%*.s%s ", gutl + 2, "", tok);
+            printf("\n%*.s%s", gutl + 2, "", tok);
             s = cmax - (gutl + 2 + len);
         }
         else {
-            printf("%s ", tok);
+            printf(" %s", tok);
             s = s - (len + 1);
         }
     }
@@ -191,7 +191,7 @@ main(int argc, char **argv) {
                 if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
             }
         }
-        printf("%*s press <RETURN> key to exit", gutl, " ");
+        printf("%*s<<press RETURN key to exit>>", gutl+2, "");
     }
     else {
         char usrin[BUFF], v1[BUFF-20], v2[20], c1;
