@@ -14,7 +14,6 @@
 #define BUFF 512                        /* buffer size (see RFC 2812)         */
 
 static int  conn;                       /* socket connection                  */
-static char sbuf[BUFF];                 /* string buffer                      */
 static int  verb  = 0;                  /* verbose output (e.g. raw stream)   */
 static int  cmax  = 80;                 /* max number of characters per line  */
 static int  gutl  = 10;                 /* max character width of left column */
@@ -47,19 +46,19 @@ kbhit(void) {
 }
 
 static void
-raw(char *fmt, ...) {
+raw(char s[], char *fmt, ...) {
 
     va_list ap;
 
     va_start(ap, fmt);
-    vsnprintf(sbuf, BUFF, fmt, ap);
+    vsnprintf(s, BUFF, fmt, ap);
     va_end(ap);
-    if (verb) printf("<< %s", sbuf);
-    write(conn, sbuf, strlen(sbuf));
+    if (verb) printf("<< %s", s);
+    write(conn, s, strlen(s));
 }
 
 static void
-con(void) {
+con(char s[]) {
 
     struct addrinfo *res, hints = {
         .ai_family = AF_INET,
@@ -70,11 +69,11 @@ con(void) {
     conn = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     connect(conn, res->ai_addr, res->ai_addrlen);
 
-    if (nick) raw("NICK %s\r\n", nick);
-    if (user && real) raw("USER %s - - :%s\r\n", user, real);
-    if (user && !real && nick) raw("USER %s - - :%s\r\n", user, nick);
-    if (!user && !real && nick) raw("USER %s - - :%s\r\n", nick, nick);
-    if (pass) raw("PASS %s\r\n", pass);
+    if (nick) raw(s, "NICK %s\r\n", nick);
+    if (user && real) raw(s, "USER %s - - :%s\r\n", user, real);
+    if (user && !real && nick) raw(s, "USER %s - - :%s\r\n", user, nick);
+    if (!user && !real && nick) raw(s, "USER %s - - :%s\r\n", nick, nick);
+    if (pass) raw(s, "PASS %s\r\n", pass);
 
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
@@ -107,7 +106,7 @@ printw(const char *format, ...) {
 }
 
 static void
-pars(int sl, char *buf) {
+pars(int sl, char *s) {
 
     int  len, i, o = -1;
     char buf_c[BUFF + 1], ltr[200], cha[50], nic[200], hos[200], \
@@ -115,9 +114,9 @@ pars(int sl, char *buf) {
 
     for (i = 0; i < sl; i++) {
         o++;
-        buf_c[o] = buf[i];
+        buf_c[o] = s[i];
 
-        if ((i > 0 && buf[i] == '\n' && buf[i - 1] == '\r') || o == BUFF) {
+        if ((i > 0 && s[i] == '\n' && s[i - 1] == '\r') || o == BUFF) {
             buf_c[o + 1] = '\0';
             o = -1;
 
@@ -125,14 +124,14 @@ pars(int sl, char *buf) {
 
             if (!strncmp(buf_c, "PING", 4)) {
                 buf_c[1] = 'O';
-                raw(buf_c);
+                raw(s, buf_c);
             }
 
             else if (buf_c[0] == ':') {
                 sscanf(buf_c, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
                 sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
                 sscanf(cmd, "%[^#& ]%s", ltr, cha);
-                if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
+                if (!strncmp(ltr, "001", 3)) raw(s, "JOIN #%s\r\n", chan);
 
                 if (!strncmp(ltr, "QUIT", 4)) {
                     printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
@@ -187,14 +186,15 @@ main(int argc, char **argv) {
     if (pid == 0) {
         int  sl, i;
         char u[BUFF];
+		char s[BUFF];
 
-        con();
+        con(s);
 
-        while ((sl = read(conn, sbuf, BUFF))) {
-            pars(sl, sbuf);
+        while ((sl = read(conn, s, BUFF))) {
+            pars(sl, s);
             if (read(fd[0], u, BUFF) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
-                if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
+                if (u[0] != ':') raw(s, "%-*.*s\r\n", i, i, u);
             }
         }
         printf("%*s<<press RETURN key to exit>>", gutl+2, "");
