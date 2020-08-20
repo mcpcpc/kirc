@@ -46,7 +46,8 @@ kbhit(void) {
 }
 
 static void
-raw(char s[], char *fmt, ...) {
+raw(char *s, char *fmt, ...) {
+//raw(char s[], char *fmt, ...) {
 
     va_list ap;
 
@@ -58,7 +59,8 @@ raw(char s[], char *fmt, ...) {
 }
 
 static void
-con(char s[]) {
+//con(char s[]) {
+con(char *s) {
 
     struct addrinfo *res, hints = {
         .ai_family = AF_INET,
@@ -185,8 +187,7 @@ main(int argc, char **argv) {
 
     if (pid == 0) {
         int  sl, i;
-        char u[BUFF];
-		char s[BUFF];
+        char u[BUFF], s[BUFF];
 
         con(s);
 
