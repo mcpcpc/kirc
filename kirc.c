@@ -47,7 +47,6 @@ kbhit(void) {
 
 static void
 raw(char *s, char *fmt, ...) {
-//raw(char s[], char *fmt, ...) {
 
     va_list ap;
 
@@ -59,7 +58,6 @@ raw(char *s, char *fmt, ...) {
 }
 
 static void
-//con(char s[]) {
 con(char *s) {
 
     struct addrinfo *res, hints = {
@@ -151,6 +149,21 @@ pars(int sl, char *s) {
     }
 }
 
+static char *
+input_handler(size_t size) {
+
+    char *usrin = malloc(sizeof(char) * (size + 1));
+    struct termios tp, save;
+
+    tcgetattr(STDIN_FILENO, &tp);
+    save = tp;
+    tp.c_cc[VERASE] = 127;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tp);
+    fgets(usrin, size, stdin);
+    tcsetattr(STDIN_FILENO, TCSANOW, &save);
+    return usrin;
+}
+
 int
 main(int argc, char **argv) {
 
@@ -202,20 +215,13 @@ main(int argc, char **argv) {
     }
     else {
         char usrin[BUFF], v1[BUFF-20], v2[20], c1;
-        struct termios tp, save;
-
-        tcgetattr(STDIN_FILENO, &tp);
-        save = tp;
-        tp.c_cc[VERASE] = 127;
 
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             while (!kbhit() && waitpid(pid, NULL, WNOHANG) == 0) {
                 dprintf(fd[1], ":\n");
             }
 
-            tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-            fgets(usrin, BUFF, stdin);
-            tcsetattr(STDIN_FILENO, TCSANOW, &save);
+            strcpy(usrin, input_handler(BUFF));
 
             if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
                 sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
@@ -232,8 +238,6 @@ main(int argc, char **argv) {
                 }
             }
             else dprintf(fd[1], "%s", usrin);
-
-            fflush(stdout);
         }
     }
     return 0;
