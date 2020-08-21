@@ -109,24 +109,25 @@ printw(const char *format, ...) {
 
     va_list argptr;
     char    *tok, line[IRC_MSG_MAX + 1];
-    int     len, i, s;
+    int     i, wordwidth, spaceleft, spacewidth = 1;
 
     va_start(argptr, format);
     vsnprintf(line, IRC_MSG_MAX + 1, format, argptr);
     va_end(argptr);
+
     for (i = 0; isspace(line[i]); i++) printf("%c", line[i]);
 
-    s = cmax + gutl - (i - 1);
+    spaceleft = cmax + gutl - (i - 1);
 
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
-        len = strlen(tok);
-        if ((len + 1) > s) {
+        wordwidth = strlen(tok);
+        if ((wordwidth + spacewidth) > spaceleft) {
             printf("\n%*.s%s", gutl + 2, "", tok);
-            s = cmax - (gutl + 2 + len);
+            spaceleft = cmax - (gutl + 2 + wordwidth);
         }
         else {
             printf(" %s", tok);
-            s = s - (len + 1);
+            spaceleft = spaceleft - (wordwidth + spacewidth);
         }
     }
 }
@@ -223,34 +224,34 @@ main(int argc, char **argv) {
                 if (u[0] != ':') raw(s, "%-*.*s\r\n", i, i, u);
             }
         }
-        fprintf(stderr, "%*s  <<irc server connection closed>>", gutl, "");
     }
     else {
         char usrin[IRC_MSG_MAX], v1[IRC_MSG_MAX-20], v2[20], c1;
 
         while (waitpid(pid, NULL, WNOHANG) == 0) {
-            while (!kbhit() && waitpid(pid, NULL, WNOHANG) == 0) {
-                dprintf(fd[1], ":\n");
-            }
+            if (!kbhit()) dprintf(fd[1], ":\n");
+            else {
+                strcpy(usrin, input_handler(IRC_MSG_MAX));
 
-            strcpy(usrin, input_handler(IRC_MSG_MAX));
-
-            if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
-                sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
-                sscanf(usrin, ":%[q]\n", &c1) == 1) {
-                switch (c1) {
-                    case 'q': dprintf(fd[1], "quit\n"); break;
-                    case 'Q': dprintf(fd[1], "quit %s\n", v1); break;
-                    case 'j': dprintf(fd[1], "join %s\n", v1); break;
-                    case 'p': dprintf(fd[1], "part %s\n", v1); break;
-                    case 'm': dprintf(fd[1], "privmsg #%s :%s\n", chan, v1); break;
-                    case 'n': dprintf(fd[1], "privmsg nickserv :%s\n", v1);  break;
-                    case 'M': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);    break;
-                    case '?': break;
+                if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
+                    sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
+                    sscanf(usrin, ":%[q]\n", &c1) == 1) {
+                    switch (c1) {
+                        case 'q': dprintf(fd[1], "quit\n"); break;
+                        case 'Q': dprintf(fd[1], "quit %s\n", v1); break;
+                        case 'j': dprintf(fd[1], "join %s\n", v1); break;
+                        case 'p': dprintf(fd[1], "part %s\n", v1); break;
+                        case 'm': dprintf(fd[1], "privmsg #%s :%s\n", chan, v1); break;
+                        case 'n': dprintf(fd[1], "privmsg nickserv :%s\n", v1);  break;
+                        case 'M': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);    break;
+                        case '?': break;
+                    }
                 }
+                else dprintf(fd[1], "%s", usrin);
             }
-            else dprintf(fd[1], "%s", usrin);
         }
+
+        fprintf(stderr, "%*s  <<irc server connection closed>>\n", gutl, "");
     }
     return 0;
 }
