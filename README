@@ -7,7 +7,7 @@ BACKGROUND
 ----------
 
 After having tried multiple IRC clients, I decided to develope my own. The 
-result is a portable <250 sloc application that has no dependencies other 
+result is a portable <300 sloc application that has no dependencies other 
 than a C99 compiler.
 
 
@@ -51,7 +51,7 @@ USAGE
 -----
 
 usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name]
-[-u username] [-k password] [-w columns] [-W columns] [-v|V]
+[-u username] [-k password] [-w columns] [-W columns] [-o path] [-v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
 -c     channel name (default: '#kisslinux')
@@ -61,6 +61,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name]
 -r     real name (optional)
 -v     version information
 -V     verbose output (e.g. raw stream)
+-o     output path to log irc stream
 -w     maximum width of the printed left column (default: '10')
 -W     maximum width of the entire printed stream (default '80')
 

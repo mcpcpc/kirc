@@ -26,6 +26,15 @@ static char * nick = NULL;               /* nickname */
 static char * pass = NULL;               /* server password */
 static char * user = NULL;               /* server user name */
 static char * real = NULL;               /* server user real name */
+static char * olog = NULL;               /* log irc stream parh */
+
+/* append string to specified file path */
+static void
+append_to_file(char *str) {
+    FILE *out = fopen(olog, "a");  
+    fprintf(out, "%s", str);  
+    fclose(out);
+}
 
 /* wait for keyboard press to interrupt stream */
 static int
@@ -76,6 +85,7 @@ raw(char *cmd_str, char *fmt, ...) {
     va_end(ap);
 
     if (verb) printf("<< %s", cmd_str);
+    if (olog) append_to_file(cmd_str);
 
     write(conn, cmd_str, strlen(cmd_str));
 }
@@ -149,6 +159,7 @@ parser(int sl, char *s) {
             o = -1;
 
             if (verb) printf(">> %s", buf_c);
+            if (olog) append_to_file(buf_c);
 
             if (!strncmp(buf_c, "PING", 4)) {
                 buf_c[1] = 'O';
@@ -182,7 +193,7 @@ main(int argc, char **argv) {
 
     int fd[2], cval;
 
-    while ((cval = getopt(argc, argv, "s:p:n:k:c:u:r:w:W:vV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:w:W:vV")) != -1) {
         switch (cval) {
             case 'v' : puts("kirc 0.0.2"); break;
             case 'V' : verb = 1; break;
@@ -192,6 +203,7 @@ main(int argc, char **argv) {
             case 'p' : port = optarg; break;
             case 'r' : real = optarg; break;
             case 'u' : user = optarg; break;
+            case 'o' : olog = optarg; break;
             case 'n' : nick = optarg; break;
             case 'k' : pass = optarg; break;
             case 'c' : chan = optarg; break;
