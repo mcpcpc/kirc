@@ -30,9 +30,9 @@ static char * olog = NULL;               /* log irc stream parh */
 
 /* append string to specified file path */
 static void
-append_to_file(char *str) {
-    FILE *out = fopen(olog, "a");  
-    fprintf(out, "%s", str);  
+printa(char *str) {
+    FILE *out = fopen(olog, "a");
+    fprintf(out, "%s", str);
     fclose(out);
 }
 
@@ -85,7 +85,7 @@ raw(char *cmd_str, char *fmt, ...) {
     va_end(ap);
 
     if (verb) printf("<< %s", cmd_str);
-    if (olog) append_to_file(cmd_str);
+    if (olog) printa(cmd_str);
 
     write(conn, cmd_str, strlen(cmd_str));
 }
@@ -125,6 +125,8 @@ printw(const char *format, ...) {
     vsnprintf(line, IRC_MSG_MAX + 1, format, argptr);
     va_end(argptr);
 
+    if (olog) printa(line);
+
     for (i = 0; isspace(line[i]); i++) printf("%c", line[i]);
 
     spaceleft = cmax + gutl - (i - 1);
@@ -159,7 +161,6 @@ parser(int sl, char *s) {
             o = -1;
 
             if (verb) printf(">> %s", buf_c);
-            if (olog) append_to_file(buf_c);
 
             if (!strncmp(buf_c, "PING", 4)) {
                 buf_c[1] = 'O';
