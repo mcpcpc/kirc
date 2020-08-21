@@ -1,3 +1,4 @@
+/* See LICENSE file for license details. */
 #define _POSIX_C_SOURCE 200809L
 #include <ctype.h>
 #include <stdarg.h>
@@ -11,20 +12,21 @@
 #include <sys/wait.h>
 #include <termios.h>
 
-#define BUFF 512                        /* buffer size (see RFC 2812)         */
+#define BUFF 512                         /* buffer size (see RFC 2812) */
 
-static int  conn;                       /* socket connection                  */
-static int  verb  = 0;                  /* verbose output (e.g. raw stream)   */
-static int  cmax  = 80;                 /* max number of characters per line  */
-static int  gutl  = 10;                 /* max character width of left column */
-static char *host = "irc.freenode.org"; /* irc host address                   */
-static char *chan = "kisslinux";        /* channel                            */
-static char *port = "6667";             /* port                               */
-static char *nick = NULL;               /* nickname                           */
-static char *pass = NULL;               /* server password                    */
-static char *user = NULL;               /* server username                    */
-static char *real = NULL;               /* real name                          */
+static int    conn;                      /* socket connection */
+static int    verb  = 0;                 /* verbose output (e.g. raw stream) */
+static int    cmax  = 80;                /* max number of chars per line */
+static int    gutl  = 10;                /* max char width of left column */
+static char * host = "irc.freenode.org"; /* irc host address */
+static char * chan = "kisslinux";        /* channel */
+static char * port = "6667";             /* server port */
+static char * nick = NULL;               /* nickname */
+static char * pass = NULL;               /* server password */
+static char * user = NULL;               /* server user name */
+static char * real = NULL;               /* server user real name */
 
+/* wait for keyboard press to interrupt stream */
 static int
 kbhit(void) {
 
@@ -45,6 +47,24 @@ kbhit(void) {
     return byteswaiting > 0;
 }
 
+/* handle keyboard strokes for command input */
+static char *
+input_handler(size_t size) {
+
+    char *usrin = malloc(sizeof(char) * (size + 1));
+    struct termios tp, save;
+
+    tcgetattr(STDIN_FILENO, &tp);
+    save = tp;
+    tp.c_cc[VERASE] = 127;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tp);
+    fgets(usrin, size, stdin);
+    tcsetattr(STDIN_FILENO, TCSANOW, &save);
+
+    return usrin;
+}
+
+/* send command to irc server */
 static void
 raw(char *s, char *fmt, ...) {
 
@@ -57,8 +77,9 @@ raw(char *s, char *fmt, ...) {
     write(conn, s, strlen(s));
 }
 
+/* initial irc server connection */
 static void
-con(char *s) {
+irc_init(char *s) {
 
     struct addrinfo *res, hints = {
         .ai_family = AF_INET,
@@ -78,6 +99,7 @@ con(char *s) {
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
 
+/* print formatted irc stream with word wrap and hanging indent  */
 static void
 printw(const char *format, ...) {
 
@@ -105,8 +127,9 @@ printw(const char *format, ...) {
     }
 }
 
+/* parse irc stream */
 static void
-pars(int sl, char *s) {
+parser(int sl, char *s) {
 
     int  len, i, o = -1;
     char buf_c[BUFF + 1], ltr[200], cha[50], nic[200], hos[200], \
@@ -149,21 +172,6 @@ pars(int sl, char *s) {
     }
 }
 
-static char *
-input_handler(size_t size) {
-
-    char *usrin = malloc(sizeof(char) * (size + 1));
-    struct termios tp, save;
-
-    tcgetattr(STDIN_FILENO, &tp);
-    save = tp;
-    tp.c_cc[VERASE] = 127;
-    tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-    fgets(usrin, size, stdin);
-    tcsetattr(STDIN_FILENO, TCSANOW, &save);
-    return usrin;
-}
-
 int
 main(int argc, char **argv) {
 
@@ -202,10 +210,10 @@ main(int argc, char **argv) {
         int  sl, i;
         char u[BUFF], s[BUFF];
 
-        con(s);
+        irc_init(s);
 
         while ((sl = read(conn, s, BUFF))) {
-            pars(sl, s);
+            parser(sl, s);
             if (read(fd[0], u, BUFF) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
                 if (u[0] != ':') raw(s, "%-*.*s\r\n", i, i, u);
