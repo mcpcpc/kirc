@@ -196,7 +196,7 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:w:W:vV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc 0.0.3"); break;
+            case 'v' : puts("kirc 0.0.3"); return 0;
             case 'V' : verb = 1; break;
             case 's' : host = optarg; break;
             case 'w' : gutl = atoi(optarg); break;
@@ -213,12 +213,12 @@ main(int argc, char **argv) {
     }
 
     if (nick == NULL) {
-        fprintf(stderr, "nick not specified");
+        fprintf(stderr, "nick not specified\n");
         return 1;
     }
 
     if (pipe(fd) < 0) {
-        fprintf(stderr, "pipe() failed");
+        fprintf(stderr, "pipe() failed\n");
         return 2;
     }
 
