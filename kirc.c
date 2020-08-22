@@ -196,7 +196,7 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:w:W:vV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc 0.0.2"); break;
+            case 'v' : puts("kirc 0.0.3"); break;
             case 'V' : verb = 1; break;
             case 's' : host = optarg; break;
             case 'w' : gutl = atoi(optarg); break;
