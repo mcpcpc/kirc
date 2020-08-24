@@ -12,8 +12,9 @@
 #include <sys/wait.h>
 #include <termios.h>
 
-#define IRC_MSG_MAX  512                 /* guaranteed max message length */
-#define IRC_CHAN_MAX 200                 /* gauranteed max channel length */
+#define IRC_MSG_MAX   512                /* guaranteed max message length */
+#define IRC_CHAN_MAX  200                /* gauranteed max channel length */
+#define STREAM_BUFF   2048               /* maximum stream buffer length  */
 
 static int    conn;                      /* connection socket */
 static int    verb  = 0;                 /* verbose output (e.g. raw stream) */
@@ -59,16 +60,16 @@ kbhit(void) {
 
 /* handle keyboard strokes for command input */
 static char *
-input_handler(size_t size) {
+input_handler() {
 
-    char *usrin = malloc(sizeof(char) * (size + 1));
+    char *usrin = malloc(sizeof(char) * (IRC_MSG_MAX + 1));
     struct termios tp, save;
 
     tcgetattr(STDIN_FILENO, &tp);
     save = tp;
     tp.c_cc[VERASE] = 127;
     tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-    fgets(usrin, size, stdin);
+    fgets(usrin, IRC_MSG_MAX, stdin);
     tcsetattr(STDIN_FILENO, TCSANOW, &save);
 
     return usrin;
@@ -76,9 +77,10 @@ input_handler(size_t size) {
 
 /* send command to irc server */
 static void
-raw(char *cmd_str, char *fmt, ...) {
+raw(char *fmt, ...) {
 
     va_list ap;
+    char *cmd_str = malloc(sizeof(char) * (IRC_MSG_MAX + 1));
 
     va_start(ap, fmt);
     vsnprintf(cmd_str, IRC_MSG_MAX, fmt, ap);
@@ -92,9 +94,8 @@ raw(char *cmd_str, char *fmt, ...) {
 
 /* initial irc server connection */
 static void
-irc_init(size_t size) {
+irc_init() {
 
-    char *s = malloc(sizeof(char) * (size + 1));
     struct addrinfo *res, hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM
@@ -104,11 +105,11 @@ irc_init(size_t size) {
     conn = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     connect(conn, res->ai_addr, res->ai_addrlen);
 
-    if (nick)                   raw(s, "NICK %s\r\n", nick);
-    if (user && real)           raw(s, "USER %s - - :%s\r\n", user, real);
-    if (user && !real && nick)  raw(s, "USER %s - - :%s\r\n", user, nick);
-    if (!user && !real && nick) raw(s, "USER %s - - :%s\r\n", nick, nick);
-    if (pass)                   raw(s, "PASS %s\r\n", pass);
+    if (nick)                   raw("NICK %s\r\n", nick);
+    if (user && real)           raw("USER %s - - :%s\r\n", user, real);
+    if (user && !real && nick)  raw("USER %s - - :%s\r\n", user, nick);
+    if (!user && !real && nick) raw("USER %s - - :%s\r\n", nick, nick);
+    if (pass)                   raw("PASS %s\r\n", pass);
 
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
@@ -136,8 +137,7 @@ printw(const char *format, ...) {
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\n%*.s%s", gutl + 2, "", tok);
             spaceleft = cmax - (gutl + 2 + wordwidth);
-        }
-        else {
+        } else {
             printf(" %s", tok);
             spaceleft = spaceleft - (wordwidth + spacewidth);
         }
@@ -146,47 +146,38 @@ printw(const char *format, ...) {
 
 /* parse irc stream */
 static void
-parser(int sl, char *s) {
+parser(char *string) {
 
-    int  len, i, o = -1;
-    char buf_c[IRC_MSG_MAX + 1], ltr[200], cha[IRC_CHAN_MAX], nic[200], hos[200], \
+    int len;
+    char *in = string, *tok, ltr[200], cha[IRC_CHAN_MAX], nic[200], hos[200], \
          usr[200], cmd[200], msg[200], pre[200];
 
-    for (i = 0; i < sl; i++) {
-        o++;
-        buf_c[o] = s[i];
-
-        if ((i > 0 && s[i] == '\n' && s[i - 1] == '\r') || o == IRC_MSG_MAX) {
-            buf_c[o + 1] = '\0';
-            o = -1;
-
-            if (verb) printf(">> %s", buf_c);
-
-            if (!strncmp(buf_c, "PING", 4)) {
-                buf_c[1] = 'O';
-                raw(s, buf_c);
-            }
-
-            else if (buf_c[0] == ':') {
-                sscanf(buf_c, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
-                sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
-                sscanf(cmd, "%[^#& ]%s", ltr, cha);
-                if (!strncmp(ltr, "001", 3)) raw(s, "JOIN #%s\r\n", chan);
-
-                if (!strncmp(ltr, "QUIT", 4)) {
-                    printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
-                }
-                else if (!strncmp(ltr, "JOIN", 4)) {
-                    printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
-                }
-                else {
-                    len = strlen(nic);
-                    printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
-                        gutl-(len <= gutl ? len : gutl), "", gutl, nic, msg);
-                }
+    do {
+        cmd[0] = msg[0] = pre[0] = '\0'; 
+        tok = strstr(in, "\r\n");
+        if (tok) *tok = '\0';
+        if (tok && verb) printf(">> %s\n", in);
+        if (!strncmp(in, "PING", 4)) {
+            in[string - in + 1] = 'O';
+            raw("%s\r\n", in);
+        }
+        else if (tok && in[0] == ':') {
+            sscanf(in, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
+            sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
+            sscanf(cmd, "%[^#& ]%s", ltr, cha);
+            if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
+            if (!strncmp(ltr, "QUIT", 4)) {
+                printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
+            } else if (!strncmp(ltr, "JOIN", 4)) {
+                printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
+            } else {
+                len = strlen(nic);
+                printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
+                    gutl-(len <= gutl ? len : gutl), "", gutl, nic, msg);
             }
         }
-    }
+        in = tok + strlen("\r\n");
+    } while (tok != NULL);
 }
 
 int
@@ -228,13 +219,13 @@ main(int argc, char **argv) {
         int  sl, i;
         char u[IRC_MSG_MAX], s[IRC_MSG_MAX];
 
-        irc_init(IRC_MSG_MAX);
+        irc_init();
 
-        while ((sl = read(conn, s, IRC_MSG_MAX))) {
-            parser(sl, s);
+        while ((sl = read(conn, s, STREAM_BUFF))) {
+            if (sl > 0) parser(s);
             if (read(fd[0], u, IRC_MSG_MAX) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
-                if (u[0] != ':') raw(s, "%-*.*s\r\n", i, i, u);
+                if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
             }
         }
     }
@@ -244,7 +235,7 @@ main(int argc, char **argv) {
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             if (!kbhit()) dprintf(fd[1], ":\n");
             else {
-                strcpy(usrin, input_handler(IRC_MSG_MAX));
+                strcpy(usrin, input_handler());
 
                 if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
                     sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
