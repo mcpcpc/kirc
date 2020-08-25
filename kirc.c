@@ -14,7 +14,6 @@
 
 #define IRC_MSG_MAX   512                /* guaranteed max message length */
 #define IRC_CHAN_MAX  200                /* gauranteed max channel length */
-#define STREAM_BUFF   2048               /* maximum stream buffer length  */
 
 static int    conn;                      /* connection socket */
 static int    verb  = 0;                 /* verbose output (e.g. raw stream) */
@@ -146,38 +145,33 @@ printw(const char *format, ...) {
 
 /* parse irc stream */
 static void
-parser(char *string) {
+parser(char *in) {
 
     int len;
-    char *in = string, *tok, ltr[200], cha[IRC_CHAN_MAX], nic[200], hos[200], \
+    char ltr[200], cha[IRC_CHAN_MAX], nic[200], hos[200], \
          usr[200], cmd[200], msg[200], pre[200];
 
-    do {
-        cmd[0] = msg[0] = pre[0] = '\0'; 
-        tok = strstr(in, "\r\n");
-        if (tok) *tok = '\0';
-        if (tok && verb) printf(">> %s\n", in);
-        if (!strncmp(in, "PING", 4)) {
-            in[string - in + 1] = 'O';
-            raw("%s\r\n", in);
+    cmd[0] = msg[0] = pre[0] = '\0';
+    if (verb) printf(">> %s\n", in);
+    if (!strncmp(in, "PING", 4)) {
+        in[1] = 'O';
+        raw("%s\r\n", in);
+    }
+    else if (in[0] == ':') {
+        sscanf(in, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
+        sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
+        sscanf(cmd, "%[^#& ]%s", ltr, cha);
+        if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
+        if (!strncmp(ltr, "QUIT", 4)) {
+            printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
+        } else if (!strncmp(ltr, "JOIN", 4)) {
+            printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
+        } else {
+            len = strlen(nic);
+            printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
+                gutl-(len <= gutl ? len : gutl), "", gutl, nic, msg);
         }
-        else if (tok && in[0] == ':') {
-            sscanf(in, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
-            sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
-            sscanf(cmd, "%[^#& ]%s", ltr, cha);
-            if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
-            if (!strncmp(ltr, "QUIT", 4)) {
-                printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
-            } else if (!strncmp(ltr, "JOIN", 4)) {
-                printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
-            } else {
-                len = strlen(nic);
-                printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
-                    gutl-(len <= gutl ? len : gutl), "", gutl, nic, msg);
-            }
-        }
-        in = tok + strlen("\r\n");
-    } while (tok != NULL);
+    }
 }
 
 int
@@ -216,13 +210,19 @@ main(int argc, char **argv) {
     pid_t pid = fork();
 
     if (pid == 0) {
-        int  sl, i;
-        char u[IRC_MSG_MAX], s[IRC_MSG_MAX];
+        int  sl, i, o = 0;
+        char u[IRC_MSG_MAX], s, b[IRC_MSG_MAX];
 
         irc_init();
 
-        while ((sl = read(conn, s, STREAM_BUFF))) {
-            if (sl > 0) parser(s);
+        while ((sl = read(conn, &s, 1))) {
+            if (sl > 0) b[o] = s;
+			if ((o > 0 && b[o - 1] == '\r' && b[o] == '\n') || o == IRC_MSG_MAX) {
+                b[o + 1] = '\0';
+			    parser(b);
+				o = 0;
+            }
+			else if (sl > 0) o++;
             if (read(fd[0], u, IRC_MSG_MAX) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
                 if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
