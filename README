@@ -66,23 +66,6 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name]
 -W     maximum width of the entire printed stream (default '80')
 
 
-CUSTOMIZATION
--------------
-
-- Regarding the behavior of the '-W' and '-w' arguments, these are intended to
-  allow the user to customize the "look abd feel" of the IRC stream. By fault,
-  kirc will only print the first 10 characters (as defined by the '-w' argument)
-  of any given nick.  this also sets the maximum character and word wrapping
-  width of the printed message. For example, any printed character or word
-  exceeding the defined '-W' argument will automatically be printed to a new
-  line, offset by '-w' plus 2 characters (which are the ":" and " " printed
-  after the nick in the left column). Therefore, assuming that the default
-  values are being used, an IRC message could never exceed 80 printed characters
-  before word wrapping.
-- In order to connect to an IRC server, a nickname must be specified. Server 
-  username (-u), password (-k) and real name (-r) are optional. 
-
-
 REFERENCES
 ----------
 
