@@ -217,12 +217,13 @@ main(int argc, char **argv) {
 
         while ((sl = read(conn, &s, 1))) {
             if (sl > 0) b[o] = s;
-			if ((o > 0 && b[o - 1] == '\r' && b[o] == '\n') || o == IRC_MSG_MAX) {
+
+            if ((o > 0 && b[o - 1] == '\r' && b[o] == '\n') || o == IRC_MSG_MAX) {
                 b[o + 1] = '\0';
-			    parser(b);
-				o = 0;
+                parser(b);
+                o = 0;
             }
-			else if (sl > 0) o++;
+            else if (sl > 0) o++;
             if (read(fd[0], u, IRC_MSG_MAX) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
                 if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
