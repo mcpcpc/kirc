@@ -156,8 +156,7 @@ parser(char *in) {
     if (!strncmp(in, "PING", 4)) {
         in[1] = 'O';
         raw("%s\r\n", in);
-    }
-    else if (in[0] == ':') {
+    } else if (in[0] == ':') {
         sscanf(in, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
         sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
         sscanf(cmd, "%[^#& ]%s", ltr, cha);
@@ -222,8 +221,8 @@ main(int argc, char **argv) {
                 b[o + 1] = '\0';
                 parser(b);
                 o = 0;
-            }
-            else if (sl > 0) o++;
+            } else if (sl > 0) o++;
+
             if (read(fd[0], u, IRC_MSG_MAX) > 0) {
                 for (i = 0; u[i] != '\n'; i++) continue;
                 if (u[0] != ':') raw("%-*.*s\r\n", i, i, u);
@@ -251,8 +250,7 @@ main(int argc, char **argv) {
                         case 'M': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);    break;
                         case '?': break;
                     }
-                }
-                else dprintf(fd[1], "%s", usrin);
+                } else dprintf(fd[1], "%s", usrin);
             }
         }
 
