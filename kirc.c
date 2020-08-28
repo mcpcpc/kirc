@@ -58,20 +58,17 @@ kbhit(void) {
 }
 
 /* handle keyboard strokes for command input */
-static char *
-input_handler() {
+static void
+input_handler(char *usrin, int len) {
 
-    char *usrin = malloc(sizeof(char) * (IRC_MSG_MAX + 1));
     struct termios tp, save;
 
     tcgetattr(STDIN_FILENO, &tp);
     save = tp;
     tp.c_cc[VERASE] = 127;
     tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-    fgets(usrin, IRC_MSG_MAX, stdin);
+    fgets(usrin, len, stdin);
     tcsetattr(STDIN_FILENO, TCSANOW, &save);
-
-    return usrin;
 }
 
 /* send command to irc server */
@@ -235,7 +232,7 @@ main(int argc, char **argv) {
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             if (!kbhit()) dprintf(fd[1], ":\n");
             else {
-                strcpy(usrin, input_handler());
+                input_handler(usrin, IRC_MSG_MAX);
 
                 if (sscanf(usrin, ":%[M] %s %[^\n]\n", &c1, v2, v1) == 3 ||
                     sscanf(usrin, ":%[Qnjpm] %[^\n]\n", &c1, v1) == 2 ||
