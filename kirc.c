@@ -144,25 +144,24 @@ printw(const char *format, ...) {
 static void
 parser(char *in) {
 
-    int len;
-    char ltr[200], cha[IRC_CHAN_MAX] = {0}, nic[200] = {0}, hos[200], \
-         usr[200] = {0}, cmd[200] = {0}, msg[IRC_MSG_MAX] = {0}, pre[200] = {0};
-
     if (verb) printf(">> %s\n", in);
     if (!strncmp(in, "PING", 4)) {
         in[1] = 'O';
         raw("%s\r\n", in);
     } else if (in[0] == ':') {
-        sscanf(in, ":%[^ ] %[^:]:%[^\r]", pre, cmd, msg);
-        sscanf(pre, "%[^!]!%[^@]@%s", nic, usr, hos);
-        sscanf(cmd, "%[^#& ]%s", ltr, cha);
+        char *pre = strtok(in, " ") + 1; /* prefix */
+        char *cmd = strtok(NULL, ":");   /* command */
+        char *msg = strtok(NULL, "\r");  /* message */
+        char *nic = strtok(pre, "!"); //, *usr = strtok(NULL, "@"), *hos = pre;
+        char *ltr = strtok(cmd, "#& "); //, *cha = cmd;
         if (!strncmp(ltr, "001", 3)) raw("JOIN #%s\r\n", chan);
         if (!strncmp(ltr, "QUIT", 4)) {
             printw("%*.*s \x1b[34;1m%s\x1b[0m\n", gutl, gutl, "<--", nic);
         } else if (!strncmp(ltr, "JOIN", 4)) {
             printw("%*.*s \x1b[32;1m%s\x1b[0m\n", gutl, gutl, "-->", nic);
         } else {
-            len = strlen(nic);
+            int len = 0;
+            while (nic[len] != '\0') len++;
             printw("%*s\x1b[33;1m%-.*s\x1b[0m %s\n", \
                 gutl-(len <= gutl ? len : gutl), "", gutl, nic, msg);
         }
