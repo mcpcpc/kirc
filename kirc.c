@@ -145,10 +145,9 @@ static void
 parser(char *in) {
 
     int len;
-    char ltr[200], cha[IRC_CHAN_MAX], nic[200], hos[200], \
-         usr[200], cmd[200], msg[200], pre[200];
+    char ltr[200], cha[IRC_CHAN_MAX] = {0}, nic[200] = {0}, hos[200], \
+         usr[200] = {0}, cmd[200] = {0}, msg[200] = {0}, pre[200] = {0};
 
-    cmd[0] = msg[0] = pre[0] = '\0';
     if (verb) printf(">> %s\n", in);
     if (!strncmp(in, "PING", 4)) {
         in[1] = 'O';
