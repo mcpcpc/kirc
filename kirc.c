@@ -146,7 +146,7 @@ parser(char *in) {
 
     int len;
     char ltr[200], cha[IRC_CHAN_MAX] = {0}, nic[200] = {0}, hos[200], \
-         usr[200] = {0}, cmd[200] = {0}, msg[200] = {0}, pre[200] = {0};
+         usr[200] = {0}, cmd[200] = {0}, msg[IRC_MSG_MAX] = {0}, pre[200] = {0};
 
     if (verb) printf(">> %s\n", in);
     if (!strncmp(in, "PING", 4)) {
@@ -176,7 +176,7 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:w:W:vV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc 0.0.4"); return 0;
+            case 'v' : puts("kirc 0.0.5"); return 0;
             case 'V' : verb = 1; break;
             case 's' : host = optarg; break;
             case 'w' : gutl = atoi(optarg); break;
