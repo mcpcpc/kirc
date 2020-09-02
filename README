@@ -7,7 +7,7 @@ BACKGROUND
 ----------
 
 After having tried multiple IRC clients, I decided to develope my own. The 
-result is a portable <300 sloc application that has no dependencies other 
+result is a portable <250 sloc application that has no dependencies other 
 than a C99 compiler.
 
 
