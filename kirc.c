@@ -82,6 +82,7 @@ raw(char *fmt, ...) {
     if (olog) printa(cmd_str);
 
     write(conn, cmd_str, strlen(cmd_str));
+    free(cmd_str);
 }
 
 static void
