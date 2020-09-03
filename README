@@ -7,8 +7,26 @@ BACKGROUND
 ----------
 
 After having tried multiple IRC clients, I decided to develope my own. The 
-result is a portable <250 sloc application that has no dependencies other 
-than a C99 compiler.
+result is a portable application that has no dependencies other than a C99 
+compiler.
+
+
+OBJECTIVES
+----------
+
+- Per the UNIX philosophy, "Do one thing and do it well" [3].
+- True to the KISS principle [4], the code-base is intentionally smaller 
+  than most IRC clients (<250 sloc). The benefits of a small code base
+  reflects in the ability for kirc to be reviewed, understood and 
+  maintained by a single person. Therefore, all feature requests and 
+  commits shall be considered with respect to the readability and 
+  maintainance of the overall project. 
+- Let's not "reinvent the wheel". Commands and functionality should
+  feel familiar (e.g. vi command shortcuts) and accessable via a  
+  standard 104-key US QWERTY keyboard layout [5].  Where possible, the 
+  number of keystrokes shall be minimized per command.
+  
+
 
 
 FEATURES
@@ -34,17 +52,23 @@ FEATURES
 INSTALLATION
 ------------
 
+Building and installing on KISS Linux using the Community repository [2]:
+
+    kiss b kirc
+    kiss i kirc
+
+Building and installing on Arch Linux using the AUR [6]:
+
+    git clone https://aur.archlinux.org/kirc-git.git
+    cd kirc
+    makepkg -si
+
 Building and installing from source:
 
     git clone https://github.com/mcpcpc/kirc.git
     cd kirc
     make
     make install
-
-Building and installing using KISS Linux Community repository [2]:
-
-    kiss b kirc
-    kiss i kirc
 
 
 USAGE
@@ -72,3 +96,7 @@ REFERENCES
 [0] https://tools.ietf.org/html/rfc2812
 [1] https://en.wikipedia.org/wiki/ANSI_escape_code
 [2] https://github.com/kisslinux/community
+[3] https://en.wikipedia.org/wiki/Unix_philosophy
+[4] https://en.wikipedia.org/wiki/KISS_principle
+[5] https://en.wikipedia.org/wiki/Keyboard_layout
+[6] https://aur.archlinux.org/packages/kirc-git/
