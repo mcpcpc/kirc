@@ -16,9 +16,9 @@
 #define CHA_MAX       200                /* gauranteed max channel length */
 
 static int    conn;                      /* connection socket */
-size_t int    verb  = 0;                 /* verbose output (e.g. raw stream) */
-size_t int    cmax  = 80;                /* max number of chars per line */
-size_t int    gutl  = 10;                /* max char width of left column */
+static size_t verb  = 0;                 /* verbose output (e.g. raw stream) */
+static size_t cmax  = 80;                /* max number of chars per line */
+static size_t gutl  = 10;                /* max char width of left column */
 static char * host = "irc.freenode.org"; /* irc host address */
 static char * chan = "kisslinux";        /* channel */
 static char * port = "6667";             /* server port */
@@ -61,7 +61,7 @@ raw(char *fmt, ...) {
 
     if (verb) printf("<< %s", cmd_str);
     if (olog) printa(cmd_str);
-    if (write(conn, cmd_str, strlen(cmd_str)) < 0) error(1);
+    if (write(conn, cmd_str, strlen(cmd_str)) < 0) exit(1);
 
     free(cmd_str);
 }
@@ -107,7 +107,7 @@ printw(const char *format, ...) {
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\n%*.s%s", gutl + 2, "", tok);
+            printf("\n%*.s%s", (int) gutl + 2, "", tok);
             spaceleft = cmax - (gutl + 2 + wordwidth);
         } else {
             printf(" %s", tok);
@@ -212,7 +212,7 @@ main(int argc, char **argv) {
             if (!kbhit()) dprintf(fd[1], "/\n");
             else {
                 tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-                if (fgets(usrin, len, stdin) == NULL) return 1;
+                if (fgets(usrin, MSG_MAX, stdin) == NULL) return 1;
                 tcsetattr(STDIN_FILENO, TCSANOW, &save);
 
                 if (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) == 3 ||
