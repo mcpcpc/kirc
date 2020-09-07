@@ -33,7 +33,7 @@ FEATURES
 - automatic host PING response.
 - vi-like shortcuts:
 
-  <message>                send a message to the current channel
+  <message>                   send a message to the current channel
   /m <nick|channel> <message> send a message to a specified nick or channel
   /n <message>                send a message to NickServ
   /j <channel>                join a specified channel
