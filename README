@@ -33,13 +33,13 @@ FEATURES
 - automatic host PING response.
 - vi-like shortcuts:
 
-  :m <message>                send a message to the current channel
-  :M <nick|channel> <message> send a message to a specified nick or channel
-  :n <message>                send a message to NickServ
-  :j <channel>                join a specified channel
-  :p <channel>                leave a specified channel
-  :Q <message>                send a message and close the host connection
-  :q                          close the host connection
+  <message>                send a message to the current channel
+  /m <nick|channel> <message> send a message to a specified nick or channel
+  /n <message>                send a message to NickServ
+  /j <channel>                join a specified channel
+  /p <channel>                leave (part) a specified channel
+  /Q <message>                send a message and close the host connection
+  /q                          close the host connection
 
 - automatic word wrapping using the greedy algorithm.
 - color scheme definition via ANSI 8-bit colors [1]. Therefore, one could
