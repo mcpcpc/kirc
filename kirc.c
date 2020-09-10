@@ -125,10 +125,12 @@ raw_parser(char *usrin) {
             printw("%*s \x1b[34;1m%s\x1b[0m", (int)gutl, "<--", nickname);
         } else if (!strncmp(command, "JOIN", 4)) {
             printw("%*s \x1b[32;1m%s\x1b[0m", (int)gutl, "-->", nickname);
-        } else if (!strncmp(command, "PRIVMSG", 7) &&
-                   !strncmp(channel, nick, strlen(nick))) {
+        } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, nick) != NULL) {
             int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
             printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", (int)gutl, nickname, message);
+        } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
+            int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+            printw("%*s\x1b[33;1m%-.*s\x1b[0m [%s] %s", s, "", (int)gutl, nickname, channel, message);
         } else {
             int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
             printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", (int)gutl, nickname, message);
