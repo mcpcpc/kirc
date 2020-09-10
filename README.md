@@ -19,7 +19,7 @@ Usage
 -----
 
 ```shell
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-w columns] [-W columns] [-o path] [-v|V]
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
 -c     channel name (default: '#kisslinux')
@@ -30,6 +30,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 -v     version information
 -V     verbose output (e.g. raw stream)
 -o     output path to log irc stream
+-x     send command to irc server after inital connection
 -w     maximum width of the printed left column (default: '10')
 -W     maximum width of the entire printed stream (default '80')
 ```
