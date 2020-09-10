@@ -9,11 +9,11 @@
 
 ## Objectives
 
-*"Do one thing and do it well"*  —  Per the [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy), emphasis was placed on building simple, short, clear, modular, and extensible code that can be easily maintained and repurposed.
+_"Do one thing and do it well"_  —  Per the [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy), emphasis was placed on building simple, short, clear, modular, and extensible code that can be easily maintained and repurposed.
 
-*Portability* — [POSIX](https://en.wikipedia.org/wiki/POSIX) compliance ensures seamless compatibility and interoperability between variants of Unix and other operating systems.
+_Portability_ — [POSIX](https://en.wikipedia.org/wiki/POSIX) compliance ensures seamless compatibility and interoperability between variants of Unix and other operating systems.
 
-*Usability* — Commands and shortcuts should feel natural and accessible using a [standard 104-key US keyboard layout](https://en.wikipedia.org/wiki/Keyboard_layout).  Where possible, the number of keystrokes shall be minimized.
+_Usability_ — Commands and shortcuts should feel natural and accessible using a [standard 104-key US keyboard layout](https://en.wikipedia.org/wiki/Keyboard_layout).  Where possible, the number of keystrokes shall be minimized.
 
 Usage
 -----
@@ -40,7 +40,7 @@ Features
 
 - No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
 - Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
-- Ability to log the entire chat history  (see "Usage" section for more information).
+- Ability to log the entire chat history  (see _Usage_ section for more information).
 - vi-like command shortcuts:
 
 ```shell
