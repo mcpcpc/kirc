@@ -27,6 +27,7 @@ static char * pass = NULL;               /* server password */
 static char * user = NULL;               /* server user name */
 static char * real = NULL;               /* server user real name */
 static char * olog = NULL;               /* log irc stream path */
+static char * inic = NULL;               /* server command after connection */
 
 static void
 printa(char *str) {
@@ -143,7 +144,7 @@ main(int argc, char **argv) {
 
     int fd[2], cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:w:W:vV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:vV")) != -1) {
         switch (cval) {
             case 'v' : puts("kirc-0.0.8");  return 0;
             case 'V' : verb = 1;            break;
@@ -157,6 +158,7 @@ main(int argc, char **argv) {
             case 'n' : nick = optarg;       break;
             case 'k' : pass = optarg;       break;
             case 'c' : chan = optarg;       break;
+            case 'x' : inic = optarg;       break;
             case '?' :                      return 1;
         }
     }
@@ -184,6 +186,7 @@ main(int argc, char **argv) {
         if (user && !real && nick)  raw("USER %s - - :%s\r\n", user, nick);
         if (!user && !real && nick) raw("USER %s - - :%s\r\n", nick, nick);
         if (pass)                   raw("PASS %s\r\n", pass);
+        if (inic)                   raw("%s\r\n", inic)
 
         while ((sl = read(conn, &s, 1))) {
             if (sl > 0) b[o] = s;
