@@ -5,8 +5,11 @@ CC     ?= gcc
 
 all: kirc
 
-kfc: kirc.c Makefile
-	$(CC) -O3 $(CFLAGS) -o $@ $< -lX11 $(LDFLAGS)
+kirc: kirc.o Makefile
+	$(CC) $(CFLAGS) -o $@ $@.o -lX11 $(LDFLAGS)
+
+.c.o:
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 install: all
 	install -Dm755 kirc $(DESTDIR)$(BINDIR)/kirc
