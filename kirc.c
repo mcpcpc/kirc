@@ -78,6 +78,7 @@ irc_init() {
     getaddrinfo(host, port, &hints, &res);
     conn = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     connect(conn, res->ai_addr, res->ai_addrlen);
+    freeaddrinfo(res);
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
 
