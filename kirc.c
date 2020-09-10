@@ -186,7 +186,7 @@ main(int argc, char **argv) {
         if (user && !real && nick)  raw("USER %s - - :%s\r\n", user, nick);
         if (!user && !real && nick) raw("USER %s - - :%s\r\n", nick, nick);
         if (pass)                   raw("PASS %s\r\n", pass);
-        if (inic)                   raw("%s\r\n", inic)
+        if (inic)                   raw("%s\r\n", inic);
 
         while ((sl = read(conn, &s, 1))) {
             if (sl > 0) b[o] = s;
