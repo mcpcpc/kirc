@@ -70,7 +70,7 @@ kiss b kirc
 kiss i kirc
 ```
 
-Building and installing on **Arch Linux** or **Manjaro** using the Arch AUR:
+Building and installing on **Arch** and **Arch-based** distros using the AUR:
 
 ```shell
 git clone https://aur.archlinux.org/kirc-git.git
