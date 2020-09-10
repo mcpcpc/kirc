@@ -40,6 +40,7 @@ Features
 
 - No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
 - Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
+- Ability to log the entire chat history to a log file (see "Usage" section for more information).
 - vi-like command shortcuts:
 
 ```shell
