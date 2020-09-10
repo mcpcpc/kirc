@@ -38,7 +38,6 @@ Features
 --------
 
 - No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
-- Automatic server *PING* response.
 - Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
 - vi-like command shortcuts:
 
