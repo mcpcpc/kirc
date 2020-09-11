@@ -12,8 +12,11 @@
 #include <sys/wait.h>
 #include <termios.h>
 
-#define MSG_MAX       512                /* guaranteed max message length */
-#define CHA_MAX       200                /* gauranteed max channel length */
+#define MSG_MAX      512                 /* guaranteed max message length */
+#define CHA_MAX      200                 /* gauranteed max channel length */
+#define VERSION      "0.0.8"             /* software version */
+#define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] \
+[-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-v|V]"
 
 static int    conn;                      /* connection socket */
 static size_t verb = 0;                  /* verbose output (e.g. raw stream) */
@@ -136,8 +139,7 @@ raw_parser(char *usrin) {
             printw("%*s<-- \x1b[34;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
         } else if (!strncmp(command, "JOIN", 4)) {
             printw("%*s--> \x1b[32;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
-        } else if (!strncmp(command, "PRIVMSG", 7) && 
-                   !strncmp(channel, nick, strlen(nick))) {
+        } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
             int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
             printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", (int)gutl, nickname, message);
         } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
@@ -155,22 +157,23 @@ main(int argc, char **argv) {
 
     int fd[2], cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:vV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:hvV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc-0.0.8");  return 0;
-            case 'V' : verb = 1;            break;
-            case 's' : host = optarg;       break;
-            case 'w' : gutl = atoi(optarg); break;
-            case 'W' : cmax = atoi(optarg); break;
-            case 'p' : port = optarg;       break;
-            case 'r' : real = optarg;       break;
-            case 'u' : user = optarg;       break;
-            case 'o' : olog = optarg;       break;
-            case 'n' : nick = optarg;       break;
-            case 'k' : pass = optarg;       break;
-            case 'c' : chan = optarg;       break;
-            case 'x' : inic = optarg;       break;
-            case '?' :                      return 1;
+            case 'v' : printf("kirc %s\n", VERSION);  return 0;
+            case 'h' : printf("usage: %s\n", USAGE);  return 0;
+            case 'V' : verb = 1;                      break;
+            case 's' : host = optarg;                 break;
+            case 'w' : gutl = atoi(optarg);           break;
+            case 'W' : cmax = atoi(optarg);           break;
+            case 'p' : port = optarg;                 break;
+            case 'r' : real = optarg;                 break;
+            case 'u' : user = optarg;                 break;
+            case 'o' : olog = optarg;                 break;
+            case 'n' : nick = optarg;                 break;
+            case 'k' : pass = optarg;                 break;
+            case 'c' : chan = optarg;                 break;
+            case 'x' : inic = optarg;                 break;
+            case '?' :                                return 1;
         }
     }
 
