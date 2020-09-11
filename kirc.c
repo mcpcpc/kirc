@@ -126,14 +126,12 @@ raw_parser(char *usrin) {
         raw("%s\r\n", usrin);
     } else if (usrin[0] == ':') {
 
-        char *tok, *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
+        char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
              *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
              *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
 
         if (!strncmp(command, "001", 3)) {
-            for (tok = strtok(chan, ","); tok != NULL; tok = strtok(NULL, ",")) {
-                raw("JOIN #%s\r\n", tok);
-            }
+            raw("JOIN #%s\r\n", chan);
         } else if (!strncmp(command, "QUIT", 4)) {
             printw("%*s<-- \x1b[34;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
         } else if (!strncmp(command, "JOIN", 4)) {
@@ -151,6 +149,7 @@ raw_parser(char *usrin) {
         }
     }
 }
+
 int
 main(int argc, char **argv) {
 
@@ -194,9 +193,9 @@ main(int argc, char **argv) {
 
         irc_init();
 
-        if (nick) raw("NICK %s\r\n", nick);
-        if (user) raw("USER %s - - :%s\r\n", user, (real ? real : nick));
-        else      raw("USER %s - - :%s\r\n", nick, nick);
+        raw("NICK %s\r\n", nick);
+        raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
+
         if (pass) raw("PASS %s\r\n", pass);
         if (inic) raw("%s\r\n", inic);
 
