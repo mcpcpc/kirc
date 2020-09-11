@@ -16,7 +16,7 @@
 #define CHA_MAX      200                 /* gauranteed max channel length */
 #define VERSION      "0.0.8"             /* software version */
 #define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] \
-[-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-v|V]"
+[-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
 static size_t verb = 0;                  /* verbose output (e.g. raw stream) */
