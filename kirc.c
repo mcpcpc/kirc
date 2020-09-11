@@ -15,8 +15,9 @@
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* gauranteed max channel length */
 #define VERSION      "0.0.8"             /* software version */
-#define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] \
-[-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]"
+#define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] \
+[-r real name] [-u username] [-k password] [-x init command] [-w columns] \
+[-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
 static size_t verb = 0;                  /* verbose output (e.g. raw stream) */
@@ -127,28 +128,28 @@ raw_parser(char *usrin) {
     if (!strncmp(usrin, "PING", 4)) {
         usrin[1] = 'O';
         raw("%s\r\n", usrin);
-    } else if (usrin[0] == ':') {
+        return;
+    }
 
-        char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
-             *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
-             *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
+    if (usrin[0] != ':') return;
 
-        if (!strncmp(command, "001", 3)) {
-            raw("JOIN #%s\r\n", chan);
-        } else if (!strncmp(command, "QUIT", 4)) {
-            printw("%*s<-- \x1b[34;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
-        } else if (!strncmp(command, "JOIN", 4)) {
-            printw("%*s--> \x1b[32;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
-        } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
-            int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
-            printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", (int)gutl, nickname, message);
-        } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
-            int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
-            printw("%*s\x1b[33;1m%-.*s\x1b[0m [%s] %s", s, "", (int)gutl, nickname, channel, message);
-        } else {
-            int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
-            printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", (int)gutl, nickname, message);
-        }
+    char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
+         *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
+         *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
+    int g = gutl, s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+
+    if (!strncmp(command, "001", 3)) {
+        raw("JOIN #%s\r\n", chan);
+    } else if (!strncmp(command, "QUIT", 4)) {
+        printw("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+    } else if (!strncmp(command, "JOIN", 4)) {
+        printw("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+    } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
+        printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
+    } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
+        printw("%*s\x1b[33;1m%-.*s\x1b[0m [%s] %s", s, "", g, nickname, channel, message);
+    } else {
+        printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
     }
 }
 
