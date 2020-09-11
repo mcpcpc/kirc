@@ -30,8 +30,10 @@ static char * olog = NULL;               /* log irc stream path */
 static char * inic = NULL;               /* server command after connection */
 
 static void
-printa(char *str) {
-    FILE *out = fopen(olog, "a");
+printa(char *str, char *path) {
+
+    FILE *out = fopen(path, "a");
+
     fprintf(out, "%s", str);
     fclose(out);
 }
@@ -40,8 +42,8 @@ static int
 kbhit(void) {
 
     int    byteswaiting;
-    fd_set fds;
     struct timespec ts = {0};
+    fd_set fds;
 
     FD_ZERO(&fds);
     FD_SET(0, &fds);
@@ -61,7 +63,7 @@ raw(char *fmt, ...) {
     va_end(ap);
 
     if (verb) printf("<< %s", cmd_str);
-    if (olog) printa(cmd_str);
+    if (olog) printa(cmd_str, olog);
     if (write(conn, cmd_str, strlen(cmd_str)) < 0) exit(1);
 
     free(cmd_str);
@@ -93,7 +95,7 @@ printw(const char *format, ...) {
     vsnprintf(line, MSG_MAX, format, argptr);
     va_end(argptr);
 
-    if (olog) printa(line);
+    if (olog) printa(line, olog);
 
     for (i = 0; isspace(line[i]); i++) putchar(line[i]);
 
@@ -101,6 +103,7 @@ printw(const char *format, ...) {
 
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
+
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\n%*.s%s ", (int) gutl + 1, "", tok);
             spaceleft = cmax - (gutl + 1 + wordwidth);
@@ -109,24 +112,32 @@ printw(const char *format, ...) {
             spaceleft = spaceleft - (wordwidth + spacewidth);
         }
     }
+
     printf("\n");
 }
 
 static void
 raw_parser(char *usrin) {
+
     if (verb) printf(">> %s\n", usrin);
+
     if (!strncmp(usrin, "PING", 4)) {
         usrin[1] = 'O';
         raw("%s\r\n", usrin);
     } else if (usrin[0] == ':') {
-        char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
+
+        char *tok, *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
              *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
              *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
-        if (!strncmp(command, "001", 3)) raw("JOIN #%s\r\n", chan);
-        else if (!strncmp(command, "QUIT", 4)) {
-            printw("%*s \x1b[34;1m%s\x1b[0m", (int)gutl, "<--", nickname);
+
+        if (!strncmp(command, "001", 3)) {
+            for (tok = strtok(chan, ","); tok != NULL; tok = strtok(NULL, ",")) {
+                raw("JOIN #%s\r\n", tok);
+            }
+        } else if (!strncmp(command, "QUIT", 4)) {
+            printw("%*s<-- \x1b[34;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
         } else if (!strncmp(command, "JOIN", 4)) {
-            printw("%*s \x1b[32;1m%s\x1b[0m", (int)gutl, "-->", nickname);
+            printw("%*s--> \x1b[32;1m%s\x1b[0m", (int)gutl - 3, "", nickname);
         } else if (!strncmp(command, "PRIVMSG", 7) && 
                    !strncmp(channel, nick, strlen(nick))) {
             int s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
@@ -170,24 +181,24 @@ main(int argc, char **argv) {
     }
 
     if (pipe(fd) < 0) {
-        fprintf(stderr, "pipe() failed\n");
-        return 2;
+        fprintf(stderr, "fork() failed\n");
+        return 1;
     }
 
     pid_t pid = fork();
 
     if (pid == 0) {
+
         int  sl, i, o = 0;
         char u[MSG_MAX], s, b[MSG_MAX];
 
         irc_init();
 
-        if (nick)                   raw("NICK %s\r\n", nick);
-        if (user && real)           raw("USER %s - - :%s\r\n", user, real);
-        if (user && !real && nick)  raw("USER %s - - :%s\r\n", user, nick);
-        if (!user && !real && nick) raw("USER %s - - :%s\r\n", nick, nick);
-        if (pass)                   raw("PASS %s\r\n", pass);
-        if (inic)                   raw("%s\r\n", inic);
+        if (nick) raw("NICK %s\r\n", nick);
+        if (user) raw("USER %s - - :%s\r\n", user, (real ? real : nick));
+        else      raw("USER %s - - :%s\r\n", nick, nick);
+        if (pass) raw("PASS %s\r\n", pass);
+        if (inic) raw("%s\r\n", inic);
 
         while ((sl = read(conn, &s, 1))) {
             if (sl > 0) b[o] = s;
@@ -205,6 +216,7 @@ main(int argc, char **argv) {
         }
     }
     else {
+
         char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
         struct termios tp, save;
 
@@ -213,23 +225,23 @@ main(int argc, char **argv) {
         tp.c_cc[VERASE] = 127;
 
         if (tcsetattr(STDIN_FILENO, TCSANOW, &tp) < 0) return 2;
+
         while (waitpid(pid, NULL, WNOHANG) == 0) {
             if (!kbhit()) dprintf(fd[1], "/\n");
-            else if (fgets(usrin, MSG_MAX, stdin) != NULL) {
-                if (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
-                    sscanf(usrin, "/%[xMQqnjp] %[^\n]\n", &c1, v1) > 0) {
-                    switch (c1) {
-                        case 'x': dprintf(fd[1], "%s\n", v1);                   break;
-                        case 'q': dprintf(fd[1], "quit\n");                     break;
-                        case 'Q': dprintf(fd[1], "quit %s\n", v1);              break;
-                        case 'j': dprintf(fd[1], "join %s\n", v1);              break;
-                        case 'p': dprintf(fd[1], "part %s\n", v1);              break;
-                        case 'n': dprintf(fd[1], "names #%s\n", chan);          break;
-                        case 'M': dprintf(fd[1], "privmsg nickserv :%s\n", v1); break;
-                        case 'm': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);   break;
-                    }
-                } else dprintf(fd[1], "privmsg #%s :%s", chan, usrin);
-            }
+            else if (fgets(usrin, MSG_MAX, stdin) != NULL &&
+                     (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
+                     sscanf(usrin, "/%[xMQqnjp] %[^\n]\n", &c1, v1) > 0)) {
+                switch (c1) {
+                    case 'x': dprintf(fd[1], "%s\n", v1);                   break;
+                    case 'q': dprintf(fd[1], "quit\n");                     break;
+                    case 'Q': dprintf(fd[1], "quit %s\n", v1);              break;
+                    case 'j': dprintf(fd[1], "join %s\n", v1);              break;
+                    case 'p': dprintf(fd[1], "part %s\n", v1);              break;
+                    case 'n': dprintf(fd[1], "names #%s\n", chan);          break;
+                    case 'M': dprintf(fd[1], "privmsg nickserv :%s\n", v1); break;
+                    case 'm': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);   break;
+                }
+            } else dprintf(fd[1], "privmsg #%s :%s", chan, usrin);
         }
 
         if (tcsetattr(STDIN_FILENO, TCSANOW, &save) < 0) return 2;
