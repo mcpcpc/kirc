@@ -68,7 +68,10 @@ raw(char *fmt, ...) {
 
     if (verb) printf("<< %s", cmd_str);
     if (olog) printa(cmd_str, olog);
-    if (write(conn, cmd_str, strlen(cmd_str)) < 0) exit(1);
+    if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
+        perror("Failed to write to socket");
+        exit(1);
+    }
 
     free(cmd_str);
 }
@@ -148,9 +151,7 @@ raw_parser(char *usrin) {
         printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
     } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
         printw("%*s\x1b[33;1m%-.*s\x1b[0m [%s] %s", s, "", g, nickname, channel, message);
-    } else {
-        printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
-    }
+    } else printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
 }
 
 int
@@ -160,8 +161,6 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:hvV")) != -1) {
         switch (cval) {
-            case 'v' : printf("kirc %s\n", VERSION);  return 0;
-            case 'h' : printf("usage: %s\n", USAGE);  return 0;
             case 'V' : verb = 1;                      break;
             case 's' : host = optarg;                 break;
             case 'w' : gutl = atoi(optarg);           break;
@@ -174,17 +173,19 @@ main(int argc, char **argv) {
             case 'k' : pass = optarg;                 break;
             case 'c' : chan = optarg;                 break;
             case 'x' : inic = optarg;                 break;
+            case 'v' : printf("kirc %s\n", VERSION);  return 0;
+            case 'h' : printf("usage: %s\n", USAGE);  return 0;
             case '?' :                                return 1;
         }
     }
 
     if (!nick) {
-        fprintf(stderr, "nick not specified\n");
+        perror("Nick not specified");
         return 1;
     }
 
     if (pipe(fd) < 0) {
-        fprintf(stderr, "fork() failed\n");
+        perror("Pipe() failed");
         return 1;
     }
 
@@ -248,7 +249,8 @@ main(int argc, char **argv) {
         }
 
         if (tcsetattr(STDIN_FILENO, TCSANOW, &save) < 0) return 2;
-        puts("<< connection closed");
+        
+        perror("Connection closed");
     }
     return 0;
 }
