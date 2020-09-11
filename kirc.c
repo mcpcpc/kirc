@@ -242,8 +242,15 @@ main(int argc, char **argv) {
         }
     }
 
-    if (!nick)        perror("Nick not specified");   return 1;
-    if (pipe(fd) < 0) perror("Pipe() failed");        return 1;
+    if (!nick) {
+        perror("Nick not specified");
+        return 1;
+    }
+
+    if (pipe(fd) < 0) {
+        perror("Pipe() failed");
+        return 1;
+    }
 
     pid_t pid = fork();
 
