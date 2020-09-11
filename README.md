@@ -9,7 +9,7 @@
 
 ## Objectives
 
-_"Do one thing and do it well"_  —  Per the [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy), emphasis was placed on building simple, short, clear, modular, and extensible code that can be easily maintained and repurposed.
+_"Do one thing and do it well"_  —  Emphasis was placed on building simple, short, clear, modular, and extensible code that can be easily maintained and repurposed (per the [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy)).
 
 _Portability_ — [POSIX](https://en.wikipedia.org/wiki/POSIX) compliance ensures seamless compatibility and interoperability between variants of Unix and other operating systems.
 
