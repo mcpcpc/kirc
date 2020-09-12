@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <sys/select.h>
-#include <sys/wait.h>
 #include <termios.h>
+#include <poll.h>
+#include <errno.h>
 
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* gauranteed max channel length */
@@ -40,20 +40,6 @@ log_append(char *str, char *path) {
 
     fprintf(out, "%s", str);
     fclose(out);
-}
-
-static int
-kbhit(void) {
-
-    int    byteswaiting;
-    struct timespec ts = {0};
-    fd_set fds;
-
-    FD_ZERO(&fds);
-    FD_SET(0, &fds);
-    byteswaiting = pselect(1, &fds, NULL, NULL, &ts, NULL);
-
-    return byteswaiting > 0;
 }
 
 static void
@@ -154,73 +140,84 @@ raw_parser(char *usrin) {
     } else printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
 }
 
-static void
-parent_process(int fd[], pid_t pid) {
-    char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
-    struct termios tp, save;
+static char message_buffer[MSG_MAX + 1];
+/* The first character after the end */
+static size_t message_end = 0;
 
-    tcgetattr(STDIN_FILENO, &tp);
-    save = tp;
-    tp.c_cc[VERASE] = 127;
-
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &tp) < 0) exit(2);
-
-    while (waitpid(pid, NULL, WNOHANG) == 0) {
-        if (!kbhit()) dprintf(fd[1], "/\n");
-        else if (fgets(usrin, MSG_MAX, stdin) != NULL &&
-                  (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
-                  sscanf(usrin, "/%[xMQqnjp] %[^\n]\n", &c1, v1) > 0)) {
-            switch (c1) {
-                case 'x': dprintf(fd[1], "%s\n", v1);                   break;
-                case 'q': dprintf(fd[1], "quit\n");                     break;
-                case 'Q': dprintf(fd[1], "quit %s\n", v1);              break;
-                case 'j': dprintf(fd[1], "join %s\n", v1);              break;
-                case 'p': dprintf(fd[1], "part %s\n", v1);              break;
-                case 'n': dprintf(fd[1], "names #%s\n", chan);          break;
-                case 'M': dprintf(fd[1], "privmsg nickserv :%s\n", v1); break;
-                case 'm': dprintf(fd[1], "privmsg %s :%s\n", v2, v1);   break;
+static int
+handle_server_message(void) {
+    for (;;) {
+        ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
+        if (sl == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                /* Let's wait for new input */
+                return 0;
+            } else {
+                perror("read");
+                return -2;
             }
-        } else dprintf(fd[1], "privmsg #%s :%s", chan, usrin);
+        }
+        if (sl == 0) {
+            fputs("Connection closed\n", stderr);
+            return -1;
+        }
+
+        size_t old_message_end = message_end;
+        message_end += sl;
+
+        /* Iterate over the added part to find \r\n */
+        for (size_t i = old_message_end; i < message_end; ++i) {
+            if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
+                /* Cut the buffer here for parsing */
+                char saved_char = message_buffer[i + 1];
+                message_buffer[i + 1] = '\0';
+                raw_parser(message_buffer);
+                message_buffer[i + 1] = saved_char;
+
+                /* Move the part after the parsed line to the beginning */
+                memmove(&message_buffer, &message_buffer[i + 1], message_end - i - 1);
+
+                /* There might still be other lines to be read */
+                message_end = message_end - i - 1;
+                i = 0;
+            }
+        }
+        if (message_end == MSG_MAX) {
+            /* The buffer is full and doesn't contain \r\n */
+            message_end = 0;
+        }
     }
-
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &save) < 0) exit(2);
-
-    perror("Connection closed");
 }
 
 static void
-child_process(int fd[]) {
-    int  sl, i, o = 0;
-    char u[MSG_MAX], s, b[MSG_MAX];
-
-    irc_init();
-
-    raw("NICK %s\r\n", nick);
-    raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
-
-    if (pass) raw("PASS %s\r\n", pass);
-    if (inic) raw("%s\r\n", inic);
-
-    while ((sl = read(conn, &s, 1))) {
-        if (sl > 0) b[o] = s;
-
-        if ((o > 0 && b[o - 1] == '\r' && b[o] == '\n') || o == MSG_MAX) {
-            b[o + 1] = '\0';
-            raw_parser(b);
-            o = 0;
-        } else if (sl > 0) ++o;
-
-        if (read(fd[0], u, MSG_MAX) > 0) {
-            for (i = 0; u[i] != '\n'; ++i) continue;
-            if (u[0] != '/') raw("%-*.*s\r\n", i, i, u);
+handle_user_input(void) {
+    char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
+    if (fgets(usrin, MSG_MAX, stdin) != NULL &&
+        (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
+         sscanf(usrin, "/%[xMQqnjp] %[^\n]\n", &c1, v1) > 0)) {
+        switch (c1) {
+        case 'x': raw("%s\r\n", v1);                   break;
+        case 'q': raw("quit\r\n");                     break;
+        case 'Q': raw("quit %s\r\n", v1);              break;
+        case 'j': raw("join %s\r\n", v1);              break;
+        case 'p': raw("part %s\r\n", v1);              break;
+        case 'n': raw("names #%s\r\n", chan);          break;
+        case 'M': raw("privmsg nickserv :%s\r\n", v1); break;
+        case 'm': raw("privmsg %s :%s\r\n", v2, v1);   break;
         }
+    } else {
+        size_t msg_len = strlen(usrin);
+        /* Remove the trailing newline to add a carriage return */
+        if (usrin[msg_len - 1] == '\n')
+            usrin[msg_len - 1] = '\0';
+        raw("privmsg #%s :%s\r\n", chan, usrin);
     }
 }
 
 int
 main(int argc, char **argv) {
 
-    int fd[2], cval;
+    int cval;
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:hvV")) != -1) {
         switch (cval) {
@@ -247,16 +244,56 @@ main(int argc, char **argv) {
         return 1;
     }
 
-    if (pipe(fd) < 0) {
-        perror("Pipe() failed");
-        return 1;
+    irc_init();
+
+    raw("NICK %s\r\n", nick);
+    raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
+
+    if (pass) raw("PASS %s\r\n", pass);
+    if (inic) raw("%s\r\n", inic);
+
+    struct termios tp, save;
+
+    tcgetattr(STDIN_FILENO, &tp);
+    save = tp;
+    tp.c_cc[VERASE] = 127;
+
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &tp) < 0) return 2;
+
+    struct pollfd fds[2];
+    fds[0].fd = STDIN_FILENO;
+    fds[1].fd = conn;
+    fds[0].events = POLLIN;
+    fds[1].events = POLLIN;
+
+    int return_code = 0;
+
+    for (;;) {
+        int poll_res = poll(fds, 2, -1);
+
+        if (poll_res != -1) {
+            if (fds[0].revents & POLLIN) {
+                handle_user_input();
+            }
+
+            if (fds[1].revents & POLLIN) {
+                int rc = handle_server_message();
+                /* Has the server closed the connection? */
+                if (rc != 0) {
+                    if (rc == -2) return_code = EXIT_FAILURE;
+                    goto end;
+                };
+            }
+        } else {
+            if (errno == EAGAIN) continue;
+            perror("poll");
+            return_code = EXIT_FAILURE;
+            goto end;
+        }
     }
 
-    pid_t pid = fork();
+end:
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &save) < 0) return 2;
 
-    switch (pid) {
-        case -1 :     perror("Fork() failed");        return 1;
-        case  0 :     child_process(fd);              return 0;
-        default :     parent_process(fd, pid);        return 0;
-    }
+    return return_code;
 }
