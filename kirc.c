@@ -34,7 +34,7 @@ static char * olog = NULL;               /* log irc stream path */
 static char * inic = NULL;               /* server command after connection */
 
 static void
-printa(char *str, char *path) {
+log_append(char *str, char *path) {
 
     FILE *out = fopen(path, "a");
 
@@ -67,9 +67,9 @@ raw(char *fmt, ...) {
     va_end(ap);
 
     if (verb) printf("<< %s", cmd_str);
-    if (olog) printa(cmd_str, olog);
+    if (olog) log_append(cmd_str, olog);
     if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
-        perror("Failed to write to socket");
+        perror("Write to socket");
         exit(1);
     }
 
@@ -102,9 +102,9 @@ printw(const char *format, ...) {
     vsnprintf(line, MSG_MAX, format, argptr);
     va_end(argptr);
 
-    if (olog) printa(line, olog);
+    if (olog) log_append(line, olog);
 
-    for (i = 0; isspace(line[i]); i++) putchar(line[i]);
+    for (i = 0; isspace(line[i]); ++i) putchar(line[i]);
 
     spaceleft = cmax + gutl - (i - 1);
 
@@ -155,7 +155,7 @@ raw_parser(char *usrin) {
 }
 
 static void
-parent_process(int fd[2], pid_t pid) {
+parent_process(int fd[], pid_t pid) {
     char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
     struct termios tp, save;
 
@@ -184,12 +184,12 @@ parent_process(int fd[2], pid_t pid) {
     }
 
     if (tcsetattr(STDIN_FILENO, TCSANOW, &save) < 0) exit(2);
-    
+
     perror("Connection closed");
 }
 
 static void
-child_process(int fd[2]) {
+child_process(int fd[]) {
     int  sl, i, o = 0;
     char u[MSG_MAX], s, b[MSG_MAX];
 
@@ -208,10 +208,10 @@ child_process(int fd[2]) {
             b[o + 1] = '\0';
             raw_parser(b);
             o = 0;
-        } else if (sl > 0) o++;
+        } else if (sl > 0) ++o;
 
         if (read(fd[0], u, MSG_MAX) > 0) {
-            for (i = 0; u[i] != '\n'; i++) continue;
+            for (i = 0; u[i] != '\n'; ++i) continue;
             if (u[0] != '/') raw("%-*.*s\r\n", i, i, u);
         }
     }
