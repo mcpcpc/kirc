@@ -6,7 +6,7 @@ CC     ?= gcc
 all: kirc
 
 kirc: kirc.o Makefile
-	$(CC) $(CFLAGS) -o $@ $@.o -lX11 $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(LDFLAGS)
 
 .c.o:
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
