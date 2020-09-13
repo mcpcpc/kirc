@@ -257,8 +257,6 @@ main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    int return_code = 0;
-
     for (;;) {
         int poll_res = poll(fds, 2, -1);
 
@@ -270,18 +268,14 @@ main(int argc, char **argv) {
             if (fds[1].revents & POLLIN) {
                 int rc = handle_server_message();
                 if (rc != 0) {
-                    if (rc == -2) return_code = EXIT_FAILURE;
-                    goto end;
+                    if (rc == -2) return EXIT_FAILURE;
+                    return 0;
                 };
             }
         } else {
             if (errno == EAGAIN) continue;
             perror("poll");
-            return_code = EXIT_FAILURE;
-            goto end;
+            return EXIT_FAILURE;
         }
     }
-
-end:
-    return return_code;
 }
