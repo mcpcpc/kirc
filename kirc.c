@@ -182,7 +182,6 @@ handle_server_message(void) {
             }
         }
         if (message_end == MSG_MAX) {
-            /* The buffer is full and doesn't contain \r\n */
             message_end = 0;
         }
     }
@@ -206,9 +205,9 @@ handle_user_input(void) {
         }
     } else {
         size_t msg_len = strlen(usrin);
-        /* Remove the trailing newline to add a carriage return */
-        if (usrin[msg_len - 1] == '\n')
+        if (usrin[msg_len - 1] == '\n') {
             usrin[msg_len - 1] = '\0';
+        } 
         raw("privmsg #%s :%s\r\n", chan, usrin);
     }
 }
