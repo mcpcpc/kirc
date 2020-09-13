@@ -220,27 +220,27 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:hvV")) != -1) {
         switch (cval) {
-            case 'V' : verb = 1;                      break;
-            case 's' : host = optarg;                 break;
-            case 'w' : gutl = atoi(optarg);           break;
-            case 'W' : cmax = atoi(optarg);           break;
-            case 'p' : port = optarg;                 break;
-            case 'r' : real = optarg;                 break;
-            case 'u' : user = optarg;                 break;
-            case 'o' : olog = optarg;                 break;
-            case 'n' : nick = optarg;                 break;
-            case 'k' : pass = optarg;                 break;
-            case 'c' : chan = optarg;                 break;
-            case 'x' : inic = optarg;                 break;
-            case 'v' : printf("kirc %s\n", VERSION);  return 0;
-            case 'h' : printf("usage: %s\n", USAGE);  return 0;
-            case '?' :                                return 1;
+            case 'V' : verb = 1;                     break;
+            case 's' : host = optarg;                break;
+            case 'w' : gutl = atoi(optarg);          break;
+            case 'W' : cmax = atoi(optarg);          break;
+            case 'p' : port = optarg;                break;
+            case 'r' : real = optarg;                break;
+            case 'u' : user = optarg;                break;
+            case 'o' : olog = optarg;                break;
+            case 'n' : nick = optarg;                break;
+            case 'k' : pass = optarg;                break;
+            case 'c' : chan = optarg;                break;
+            case 'x' : inic = optarg;                break;
+            case 'v' : printf("kirc %s\n", VERSION); return EXIT_SUCCESS;
+            case 'h' : printf("usage: %s\n", USAGE); return EXIT_SUCCESS;
+            case '?' :                               return EXIT_FAILURE;
         }
     }
 
     if (!nick) {
         perror("Nick not specified");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     irc_init();
@@ -269,7 +269,7 @@ main(int argc, char **argv) {
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
-                    return 0;
+                    return EXIT_SUCCESS;
                 };
             }
         } else {
