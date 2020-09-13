@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <termios.h>
 #include <poll.h>
 #include <errno.h>
 
@@ -252,14 +251,6 @@ main(int argc, char **argv) {
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
-    struct termios tp, save;
-
-    tcgetattr(STDIN_FILENO, &tp);
-    save = tp;
-    tp.c_cc[VERASE] = 127;
-
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &tp) < 0) return 2;
-
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
     fds[1].fd = conn;
@@ -278,7 +269,6 @@ main(int argc, char **argv) {
 
             if (fds[1].revents & POLLIN) {
                 int rc = handle_server_message();
-                /* Has the server closed the connection? */
                 if (rc != 0) {
                     if (rc == -2) return_code = EXIT_FAILURE;
                     goto end;
@@ -293,7 +283,5 @@ main(int argc, char **argv) {
     }
 
 end:
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &save) < 0) return 2;
-
     return return_code;
 }
