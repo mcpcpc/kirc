@@ -37,7 +37,7 @@ log_append(char *str, char *path) {
 
     FILE *out = fopen(path, "a");
 
-    fprintf(out, "%s", str);
+    fprintf(out, "%s\n", str);
     fclose(out);
 }
 
@@ -105,7 +105,7 @@ printw(const char *format, ...) {
         }
     }
 
-    printf("\n");
+    putchar('\n');
 }
 
 static void
