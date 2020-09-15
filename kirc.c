@@ -20,7 +20,7 @@
 [-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
-static size_t verb = 0;                  /* verbose output (e.g. raw stream) */
+static int    verb = 0;                  /* verbose output (e.g. raw stream) */
 static size_t cmax = 80;                 /* max number of chars per line */
 static size_t gutl = 10;                 /* max char width of left column */
 static char * host = "irc.freenode.org"; /* irc host address */
