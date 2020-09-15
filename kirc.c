@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <errno.h>
+#include <sys/socket.h>
 
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* gauranteed max channel length */
@@ -61,19 +62,43 @@ raw(char *fmt, ...) {
     free(cmd_str);
 }
 
-static void
+static int
 irc_init() {
 
     struct addrinfo *res, hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM
     };
+    int gai_status;
 
-    getaddrinfo(host, port, &hints, &res);
-    conn = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    connect(conn, res->ai_addr, res->ai_addrlen);
+    if ((gai_status = getaddrinfo(host, port, &hints, &res)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_status));
+        return -1;
+    }
+
+    struct addrinfo *p;
+    for (p = res; p != NULL; p = p->ai_next) {
+        if ((conn = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            perror("socket");
+            continue;
+        }
+        if (connect(conn, p->ai_addr, p->ai_addrlen) == -1) {
+            close(conn);
+            perror("connect");
+            continue;
+        }
+        break;
+    }
+
     freeaddrinfo(res);
+
+    if (p == NULL) {
+	fputs("Failed to connect\n", stderr);
+	return -1;
+    }
+
     fcntl(conn, F_SETFL, O_NONBLOCK);
+    return 0;
 }
 
 static void
@@ -242,7 +267,9 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    irc_init();
+    if (irc_init() != 0) {
+	return EXIT_FAILURE;
+    }
 
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
