@@ -66,7 +66,7 @@ static int
 irc_init() {
 
     struct addrinfo *res, hints = {
-        .ai_family = AF_INET,
+        .ai_family = AF_UNSPEC,
         .ai_socktype = SOCK_STREAM
     };
     int gai_status;
@@ -93,8 +93,8 @@ irc_init() {
     freeaddrinfo(res);
 
     if (p == NULL) {
-	fputs("Failed to connect\n", stderr);
-	return -1;
+        fputs("Failed to connect\n", stderr);
+        return -1;
     }
 
     fcntl(conn, F_SETFL, O_NONBLOCK);
