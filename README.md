@@ -12,7 +12,7 @@ _"Do one thing and do it well"_  —  Emphasis was placed on building simple, sh
 
 _Portability_ — [POSIX](https://en.wikipedia.org/wiki/POSIX) compliance ensures seamless compatibility and interoperability between variants of Unix and other operating systems.
 
-_Usability_ — Commands and shortcuts should feel natural and accessible using a [standard 104-key US keyboard layout](https://en.wikipedia.org/wiki/Keyboard_layout).  Where possible, the number of keystrokes shall be minimized.
+_Usability_ — Commands and shortcuts should feel natural and accessible using a [standard 104-key US keyboard layout](https://en.wikipedia.org/wiki/Keyboard_layout).  Where possible, the number of keystrokes have been minimized.
 
 ## Usage
 
