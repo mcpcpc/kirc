@@ -36,9 +36,9 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 
 ## Features
 
-- No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
-- Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
-- Ability to log the entire chat history  (see _Usage_ section for more information).
+* No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
+* Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
+* Ability to log the entire chat history  (see _Usage_ section for more information).
 - vi-like command shortcuts:
 
 ```shell
@@ -53,7 +53,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 /q                          Close the host connection.
 ```
 
-- Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
+* Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
 
 ## Screenshots
 
