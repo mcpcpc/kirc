@@ -6,7 +6,6 @@
 <a href="https://repology.org/metapackage/kirc"><img src="https://repology.org/badge/tiny-repos/kirc.svg" alt="Packaging status"></a>
 </p>
 
-
 ## Objectives
 
 _"Do one thing and do it well"_  —  Emphasis was placed on building simple, short, clear, modular, and extensible code that can be easily maintained and repurposed (per the [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy)).
@@ -15,8 +14,7 @@ _Portability_ — [POSIX](https://en.wikipedia.org/wiki/POSIX) compliance ensure
 
 _Usability_ — Commands and shortcuts should feel natural and accessible using a [standard 104-key US keyboard layout](https://en.wikipedia.org/wiki/Keyboard_layout).  Where possible, the number of keystrokes shall be minimized.
 
-Usage
------
+## Usage
 
 ```shell
 usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]
@@ -36,8 +34,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 -h     basic usage information
 ```
 
-Features
---------
+## Features
 
 - No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
 - Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
@@ -58,13 +55,11 @@ Features
 
 - Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
 
-Screenshots
------------
+## Screenshots
 
 ![Screenshot 1](/.github/example.png)
 
-Installation
-------------
+## Installation
 
 Building and installing on **KISS Linux** using the Community repository:
 
