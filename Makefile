@@ -1,4 +1,4 @@
-CFLAGS += -std=c99 -Wall -Wextra -pedantic -Wold-style-declaration
+CFLAGS += -std=c89 -Wall -Wextra -pedantic -Wold-style-declaration
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 CC     ?= gcc

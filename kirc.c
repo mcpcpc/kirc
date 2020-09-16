@@ -65,18 +65,17 @@ raw(char *fmt, ...) {
 static int
 irc_init() {
 
-    struct addrinfo *res, hints = {
-        .ai_family = AF_UNSPEC,
-        .ai_socktype = SOCK_STREAM
-    };
     int gai_status;
+    struct addrinfo *res, *p, hints;
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM; 
 
     if ((gai_status = getaddrinfo(host, port, &hints, &res)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_status));
         return -1;
     }
 
-    struct addrinfo *p;
     for (p = res; p != NULL; p = p->ai_next) {
         if ((conn = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
             perror("socket");
@@ -136,6 +135,9 @@ printw(const char *format, ...) {
 static void
 raw_parser(char *usrin) {
 
+    char *prefix, *suffix, *message, *nickname, *command, *channel;
+    int g, s;
+
     if (verb) printf(">> %s\n", usrin);
 
     if (!strncmp(usrin, "PING", 4)) {
@@ -146,10 +148,14 @@ raw_parser(char *usrin) {
 
     if (usrin[0] != ':') return;
 
-    char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
-         *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
-         *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
-    int  g = gutl, s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+    prefix = strtok(usrin, " ") + 1;
+    suffix = strtok(NULL, ":");
+    message = strtok(NULL, "\r");
+    nickname = strtok(prefix, "!");
+    command = strtok(suffix, "#& ");
+    channel = strtok(NULL, " ");
+
+    g = gutl, s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
 
     if (!strncmp(command, "001", 3)) {
         raw("JOIN #%s\r\n", chan);
@@ -170,6 +176,10 @@ static size_t message_end = 0;
 
 static int
 handle_server_message(void) {
+
+    size_t i;
+    size_t old_message_end;
+
     for (;;) {
         ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
         if (sl == -1) {
@@ -186,11 +196,11 @@ handle_server_message(void) {
             return -1;
         }
 
-        size_t old_message_end = message_end;
+        old_message_end = message_end;
         message_end += sl;
 
         /* Iterate over the added part to find \r\n */
-        for (size_t i = old_message_end; i < message_end; ++i) {
+        for (i = old_message_end; i < message_end; ++i) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
                 /* Cut the buffer here for parsing */
                 char saved_char = message_buffer[i + 1];
@@ -241,6 +251,7 @@ int
 main(int argc, char **argv) {
 
     int cval;
+    struct pollfd fds[2];
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:hvV")) != -1) {
         switch (cval) {
@@ -277,7 +288,6 @@ main(int argc, char **argv) {
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
-    struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
     fds[1].fd = conn;
     fds[0].events = POLLIN;
