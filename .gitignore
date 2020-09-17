@@ -2,3 +2,5 @@ kirc
 *.a
 *.o
 *.txt
+.idea/
+cmake-build-debug/
