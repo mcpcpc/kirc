@@ -49,6 +49,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 /x <message>                Send a message directly to the server.
 /j <channel>                Join a specified channel.
 /p <channel>                Leave (part) a specified channel.
+/u <channel>                Assign new default message channel.
 /n                          List all users on the current channel.
 /q                          Close the host connection.
 /h                          Print a list of available kirc commands.

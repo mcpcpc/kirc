@@ -26,6 +26,7 @@
 /x <message>                Send a message directly to the server.\n\
 /j <channel>                Join a specified channel.\n\
 /p <channel>                Leave (part) a specified channel.\n\
+/u <channel>                Assign new default message channel.\n\
 /n                          List all users on the current channel.\n\
 /q                          Close the host connection.\n\
 /h                          Print a list of available kirc commands."
@@ -35,8 +36,8 @@ static int    conn;                      /* connection socket */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
 static size_t cmax = 80;                 /* max number of chars per line */
 static size_t gutl = 10;                 /* max char width of left column */
+static char   chan[CHA_MAX] = "kirc";    /* channel */
 static char * host = "irc.freenode.org"; /* irc host address */
-static char * chan = "kirc";             /* channel */
 static char * port = "6667";             /* server port */
 static char * nick = NULL;               /* nickname */
 static char * pass = NULL;               /* server password */
@@ -227,11 +228,12 @@ handle_user_input(void) {
     char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
     if (fgets(usrin, MSG_MAX, stdin) != NULL &&
         (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
-         sscanf(usrin, "/%[xMQhqnjp] %[^\n]\n", &c1, v1) > 0)) {
+         sscanf(usrin, "/%[xuMQhqnjp] %[^\n]\n", &c1, v1) > 0)) {
         switch (c1) {
         case 'x': raw("%s\r\n", v1);                   break;
         case 'q': raw("quit\r\n");                     break;
         case 'h': puts(HELP);                          break;
+        case 'u': strcpy(chan, v1);                    break;
         case 'Q': raw("quit %s\r\n", v1);              break;
         case 'j': raw("join %s\r\n", v1);              break;
         case 'p': raw("part %s\r\n", v1);              break;
@@ -265,7 +267,7 @@ main(int argc, char **argv) {
             case 'o' : olog = optarg;                break;
             case 'n' : nick = optarg;                break;
             case 'k' : pass = optarg;                break;
-            case 'c' : chan = optarg;                break;
+            case 'c' : strcpy(chan, optarg);         break;
             case 'x' : inic = optarg;                break;
             case 'v' : printf("kirc %s\n", VERSION); return EXIT_SUCCESS;
             case 'h' : printf("usage: %s\n", USAGE); return EXIT_SUCCESS;
