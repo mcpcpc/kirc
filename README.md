@@ -39,7 +39,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 * No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
 * Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
 * Ability to log the entire chat history  (see _Usage_ section for more information).
-- Simple command structure:
+* Simple command structure:
 
 ```shell
 <message>                   Send a message to the current channel.
@@ -85,3 +85,19 @@ cd kirc
 make
 make install
 ```
+
+## TLS/SSL Support
+
+There is no native TLS/SSL support.  Instead, users can achieve this functionality by using third-party tools (e.g. stunnel, socat, ghosttunnel).
+
+* _socat_ example:
+
+```shell
+socat -v tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:669
+kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
+```
+
+## Contact
+
+For any further questions or concerns, feel free to reach out to me on `#kirc` or `#kisslinux`.
+
