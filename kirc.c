@@ -48,7 +48,12 @@ static char * inic = NULL;               /* server command after connection */
 static void
 log_append(char *str, char *path) {
 
-    FILE *out = fopen(path, "a");
+    FILE *out;
+
+    if ((out = fopen(path, "a")) == NULL) {
+        perror("fopen");
+        exit(1);
+    }
 
     fprintf(out, "%s\n", str);
     fclose(out);
@@ -75,7 +80,7 @@ raw(char *fmt, ...) {
 }
 
 static int
-irc_init() {
+connection_initialize() {
 
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
@@ -177,7 +182,6 @@ raw_parser(char *usrin) {
 }
 
 static char message_buffer[MSG_MAX + 1];
-/* The first character after the end */
 static size_t message_end = 0;
 
 static int
@@ -200,19 +204,13 @@ handle_server_message(void) {
         size_t old_message_end = message_end;
         message_end += sl;
 
-        /* Iterate over the added part to find \r\n */
         for (size_t i = old_message_end; i < message_end; ++i) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
-                /* Cut the buffer here for parsing */
                 char saved_char = message_buffer[i + 1];
                 message_buffer[i + 1] = '\0';
                 raw_parser(message_buffer);
                 message_buffer[i + 1] = saved_char;
-
-                /* Move the part after the parsed line to the beginning */
                 memmove(&message_buffer, &message_buffer[i + 1], message_end - i - 1);
-
-                /* There might still be other lines to be read */
                 message_end = message_end - i - 1;
                 i = 0;
             }
@@ -279,8 +277,8 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    if (irc_init() != 0) {
-	return EXIT_FAILURE;
+    if (connection_initialize() != 0) {
+        return EXIT_FAILURE;
     }
 
     raw("NICK %s\r\n", nick);
