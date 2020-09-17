@@ -78,7 +78,7 @@ cd kirc
 makepkg -si
 ```
 
-Building and installing from source (works on **Rasbian**, **Debian**, **Ubuntu** and many other Unix distributions):
+Building and installing from source (works on **Raspbian**, **Debian**, **Ubuntu** and many other Unix distributions):
 
 ```shell
 git clone https://github.com/mcpcpc/kirc.git
