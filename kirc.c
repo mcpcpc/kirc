@@ -276,7 +276,7 @@ main(int argc, char **argv) {
     }
 
     if (!nick) {
-        perror("Nick not specified");
+        fprintf(stderr, "Nick not specified\n");
         return EXIT_FAILURE;
     }
 
