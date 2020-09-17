@@ -20,7 +20,7 @@ _Usability_ — Commands and shortcuts should feel "natural" when using a [stand
 usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
--c     channel name (default: '#kisslinux')
+-c     channel name (default: 'kirc')
 -n     nickname (required)
 -u     server username (optional)
 -k     server password (optional)
