@@ -66,6 +66,11 @@ raw(char *fmt, ...) {
     va_list ap;
     char *cmd_str = malloc(MSG_MAX);
 
+    if (!cmd_str) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
     va_start(ap, fmt);
     vsnprintf(cmd_str, MSG_MAX, fmt, ap);
     va_end(ap);
@@ -73,8 +78,8 @@ raw(char *fmt, ...) {
     if (verb) printf("<< %s", cmd_str);
     if (olog) log_append(cmd_str, olog);
     if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
-        perror("Write to socket");
-        exit(1);
+        perror("write");
+        exit(EXIT_FAILURE);
     }
 
     free(cmd_str);
@@ -179,7 +184,7 @@ raw_parser(char *usrin) {
         printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
     } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
         printw("%*s\x1b[33;1m%-.*s\x1b[0m [\x1b[33m%s\x1b[0m] %s", s, "", \
-		g, nickname, channel, message);
+        g, nickname, channel, message);
     } else printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
 }
 
@@ -276,7 +281,7 @@ main(int argc, char **argv) {
     }
 
     if (!nick) {
-        fprintf(stderr, "Nick not specified\n");
+        fputs("Nick not specified\n", stderr);
         return EXIT_FAILURE;
     }
 
