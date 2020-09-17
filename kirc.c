@@ -177,7 +177,8 @@ raw_parser(char *usrin) {
     } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
         printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
     } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
-        printw("%*s\x1b[33;1m%-.*s\x1b[0m [%s] %s", s, "", g, nickname, channel, message);
+        printw("%*s\x1b[33;1m%-.*s\x1b[0m [\x1b[33m%s\x1b[0m] %s", s, "", \
+		g, nickname, channel, message);
     } else printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
 }
 
