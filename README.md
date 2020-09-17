@@ -86,9 +86,9 @@ make
 make install
 ```
 
-## TLS/SSL Support
+## Transport Layer Security (TLS)  Support
 
-There is no native TLS/SSL support.  Instead, users can achieve this functionality by using third-party tools (e.g. stunnel, socat, ghosttunnel).
+There is no native [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) support.  Instead, users can achieve this functionality by using third-party tools (e.g. stunnel, socat, ghosttunnel).
 
 * _socat_ example:
 
@@ -99,5 +99,5 @@ kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
 
 ## Contact
 
-For any further questions or concerns, feel free to reach out to me on `#kirc` or `#kisslinux`.
-
+For any further questions or concerns, feel free to reach out to me on `#kirc`
+or `#kisslinux` channels of the _irc.freenode.org_ server.
