@@ -80,7 +80,7 @@ raw(char *fmt, ...) {
 }
 
 static int
-connection_initialize() {
+connection_initialize(void) {
 
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
