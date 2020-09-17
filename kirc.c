@@ -18,6 +18,18 @@
 #define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] \
 [-r real name] [-u username] [-k password] [-x init command] [-w columns] \
 [-W columns] [-o path] [-h|v|V]"
+#define HELP         "\
+<message>                   Send a message to the current channel.\n\
+/m <nick|channel> <message> Send a message to a specified channel or nick.\n\
+/M <message>                Send a message to NickServ.\n\
+/Q <message>                Send a message and close the host connection.\n\
+/x <message>                Send a message directly to the server.\n\
+/j <channel>                Join a specified channel.\n\
+/p <channel>                Leave (part) a specified channel.\n\
+/n                          List all users on the current channel.\n\
+/q                          Close the host connection.\n\
+/h                          Print a list of available kirc commands."
+
 
 static int    conn;                      /* connection socket */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
@@ -174,7 +186,6 @@ handle_server_message(void) {
         ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
         if (sl == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                /* Let's wait for new input */
                 return 0;
             } else {
                 perror("read");
@@ -217,10 +228,11 @@ handle_user_input(void) {
     char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
     if (fgets(usrin, MSG_MAX, stdin) != NULL &&
         (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
-         sscanf(usrin, "/%[xMQqnjp] %[^\n]\n", &c1, v1) > 0)) {
+         sscanf(usrin, "/%[xMQhqnjp] %[^\n]\n", &c1, v1) > 0)) {
         switch (c1) {
         case 'x': raw("%s\r\n", v1);                   break;
         case 'q': raw("quit\r\n");                     break;
+        case 'h': puts(HELP);                          break;
         case 'Q': raw("quit %s\r\n", v1);              break;
         case 'j': raw("join %s\r\n", v1);              break;
         case 'p': raw("part %s\r\n", v1);              break;

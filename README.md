@@ -51,6 +51,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 /p <channel>                Leave (part) a specified channel.
 /n                          List all users on the current channel.
 /q                          Close the host connection.
+/h                          Print a list of available kirc commands.
 ```
 
 * Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
