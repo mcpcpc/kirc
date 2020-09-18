@@ -9,7 +9,7 @@ kirc: kirc.o Makefile
 	$(CC) -o kirc kirc.o $(LDFLAGS)
 
 .c.o:
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
 install: all
 	mkdir -p $(DESTDIR)$(BINDIR)
