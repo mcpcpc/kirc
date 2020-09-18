@@ -77,11 +77,10 @@ raw(char *fmt, ...) {
 
     if (verb) printf("<< %s", cmd_str);
     if (olog) log_append(cmd_str, olog);
-
-    ssize_t rc;
-    do {
-        rc = write(conn, cmd_str, strlen(cmd_str));
-    } while ((rc < 0) && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK));
+    if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
+        perror("write");
+        exit(EXIT_FAILURE);
+    }
 
     free(cmd_str);
 }
