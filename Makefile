@@ -1,18 +1,20 @@
-CFLAGS += -std=c99 -Wall -Wextra -pedantic -Wold-style-declaration
-PREFIX ?= /usr
-BINDIR ?= $(PREFIX)/bin
-CC     ?= gcc
+.POSIX:
+
+PREFIX = /usr/local
+BINDIR = $(PREFIX)/bin
 
 all: kirc
 
 kirc: kirc.o Makefile
-	$(CC) $(CFLAGS) -o $@ $@.o $(LDFLAGS)
+	$(CC) -o kirc kirc.o $(LDFLAGS)
 
 .c.o:
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 install: all
-	install -Dm755 kirc $(DESTDIR)$(BINDIR)/kirc
+	mkdir -p $(DESTDIR)$(BINDIR)
+	cp -f kirc $(DESTDIR)$(BINDIR)
+	chmod 755 $(DESTDIR)$(BINDIR)/kirc
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/kirc
