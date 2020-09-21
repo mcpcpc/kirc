@@ -10,7 +10,9 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <errno.h>
+#include <termios.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* guaranteed max channel length */
@@ -258,6 +260,21 @@ handle_user_input(void) {
     }
 }
 
+static int
+keyboardhit() {
+    struct termios save, tp;
+    int byteswaiting;
+
+    tcgetattr(STDIN_FILENO, &tp);
+    save = tp;
+    tp.c_lflag &= ~ICANON;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tp);
+    ioctl(STDIN_FILENO, FIONREAD, &byteswaiting);
+    tcsetattr(STDIN_FILENO, TCSANOW, &save);
+
+    return byteswaiting;
+}
+
 int
 main(int argc, char **argv) {
 
@@ -310,7 +327,7 @@ main(int argc, char **argv) {
             if (fds[0].revents & POLLIN) {
                 handle_user_input();
             }
-            if (fds[1].revents & POLLIN) {
+            if (fds[1].revents & POLLIN && (keyboardhit() < 1)) {
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
