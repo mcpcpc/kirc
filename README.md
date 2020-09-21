@@ -94,7 +94,7 @@ There is no native [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Sec
 * _socat_ example:
 
 ```shell
-socat -v tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
+socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
 kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
 ```
 
