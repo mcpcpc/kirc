@@ -120,7 +120,10 @@ connection_initialize(void) {
         return -1;
     }
 
-    fcntl(conn, F_SETFL, O_NONBLOCK);
+    int flags = fcntl(conn, F_GETFL, 0);
+    flags |= O_NONBLOCK;
+    fcntl(conn, F_SETFL, flags);
+
     return 0;
 }
 
@@ -231,26 +234,26 @@ handle_server_message(void) {
 static void
 handle_user_input(void) {
     char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
-    if (fgets(usrin, MSG_MAX, stdin) != NULL &&
-        (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
-         sscanf(usrin, "/%[a-zA-Z] %[^\n]\n", &c1, v1) > 0)) {
+    fgets(usrin, MSG_MAX, stdin);
+    if (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
+        sscanf(usrin, "/%[a-zA-Z] %[^\n]\n", &c1, v1) > 0) {
         switch (c1) {
         case 'x': raw("%s\r\n", v1);                   break;
         case 'q': raw("quit\r\n");                     break;
-        case 'u': strcpy(chan, v1);                    break;
         case 'Q': raw("quit %s\r\n", v1);              break;
         case 'j': raw("join %s\r\n", v1);              break;
         case 'p': raw("part %s\r\n", v1);              break;
         case 'n': raw("names #%s\r\n", chan);          break;
         case 'M': raw("privmsg nickserv :%s\r\n", v1); break;
         case 'm': raw("privmsg %s :%s\r\n", v2, v1);   break;
+        case 'u': strcpy(chan, v1);                    break;
         default : puts(HELP);                          break;
         }
     } else {
         size_t msg_len = strlen(usrin);
         if (usrin[msg_len - 1] == '\n') {
             usrin[msg_len - 1] = '\0';
-        } 
+        }
         raw("privmsg #%s :%s\r\n", chan, usrin);
     }
 }
@@ -303,12 +306,10 @@ main(int argc, char **argv) {
 
     for (;;) {
         int poll_res = poll(fds, 2, -1);
-
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 handle_user_input();
             }
-
             if (fds[1].revents & POLLIN) {
                 int rc = handle_server_message();
                 if (rc != 0) {
