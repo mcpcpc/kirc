@@ -189,7 +189,6 @@ raw_parser(char *usrin) {
         raw("JOIN #%s\r\n", chan);
     } else if (!strncmp(command, "90", 2)) {
         raw("CAP END\r\n");
-		exit(1);
     } else if (!strncmp(command, "QUIT", 4)) {
         printw("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "JOIN", 4)) {
