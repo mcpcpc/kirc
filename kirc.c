@@ -44,6 +44,7 @@ static char * port = "6667";             /* server port */
 static char * nick = NULL;               /* nickname */
 static char * pass = NULL;               /* server password */
 static char * user = NULL;               /* server user name */
+static char * auth = NULL;               /* PLAIN SASL authentication token */
 static char * real = NULL;               /* server user real name */
 static char * olog = NULL;               /* log irc stream path */
 static char * inic = NULL;               /* server command after connection */
@@ -90,11 +91,11 @@ raw(char *fmt, ...) {
 static int
 connection_initialize(void) {
 
+    int    gai_status;
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
         .ai_socktype = SOCK_STREAM
     };
-    int gai_status;
 
     if ((gai_status = getaddrinfo(host, port, &hints, &res)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_status));
@@ -172,6 +173,11 @@ raw_parser(char *usrin) {
         return;
     }
 
+    if (!strncmp(usrin, "AUTHENTICATE +", 14)) {
+        raw("AUTHENTICATE %s\r\n", auth);
+        return;
+	}
+
     if (usrin[0] != ':') return;
 
     char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
@@ -181,6 +187,9 @@ raw_parser(char *usrin) {
 
     if (!strncmp(command, "001", 3)) {
         raw("JOIN #%s\r\n", chan);
+    } else if (!strncmp(command, "90", 2)) {
+        raw("CAP END\r\n");
+		exit(1);
     } else if (!strncmp(command, "QUIT", 4)) {
         printw("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "JOIN", 4)) {
@@ -235,7 +244,9 @@ handle_server_message(void) {
 
 static void
 handle_user_input(void) {
+
     char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
+
     fgets(usrin, MSG_MAX, stdin);
     if (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
         sscanf(usrin, "/%[a-zA-Z] %[^\n]\n", &c1, v1) > 0) {
@@ -262,6 +273,7 @@ handle_user_input(void) {
 
 static int
 keyboardhit() {
+
     struct termios save, tp;
     int byteswaiting;
 
@@ -280,7 +292,7 @@ main(int argc, char **argv) {
 
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:hvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hvV")) != -1) {
         switch (cval) {
             case 'V' : verb = 1;                     break;
             case 's' : host = optarg;                break;
@@ -289,6 +301,7 @@ main(int argc, char **argv) {
             case 'p' : port = optarg;                break;
             case 'r' : real = optarg;                break;
             case 'u' : user = optarg;                break;
+            case 'a' : auth = optarg;                break;
             case 'o' : olog = optarg;                break;
             case 'n' : nick = optarg;                break;
             case 'k' : pass = optarg;                break;
@@ -309,9 +322,10 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    if (auth) raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
-
+    if (auth) raw("AUTHENTICATE PLAIN\r\n");
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
