@@ -99,9 +99,9 @@ socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
 kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
 ```
 
-## SASL Plain Support
+## SASL Support
 
-In order to connect using SASL authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways.  For example, using Python, one could use the following:
+In order to connect using SASL PLAIN authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways.  For example, using Python, one could use the following:
 
 ```shell
 python -c 'import base64; print(base64.encodebytes(b"nick\x00nick\x00password"))'
