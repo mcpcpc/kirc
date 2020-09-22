@@ -111,9 +111,7 @@ For example, lets assume an authentication identity of `jilles` and password `se
 
 ```shell
 $ python -c 'import base64; print(base64.encodebytes(b"jilles\x00jilles\x00sesame"))'
-
 b 'amlsbGVzAGppbGxlcwBzZXNhbWU=\n'
-
 $ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 ```
 
