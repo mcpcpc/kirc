@@ -38,9 +38,10 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 ## Features
 
 * No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
-* Complies with [RFC 2812](https://tools.ietf.org/html/rfc2812) standard.
+* Supports IPv4 and IPv6 connections.
+* Supports [SASL PLAIN](https://tools.ietf.org/html/rfc4422) authentication.
 * Ability to log the entire chat history  (see _Usage_ section for more information).
-* Simple command structure:
+* Simple commands and full support for all IRC commands in the [RFC 2812](https://tools.ietf.org/html/rfc2812) standard:
 
 ```shell
 <message>                   Send a message to the current channel.
