@@ -39,7 +39,8 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 
 * No dependencies other than a [C99 compiler](https://gcc.gnu.org/).
 * Supports IPv4 and IPv6 connections.
-* Supports [SASL PLAIN](https://tools.ietf.org/html/rfc4422) authentication.
+* Supports [PLAIN SASL](https://tools.ietf.org/html/rfc4422) authentication methods.
+* Can be used in conjunction with an [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) client to communicate across a network in a way designed to prevent eavesdropping and tampering.
 * Ability to log the entire chat history  (see _Usage_ section for more information).
 * Simple commands and full support for all IRC commands in the [RFC 2812](https://tools.ietf.org/html/rfc2812) standard:
 
@@ -89,9 +90,9 @@ make
 make install
 ```
 
-## Transport Layer Security (TLS)  Support
+## Transport Layer Security (TLS) Support
 
-There is no native [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) support.  Instead, users can achieve this functionality by using third-party tools (e.g. stunnel, socat, ghosttunnel).
+There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party tools (e.g. stunnel, socat, ghosttunnel).
 
 * _socat_ example:
 
@@ -100,9 +101,9 @@ socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
 kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
 ```
 
-## SASL Support
+## PLAIN SASL Support
 
-In order to connect using SASL PLAIN authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways.  For example, using Python, one could use the following:
+In order to connect using PLAIN SASL authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways. For example, using Python, one could use the following:
 
 ```shell
 python -c 'import base64; print(base64.encodebytes(b"nick\x00nick\x00password"))'
