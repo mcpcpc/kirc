@@ -24,6 +24,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 -n     nickname (required)
 -u     server username (optional)
 -k     server password (optional)
+-a     SASL PLAIN authentication token (optional)
 -r     real name (optional)
 -v     version information
 -V     verbose output (e.g. raw stream)
@@ -96,6 +97,22 @@ There is no native [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Sec
 ```shell
 socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
 kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
+```
+
+## SASL Plain Support
+
+In order to connect using SASL authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways.  For example, using Python, one could use the following:
+
+```shell
+python -c 'import base64; print(base64.encodebytes(b"nick\x00nick\x00password"))'
+```
+
+For example, lets assume an authentication identity of `jilles` and password `sesame`:
+
+```shell
+$ python -c 'import base64; print(base64.encodebytes(b"jilles\x00jilles\x00sesame"))'
+b 'amlsbGVzAGppbGxlcwBzZXNhbWU=\n'
+$ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 ```
 
 ## Contact
