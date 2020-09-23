@@ -134,7 +134,7 @@ printw(const char *format, ...) {
     spaceleft = cmax - (i - 1);
 
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
-        wordwidth = strlen(tok) - 1;
+        wordwidth = strlen(tok);
 
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\n%*.s%s ", (int) gutl + 1, " ", tok);
