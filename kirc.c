@@ -121,7 +121,7 @@ printw(const char *format, ...) {
 
     va_list argptr;
     char    *tok, line[MSG_MAX];
-    size_t  i, wordwidth, spaceleft, spacewidth = 1;
+    size_t  i, wordwidth, spaceleft = cmax, spacewidth = 1;
 
     va_start(argptr, format);
     vsnprintf(line, MSG_MAX, format, argptr);
@@ -129,20 +129,19 @@ printw(const char *format, ...) {
 
     if (olog) log_append(line, olog);
 
-    for (i = 0; line[i] == ' '; ++i) putchar(line[i]);
+    for (i = 0; line[i] == ' '; ++i) {
+        putchar(line[i]);
+    }
 
-    spaceleft = cmax - (i - 1);
-
-    for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
+    for(tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
-
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\n%*.s%s ", (int) gutl + 1, " ", tok);
-            spaceleft = cmax - (gutl + 1 + wordwidth + spacewidth);
+            spaceleft = cmax - (gutl + 1);
         } else {
             printf("%s ", tok);
-            spaceleft = spaceleft - (wordwidth + spacewidth);
         }
+        spaceleft -= (wordwidth + spacewidth);
     }
 
     putchar('\n');
@@ -254,7 +253,7 @@ handle_user_input(void) {
 }
 
 static int
-keyboardhit() {
+keyboard_hit() {
 
     struct termios save, tp;
     int byteswaiting;
@@ -323,7 +322,7 @@ main(int argc, char **argv) {
             if (fds[0].revents & POLLIN) {
                 handle_user_input();
             }
-            if (fds[1].revents & POLLIN && (keyboardhit() < 1)) {
+            if (fds[1].revents & POLLIN && (keyboard_hit() < 1)) {
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
