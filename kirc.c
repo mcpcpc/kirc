@@ -23,7 +23,7 @@
 static int    conn;                      /* connection socket */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
 static size_t cmax = 80;                 /* max number of chars per line */
-static size_t gutl = 10;                 /* max char width of left column */
+static size_t gutl = 20;                 /* max char width of left column */
 static char   chan[CHA_MAX] = "kirc";    /* channel */
 static char * host = "irc.freenode.org"; /* irc host address */
 static char * port = "6667";             /* server port */
@@ -131,14 +131,14 @@ printw(const char *format, ...) {
 
     for (i = 0; line[i] == ' '; ++i) putchar(line[i]);
 
-    spaceleft = cmax + gutl - (i - 1);
+    spaceleft = cmax - (i - 1);
 
     for(tok = strtok(&line[i], " "); tok != NULL; tok = strtok(NULL, " ")) {
-        wordwidth = strlen(tok);
+        wordwidth = strlen(tok) - 1;
 
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\n%*.s%s ", (int) gutl + 1, "", tok);
-            spaceleft = cmax - (gutl + 1 + wordwidth);
+            printf("\n%*.s%s ", (int) gutl + 1, " ", tok);
+            spaceleft = cmax - (gutl + 1 + wordwidth + spacewidth);
         } else {
             printf("%s ", tok);
             spaceleft = spaceleft - (wordwidth + spacewidth);
