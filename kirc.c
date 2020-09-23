@@ -15,7 +15,7 @@
 
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* guaranteed max channel length */
-#define VERSION      "0.1.0"             /* software version */
+#define VERSION      "0.1.1"             /* software version */
 #define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] \
 [-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
 [-w columns] [-W columns] [-o path] [-h|v|V]"
