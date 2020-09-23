@@ -132,6 +132,8 @@ printw(const char *format, ...) {
     for (i = 0; line[i] == ' '; ++i) {
         putchar(line[i]);
     }
+  
+    spaceleft -= i - 1;
 
     for(tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
