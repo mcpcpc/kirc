@@ -46,7 +46,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 
 ```shell
 <message>                   Send a PRIVMSG to the current channel.
-/<command>                  Send command to IRC server.
+/<command>                  Send command to IRC server (see RFC 2812 for full list).
 /#<channel>                 Assign new default message channel.
 /?                          Print current message channel.
 ```
