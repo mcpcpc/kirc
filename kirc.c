@@ -133,7 +133,8 @@ printw(const char *format, ...) {
         putchar(line[i]);
     }
   
-    spaceleft -= i - 1;
+    //spaceleft -= i - 1;
+    spaceleft -= i - 1 - 9; /* _temporary_ fix */
 
     for(tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
