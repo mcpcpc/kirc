@@ -30,7 +30,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 -V     verbose output (e.g. raw stream)
 -o     output path to log irc stream
 -x     send command to irc server after inital connection
--w     maximum width of the printed left column (default: '10')
+-w     maximum width of the printed left column (default: '20')
 -W     maximum width of the entire printed stream (default '80')
 -h     basic usage information
 ```
