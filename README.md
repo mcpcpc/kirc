@@ -24,7 +24,7 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 -n     nickname (required)
 -u     server username (optional)
 -k     server password (optional)
--a     SASL PLAIN authentication token (optional)
+-a     PLAIN SASL authentication token (optional)
 -r     real name (optional)
 -v     version information
 -V     verbose output (e.g. raw stream)
