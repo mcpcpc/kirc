@@ -207,10 +207,10 @@ handle_server_message(void) {
             return -1;
         }
 
-        size_t old_message_end = message_end;
+        size_t i, old_message_end = message_end;
         message_end += sl;
 
-        for (size_t i = old_message_end; i < message_end; ++i) {
+        for (i = old_message_end; i < message_end; ++i) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
                 char saved_char = message_buffer[i + 1];
                 message_buffer[i + 1] = '\0';
