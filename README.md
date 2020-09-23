@@ -45,17 +45,10 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 * Simple commands and full support for all IRC commands in the [RFC 2812](https://tools.ietf.org/html/rfc2812) standard:
 
 ```shell
-<message>                   Send a message to the current channel.
-/m <nick|channel> <message> Send a message to a specified channel or nick.
-/M <message>                Send a message to NickServ.
-/Q <message>                Send a message and close the host connection.
-/x <message>                Send a message directly to the server.
-/j <channel>                Join a specified channel.
-/p <channel>                Leave (part) a specified channel.
-/u <channel>                Assign new default message channel.
-/n                          List all users on the current channel.
-/q                          Close the host connection.
-/h                          Print a list of available kirc commands.
+<message>                   Send a PRIVMSG to the current channel.
+/<command>                  Send command to IRC server.
+/#<channel>                 Assign new default message channel.
+/?                          Print current message channel.
 ```
 
 * Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.

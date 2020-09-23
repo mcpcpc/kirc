@@ -1,6 +1,5 @@
 /* See LICENSE file for license details. */
 #define _POSIX_C_SOURCE 200809L
-#include <ctype.h>
 #include <stdarg.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -18,21 +17,8 @@
 #define CHA_MAX      200                 /* guaranteed max channel length */
 #define VERSION      "0.1.0"             /* software version */
 #define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] \
-[-r real name] [-u username] [-k password] [-x init command] [-w columns] \
-[-W columns] [-o path] [-h|v|V]"
-#define HELP         "\
-<message>                   Send a message to the current channel.\n\
-/m <nick|channel> <message> Send a message to a specified channel or nick.\n\
-/M <message>                Send a message to NickServ.\n\
-/Q <message>                Send a message and close the host connection.\n\
-/x <message>                Send a message directly to the server.\n\
-/j <channel>                Join a specified channel.\n\
-/p <channel>                Leave (part) a specified channel.\n\
-/u <channel>                Assign new default message channel.\n\
-/n                          List all users on the current channel.\n\
-/q                          Close the host connection.\n\
-/h                          Print a list of available kirc commands."
-
+[-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
+[-w columns] [-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
@@ -143,7 +129,7 @@ printw(const char *format, ...) {
 
     if (olog) log_append(line, olog);
 
-    for (i = 0; isspace(line[i]); ++i) putchar(line[i]);
+    for (i = 0; line[i] == ' '; ++i) putchar(line[i]);
 
     spaceleft = cmax + gutl - (i - 1);
 
@@ -176,7 +162,7 @@ raw_parser(char *usrin) {
     if (!strncmp(usrin, "AUTHENTICATE +", 14)) {
         raw("AUTHENTICATE %s\r\n", auth);
         return;
-	}
+    }
 
     if (usrin[0] != ':') return;
 
@@ -244,28 +230,25 @@ handle_server_message(void) {
 static void
 handle_user_input(void) {
 
-    char usrin[MSG_MAX], v1[MSG_MAX - CHA_MAX], v2[CHA_MAX], c1;
+    char usrin[MSG_MAX];
 
     fgets(usrin, MSG_MAX, stdin);
-    if (sscanf(usrin, "/%[m] %s %[^\n]\n", &c1, v2, v1) > 2 ||
-        sscanf(usrin, "/%[a-zA-Z] %[^\n]\n", &c1, v1) > 0) {
-        switch (c1) {
-        case 'x': raw("%s\r\n", v1);                   break;
-        case 'q': raw("quit\r\n");                     break;
-        case 'Q': raw("quit %s\r\n", v1);              break;
-        case 'j': raw("join %s\r\n", v1);              break;
-        case 'p': raw("part %s\r\n", v1);              break;
-        case 'n': raw("names #%s\r\n", chan);          break;
-        case 'M': raw("privmsg nickserv :%s\r\n", v1); break;
-        case 'm': raw("privmsg %s :%s\r\n", v2, v1);   break;
-        case 'u': strcpy(chan, v1);                    break;
-        default : puts(HELP);                          break;
+
+    size_t msg_len = strlen(usrin);
+    if (usrin[msg_len - 1] == '\n') {
+        usrin[msg_len - 1] = '\0';
+    }
+
+    if (usrin[0] == '/') {
+        if (usrin[1] == '#') {
+            strcpy(chan, usrin + 2);
+            printf("new channel: #%s\n", chan);
+        } else if (usrin[1] == '?' && msg_len == 3) {
+            printf("current channel: #%s\n", chan);
+        } else {
+            raw("%s\r\n", usrin + 1);
         }
     } else {
-        size_t msg_len = strlen(usrin);
-        if (usrin[msg_len - 1] == '\n') {
-            usrin[msg_len - 1] = '\0';
-        }
         raw("privmsg #%s :%s\r\n", chan, usrin);
     }
 }
