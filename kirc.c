@@ -21,12 +21,13 @@
 [-w columns] [-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
+static char   chan_default[MSG_MAX];     /* default channel for PRIVMSG */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
 static size_t cmax = 80;                 /* max number of chars per line */
 static size_t gutl = 20;                 /* max char width of left column */
-static char   chan[CHA_MAX] = "kirc";    /* channel */
 static char * host = "irc.freenode.org"; /* irc host address */
 static char * port = "6667";             /* server port */
+static char * chan = NULL;               /* channel(s) */
 static char * nick = NULL;               /* nickname */
 static char * pass = NULL;               /* server password */
 static char * user = NULL;               /* server user name */
@@ -117,24 +118,10 @@ connection_initialize(void) {
 }
 
 static void
-printw(const char *format, ...) {
+message_wrap(char *line, size_t offset) {
 
-    va_list argptr;
-    char    *tok, line[MSG_MAX];
-    size_t  i, wordwidth, spaceleft = cmax, spacewidth = 1;
-
-    va_start(argptr, format);
-    vsnprintf(line, MSG_MAX, format, argptr);
-    va_end(argptr);
-
-    if (olog) log_append(line, olog);
-
-    for (i = 0; line[i] == ' '; ++i) {
-        putchar(line[i]);
-    }
-  
-    //spaceleft -= i - 1;
-    spaceleft -= i - 1 - 9; /* _temporary_ fix */
+    char    *tok;
+    size_t  wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
 
     for(tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
@@ -151,45 +138,55 @@ printw(const char *format, ...) {
 }
 
 static void
-raw_parser(char *usrin) {
+raw_parser(char *string) {
 
-    if (verb) printf(">> %s\n", usrin);
+    if (verb) printf(">> %s\n", string);
 
-    if (!strncmp(usrin, "PING", 4)) {
-        usrin[1] = 'O';
-        raw("%s\r\n", usrin);
+    if (!strncmp(string, "PING", 4)) {
+        string[1] = 'O';
+        raw("%s\r\n", string);
         return;
     }
 
-    if (!strncmp(usrin, "AUTHENTICATE +", 14)) {
+    if (!strncmp(string, "AUTHENTICATE +", 14)) {
         raw("AUTHENTICATE %s\r\n", auth);
         return;
     }
 
-    if (usrin[0] != ':') return;
+    if (string[0] != ':') return;
 
-    char *prefix = strtok(usrin, " ") + 1, *suffix = strtok(NULL, ":"),
+    if (olog) log_append(string, olog);
+
+    char *tok, *prefix = strtok(string, " ") + 1, *suffix = strtok(NULL, ":"),
          *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
          *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
     int  g = gutl, s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+    size_t offset = 0;
 
-    if (!strncmp(command, "001", 3)) {
-        raw("JOIN #%s\r\n", chan);
+    if (!strncmp(command, "001", 3) && chan != NULL) {
+        for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
+            strcpy(chan_default, tok);
+            raw("JOIN #%s\r\n", tok);
+        } return;
     } else if (!strncmp(command, "90", 2)) {
         raw("CAP END\r\n");
     } else if (!strncmp(command, "QUIT", 4)) {
-        printw("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s<-- \x1b[34;1m%s\x1b[0m\n", g - 3, "", nickname);
+        return;
     } else if (!strncmp(command, "JOIN", 4)) {
-        printw("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s--> \x1b[32;1m%s\x1b[0m\n", g - 3, "", nickname);
+        return;
     } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
-        printw("%*s\x1b[43;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
-    } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan) == NULL) {
-        printw("%*s\x1b[33;1m%-.*s\x1b[0m [\x1b[33m%s\x1b[0m] %s", s, "", \
-        g, nickname, channel, message);
-    } else printw("%*s\x1b[33;1m%-.*s\x1b[0m %s", s, "", g, nickname, message);
+        printf("%*s\x1b[43;1m%-.*s\x1b[0m ", s, "", g, nickname);
+    } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan_default) == NULL) {
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m [\x1b[33m%s\x1b[0m] ", s, "", \
+        g, nickname, channel);
+        offset += 12 + strlen(channel);
+    } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+    message_wrap((message ? message : " "), offset);
 }
 
-static char message_buffer[MSG_MAX + 1];
+static char   message_buffer[MSG_MAX + 1];
 static size_t message_end = 0;
 
 static int
@@ -243,15 +240,15 @@ handle_user_input(void) {
 
     if (usrin[0] == '/') {
         if (usrin[1] == '#') {
-            strcpy(chan, usrin + 2);
-            printf("new channel: #%s\n", chan);
+            strcpy(chan_default, usrin + 2);
+            printf("new channel: #%s\n", chan_default);
         } else if (usrin[1] == '?' && msg_len == 3) {
-            printf("current channel: #%s\n", chan);
+            printf("current channel: #%s\n", chan_default);
         } else {
             raw("%s\r\n", usrin + 1);
         }
     } else {
-        raw("privmsg #%s :%s\r\n", chan, usrin);
+        raw("privmsg #%s :%s\r\n", chan_default, usrin);
     }
 }
 
@@ -259,7 +256,7 @@ static int
 keyboard_hit() {
 
     struct termios save, tp;
-    int byteswaiting;
+    int    byteswaiting;
 
     tcgetattr(STDIN_FILENO, &tp);
     save = tp;
@@ -280,8 +277,6 @@ main(int argc, char **argv) {
         switch (cval) {
             case 'V' : verb = 1;                     break;
             case 's' : host = optarg;                break;
-            case 'w' : gutl = atoi(optarg);          break;
-            case 'W' : cmax = atoi(optarg);          break;
             case 'p' : port = optarg;                break;
             case 'r' : real = optarg;                break;
             case 'u' : user = optarg;                break;
@@ -289,8 +284,10 @@ main(int argc, char **argv) {
             case 'o' : olog = optarg;                break;
             case 'n' : nick = optarg;                break;
             case 'k' : pass = optarg;                break;
-            case 'c' : strcpy(chan, optarg);         break;
+            case 'c' : chan = optarg;                break;
             case 'x' : inic = optarg;                break;
+            case 'w' : gutl = atoi(optarg);          break;
+            case 'W' : cmax = atoi(optarg);          break;
             case 'v' : printf("kirc %s\n", VERSION); return EXIT_SUCCESS;
             case 'h' : printf("usage: %s\n", USAGE); return EXIT_SUCCESS;
             case '?' :                               return EXIT_FAILURE;
