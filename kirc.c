@@ -231,7 +231,10 @@ handle_user_input(void) {
 
     char usrin[MSG_MAX], *tok;
 
-    fgets(usrin, MSG_MAX, stdin);
+    if (fgets(usrin, MSG_MAX, stdin) == NULL) {
+        perror("fgets");
+        exit(1);
+    }
 
     size_t msg_len = strlen(usrin);
     if (usrin[msg_len - 1] == '\n') {
