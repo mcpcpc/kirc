@@ -23,6 +23,7 @@
 static int    conn;                      /* connection socket */
 static char   chan_default[MSG_MAX];     /* default channel for PRIVMSG */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
+static int    meth = 0;                  /* SASL method (0=PLAIN, 1=EXTERNAL) */
 static size_t cmax = 80;                 /* max number of chars per line */
 static size_t gutl = 20;                 /* max char width of left column */
 static char * host = "irc.freenode.org"; /* irc host address */
@@ -149,7 +150,7 @@ raw_parser(char *string) {
     }
 
     if (!strncmp(string, "AUTHENTICATE +", 14)) {
-        raw("AUTHENTICATE %s\r\n", auth);
+        raw("AUTHENTICATE %s\r\n", (meth ? "+" : auth));
         return;
     }
 
@@ -277,9 +278,10 @@ main(int argc, char **argv) {
 
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hevV")) != -1) {
         switch (cval) {
-            case 'V' : verb = 1;                     break;
+            case 'V' : ++verb;                       break;
+            case 'e' : ++meth;                       break;
             case 's' : host = optarg;                break;
             case 'p' : port = optarg;                break;
             case 'r' : real = optarg;                break;
@@ -310,7 +312,7 @@ main(int argc, char **argv) {
     if (auth) raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
-    if (auth) raw("AUTHENTICATE PLAIN\r\n");
+    if (auth) raw("AUTHENTICATE %s\r\n", (meth ? "EXTERNAL" : "PLAIN"));
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
