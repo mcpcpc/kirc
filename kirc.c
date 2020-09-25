@@ -229,7 +229,7 @@ handle_server_message(void) {
 static void
 handle_user_input(void) {
 
-    char usrin[MSG_MAX];
+    char usrin[MSG_MAX], *tok;
 
     fgets(usrin, MSG_MAX, stdin);
 
@@ -238,15 +238,16 @@ handle_user_input(void) {
         usrin[msg_len - 1] = '\0';
     }
 
-    if (usrin[0] == '/') {
-        if (usrin[1] == '#') {
-            strcpy(chan_default, usrin + 2);
-            printf("new channel: #%s\n", chan_default);
-        } else if (usrin[1] == '?' && msg_len == 3) {
-            printf("current channel: #%s\n", chan_default);
-        } else {
-            raw("%s\r\n", usrin + 1);
-        }
+    if (usrin[0] == '/' && usrin[1] == '#') {
+        strcpy(chan_default, usrin + 2);
+        printf("new channel: #%s\n", chan_default);
+    } else if (usrin[0] == '/' && usrin[1] == '@') {
+        strtok_r(usrin, " ", &tok);
+        raw("privmsg %s :%s\r\n", usrin + 2, tok);
+    } else if (usrin[0] == '/' && usrin[1] == '?' && msg_len == 3) {
+        printf("current channel: #%s\n", chan_default);
+    } else if (usrin[0] == '/') {
+        raw("%s\r\n", usrin + 1);
     } else {
         raw("privmsg #%s :%s\r\n", chan_default, usrin);
     }
