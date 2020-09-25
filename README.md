@@ -18,11 +18,11 @@
 *   Simple shortcut commands and full support for all IRC commands in the [RFC 2812](https://tools.ietf.org/html/rfc2812) standard:
 
 ```shell
-<message>                  Send a PRIVMSG to the current channel.
-/<command>                 Send command to IRC server (see RFC 2812 for full list).
-/#<channel>                Assign new default message channel.
-/?                         Print current message channel.
-/@<channel|nick> <message> Send a message to a specified channel or nick 
+<message>                 Send a PRIVMSG to the current channel.
+@<channel|nick> <message> Send a message to a specified channel or nick 
+/<command>                Send command to IRC server (see RFC 2812 for full list).
+/#<channel>               Assign new default message channel.
+/?                        Print current message channel.
 ```
 
 *   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
