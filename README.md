@@ -11,7 +11,8 @@
 
 *   Excellent cross-platform compatibility (due to [POSIX](https://opensource.com/article/19/7/what-posix-richard-stallman-explains) standard compliance).
 *   No dependencies other than a [C99 compiler](https://en.wikipedia.org/wiki/C99).
-*   Native [PLAIN SASL](https://tools.ietf.org/html/rfc4422) authentication support.
+*   Native [PLAIN SASL](https://tools.ietf.org/html/rfc4422) and [EXTERNAL]() authentication support.
+*   Tor Browser capable (via external TLS utilities)
 *   [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) protocol capable (via external TLS utilities).
 *   Chat history logging.
 *   Multi-channel joining at server connection.
@@ -114,8 +115,6 @@ In order to connect using EXTERNAL SASL, you will first need to generate a clien
 ```shell
 openssl req -x509 -sha256 -new -newkey rsa:4096 -days 1000 -nodes -out client.pem -keyout client.pem
 ```
-
-
 
 ## Contact
 
