@@ -309,10 +309,10 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    if (auth) raw("CAP REQ :sasl\r\n");
+    if (auth || meth) raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
-    if (auth) raw("AUTHENTICATE %s\r\n", (meth ? "EXTERNAL" : "PLAIN"));
+    if (auth || meth) raw("AUTHENTICATE %s\r\n", (meth ? "EXTERNAL" : "PLAIN"));
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 

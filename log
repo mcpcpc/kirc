@@ -1,0 +1,308 @@
+NICK fjkgf
+
+USER fjkgf - - :fjkgf
+
+:card.freenode.net NOTICE * :*** Looking up your hostname...
+
+:card.freenode.net NOTICE * :*** Checking Ident
+
+:card.freenode.net NOTICE * :*** Found your hostname
+
+:card.freenode.net NOTICE * :*** No Ident response
+
+:card.freenode.net 001 fjkgf :Welcome to the freenode Internet Relay Chat Network fjkgf
+
+:card.freenode.net 002 fjkgf :Your host is card.freenode.net[38.229.70.22/6667], running version ircd-seven-1.1.9
+
+:card.freenode.net 003 fjkgf :This server was created Sun Jul 12 2020 at 20:44:33 UTC
+
+:card.freenode.net 004 fjkgf card.freenode.net ircd-seven-1.1.9 DOQRSZaghilopsuwz CFILMPQSbcefgijklmnopqrstuvz bkloveqjfI
+
+:card.freenode.net 005 fjkgf CHANTYPES=# EXCEPTS INVEX CHANMODES=eIbq,k,flj,CFLMPQScgimnprstuz CHANLIMIT=#:120 PREFIX=(ov)@+ MAXLIST=bqeI:100 MODES=4 NETWORK=freenode STATUSMSG=@+ CALLERID=g CASEMAPPING=rfc1459 :are supported by this server
+
+:card.freenode.net 005 fjkgf CHARSET=ascii NICKLEN=16 CHANNELLEN=50 TOPICLEN=390 DEAF=D FNC TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,PRIVMSG:4,NOTICE:4,ACCEPT:,MONITOR: EXTBAN=$,ajrxz CLIENTVER=3.0 KNOCK CPRIVMSG CNOTICE :are supported by this server
+
+:card.freenode.net 005 fjkgf MONITOR=100 WHOX SAFELIST ELIST=CTU ETRACE :are supported by this server
+
+:card.freenode.net 251 fjkgf :There are 100 users and 78382 invisible on 31 servers
+
+:card.freenode.net 252 fjkgf 43 :IRC Operators online
+
+:card.freenode.net 253 fjkgf 26 :unknown connection(s)
+
+:card.freenode.net 254 fjkgf 46304 :channels formed
+
+:card.freenode.net 255 fjkgf :I have 3426 clients and 1 servers
+
+:card.freenode.net 265 fjkgf 3426 4761 :Current local users 3426, max 4761
+
+:card.freenode.net 266 fjkgf 78482 87480 :Current global users 78482, max 87480
+
+:card.freenode.net 250 fjkgf :Highest connection count: 4762 (4761 clients) (689065 connections received)
+
+:card.freenode.net 375 fjkgf :- card.freenode.net Message of the Day - 
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- Welcome to card.freenode.net in Washington, DC, US, kindly sponsored by
+
+:card.freenode.net 372 fjkgf :- Team Cymru (http://www.team-cymru.org).
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- CARD, ORSON SCOTT [1951-]. Born in Richland, Washington, Card grew up in
+
+:card.freenode.net 372 fjkgf :- California, Arizona, and Utah. He lived in Brazil for two years as an unpaid
+
+:card.freenode.net 372 fjkgf :- missionary for the Mormon Church. Author of the Ender and Alvin Maker books,
+
+:card.freenode.net 372 fjkgf :- Card's science fiction and fantasy work is strongly influenced by his Mormon
+
+:card.freenode.net 372 fjkgf :- cultural background. The first author to win the Hugo and Nebula novel awards
+
+:card.freenode.net 372 fjkgf :- two years in a row, Card currently lives in Greensboro, North Carolina, US.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- Welcome to freenode - supporting the free and open source
+
+:card.freenode.net 372 fjkgf :- software communities since 1998.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- By connecting to freenode you indicate that you have read and
+
+:card.freenode.net 372 fjkgf :- accept our policies and guidelines as set out on https://freenode.net
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- In the event that you observe behaviour that contravenes our policies,
+
+:card.freenode.net 372 fjkgf :- please notify a volunteer staff member via private message, or send us an
+
+:card.freenode.net 372 fjkgf :- e-mail to complaints@freenode.net -- we will do our best to address the
+
+:card.freenode.net 372 fjkgf :- situation within a reasonable period of time, and we may request further
+
+:card.freenode.net 372 fjkgf :- information or, as appropriate, involve other parties such as channel operators 
+
+:card.freenode.net 372 fjkgf :- Group Contacts representing an on-topic group.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- freenode runs an open proxy scanner.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- If you are looking for assistance, you may be able to find a list of 
+
+:card.freenode.net 372 fjkgf :- volunteer staff on '/stats p' (shows only on-call staff) or by joining 
+
+:card.freenode.net 372 fjkgf :- #freenode and using the '/who freenode/staff/*' command. You may message
+
+:card.freenode.net 372 fjkgf :- any of us at any time. Please note that freenode predominantly provides 
+
+:card.freenode.net 372 fjkgf :- assistance via private message, and while we have a network channel the 
+
+:card.freenode.net 372 fjkgf :- primary venue for support requests is via private message to a member 
+
+:card.freenode.net 372 fjkgf :- of the volunteer staff team.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- From time to time, volunteer staff may send server-wide notices relating to
+
+:card.freenode.net 372 fjkgf :- the project, or the communities that we host. The majority of such notices
+
+:card.freenode.net 372 fjkgf :- will be sent as wallops, and you can '/mode <yournick> +w' to ensure that you
+
+:card.freenode.net 372 fjkgf :- do not miss them. Important messages relating to the freenode project, including
+
+:card.freenode.net 372 fjkgf :- notices of upcoming maintenance and other scheduled downtime will be issued as
+
+:card.freenode.net 372 fjkgf :- global notices.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- Representing an on-topic project? Don't forget to register, more information
+
+:card.freenode.net 372 fjkgf :- can be found on the https://freenode.net website under "Group Registration".
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- Thank you also to our server sponsors for the sustained support in keeping the
+
+:card.freenode.net 372 fjkgf :- network going for close to two decades.
+
+:card.freenode.net 372 fjkgf :-  
+
+:card.freenode.net 372 fjkgf :- Thank you for using freenode!
+
+:card.freenode.net 376 fjkgf :End of /MOTD command.
+
+:fjkgf MODE fjkgf :+i
+
+:freenode-connect!frigg@freenode/utility-bot/frigg NOTICE fjkgf :Welcome to freenode. To protect the network all new connections will be scanned for vulnerabilities. This will not harm your computer, and vulnerable hosts will be notified.
+
+:freenode-connect!frigg@freenode/utility-bot/frigg PRIVMSG fjkgf :VERSION
+
+quit
+
+:fjkgf!~fjkgf@107-207-104-167.lightspeed.bcvloh.sbcglobal.net QUIT :Client Quit
+
+NICK fjkgf
+
+USER fjkgf - - :fjkgf
+
+:rothfuss.freenode.net NOTICE * :*** Looking up your hostname...
+
+:rothfuss.freenode.net NOTICE * :*** Checking Ident
+
+:rothfuss.freenode.net NOTICE * :*** Found your hostname
+
+:rothfuss.freenode.net NOTICE * :*** No Ident response
+
+:rothfuss.freenode.net 001 fjkgf :Welcome to the freenode Internet Relay Chat Network fjkgf
+
+:rothfuss.freenode.net 002 fjkgf :Your host is rothfuss.freenode.net[84.17.44.180/6667], running version ircd-seven-1.1.9
+
+:rothfuss.freenode.net 003 fjkgf :This server was created Thu Aug 20 2020 at 18:11:04 UTC
+
+:rothfuss.freenode.net 004 fjkgf rothfuss.freenode.net ircd-seven-1.1.9 DOQRSZaghilopsuwz CFILMPQSbcefgijklmnopqrstuvz bkloveqjfI
+
+:rothfuss.freenode.net 005 fjkgf CHANTYPES=# EXCEPTS INVEX CHANMODES=eIbq,k,flj,CFLMPQScgimnprstuz CHANLIMIT=#:120 PREFIX=(ov)@+ MAXLIST=bqeI:100 MODES=4 NETWORK=freenode STATUSMSG=@+ CALLERID=g CASEMAPPING=rfc1459 :are supported by this server
+
+:rothfuss.freenode.net 005 fjkgf CHARSET=ascii NICKLEN=16 CHANNELLEN=50 TOPICLEN=390 DEAF=D FNC TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,PRIVMSG:4,NOTICE:4,ACCEPT:,MONITOR: EXTBAN=$,ajrxz CLIENTVER=3.0 KNOCK WHOX SAFELIST :are supported by this server
+
+:rothfuss.freenode.net 005 fjkgf ELIST=CTU ETRACE CPRIVMSG CNOTICE MONITOR=100 :are supported by this server
+
+:rothfuss.freenode.net 251 fjkgf :There are 98 users and 77413 invisible on 31 servers
+
+:rothfuss.freenode.net 252 fjkgf 43 :IRC Operators online
+
+:rothfuss.freenode.net 253 fjkgf 25 :unknown connection(s)
+
+:rothfuss.freenode.net 254 fjkgf 46226 :channels formed
+
+:rothfuss.freenode.net 255 fjkgf :I have 3322 clients and 1 servers
+
+:rothfuss.freenode.net 265 fjkgf 3322 3722 :Current local users 3322, max 3722
+
+:rothfuss.freenode.net 266 fjkgf 77511 86974 :Current global users 77511, max 86974
+
+:rothfuss.freenode.net 250 fjkgf :Highest connection count: 3723 (3722 clients) (106019 connections received)
+
+:rothfuss.freenode.net 375 fjkgf :- rothfuss.freenode.net Message of the Day - 
+
+:rothfuss.freenode.net 372 fjkgf :- Welcome to freenode - supporting the free and open source
+
+:rothfuss.freenode.net 372 fjkgf :- software communities since 1998.
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- By connecting to freenode you indicate that you have read and
+
+:rothfuss.freenode.net 372 fjkgf :- accept our policies and guidelines as set out on https://freenode.net
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- In the event that you observe behaviour that contravenes our policies,
+
+:rothfuss.freenode.net 372 fjkgf :- please notify a volunteer staff member via private message, or send us an
+
+:rothfuss.freenode.net 372 fjkgf :- e-mail to complaints@freenode.net -- we will do our best to address the
+
+:rothfuss.freenode.net 372 fjkgf :- situation within a reasonable period of time, and we may request further
+
+:rothfuss.freenode.net 372 fjkgf :- information or, as appropriate, involve other parties such as channel operators 
+
+:rothfuss.freenode.net 372 fjkgf :- Group Contacts representing an on-topic group.
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- freenode runs an open proxy scanner.
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- If you are looking for assistance, you may be able to find a list of 
+
+:rothfuss.freenode.net 372 fjkgf :- volunteer staff on '/stats p' (shows only on-call staff) or by joining 
+
+:rothfuss.freenode.net 372 fjkgf :- #freenode and using the '/who freenode/staff/*' command. You may message
+
+:rothfuss.freenode.net 372 fjkgf :- any of us at any time. Please note that freenode predominantly provides 
+
+:rothfuss.freenode.net 372 fjkgf :- assistance via private message, and while we have a network channel the 
+
+:rothfuss.freenode.net 372 fjkgf :- primary venue for support requests is via private message to a member 
+
+:rothfuss.freenode.net 372 fjkgf :- of the volunteer staff team.
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- From time to time, volunteer staff may send server-wide notices relating to
+
+:rothfuss.freenode.net 372 fjkgf :- the project, or the communities that we host. The majority of such notices
+
+:rothfuss.freenode.net 372 fjkgf :- will be sent as wallops, and you can '/mode <yournick> +w' to ensure that you
+
+:rothfuss.freenode.net 372 fjkgf :- do not miss them. Important messages relating to the freenode project, including
+
+:rothfuss.freenode.net 372 fjkgf :- notices of upcoming maintenance and other scheduled downtime will be issued as
+
+:rothfuss.freenode.net 372 fjkgf :- global notices.
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- Representing an on-topic project? Don't forget to register, more information
+
+:rothfuss.freenode.net 372 fjkgf :- can be found on the https://freenode.net website under "Group Registration".
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- Thank you also to our server sponsors for the sustained support in keeping the
+
+:rothfuss.freenode.net 372 fjkgf :- network going for close to two decades.
+
+:rothfuss.freenode.net 372 fjkgf :-  
+
+:rothfuss.freenode.net 372 fjkgf :- Thank you for using freenode!
+
+:rothfuss.freenode.net 376 fjkgf :End of /MOTD command.
+
+:fjkgf MODE fjkgf :+i
+
+:freenode-connect!frigg@freenode/utility-bot/frigg NOTICE fjkgf :Welcome to freenode. To protect the network all new connections will be scanned for vulnerabilities. This will not harm your computer, and vulnerable hosts will be notified.
+
+:freenode-connect!frigg@freenode/utility-bot/frigg PRIVMSG fjkgf :VERSION
+
+quit
+
+:fjkgf!~fjkgf@107-207-104-167.lightspeed.bcvloh.sbcglobal.net QUIT :Client Quit
+
+CAP REQ :sasl
+
+NICK kirc1
+
+USER kirc1 - - :kirc1
+
+AUTHENTICATE EXTERNAL
+
+:rothfuss.freenode.net NOTICE * :*** Looking up your hostname...
+
+:rothfuss.freenode.net NOTICE * :*** Checking Ident
+
+:rothfuss.freenode.net NOTICE * :*** Found your hostname
+
+:rothfuss.freenode.net NOTICE * :*** No Ident response
+
+:rothfuss.freenode.net CAP * ACK :sasl 
+
+AUTHENTICATE +
+
+:rothfuss.freenode.net 904 kirc1 :SASL authentication failed
+
+CAP END
+
