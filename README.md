@@ -107,9 +107,9 @@ b 'amlsbGVzAGppbGxlcwBzZXNhbWU=\n'
 $ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 ```
 
-# EXTERNAL SASL Authentication (for Tor)
+## EXTERNAL SASL Authentication (for Tor)
 
-In order to connect using EXTERNAL SASL, you will first need to generate a client certificate.  We can do so using `openssl`:
+In order to connect using EXTERNAL SASL, you will first need to generate a client certificate.  We can do so using [openssl](https://www.openssl.org):
 
 ```shell
 openssl req -x509 -sha256 -new -newkey rsa:4096 -days 1000 -nodes -out client.pem -keyout client.pem
