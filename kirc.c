@@ -170,7 +170,7 @@ raw_parser(char *string) {
         } return;
     } else if (!strncmp(command, "90", 2)) {
         raw("CAP END\r\n");
-    } else if (!strncmp(command, "QUIT", 4)) {
+    } else if (!strncmp(command, "QUIT", 4) || !strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m\n", g - 3, "", nickname);
         return;
     } else if (!strncmp(command, "JOIN", 4)) {
