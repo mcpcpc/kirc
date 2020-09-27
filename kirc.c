@@ -170,11 +170,14 @@ raw_parser(char *string) {
         } return;
     } else if (!strncmp(command, "90", 2)) {
         raw("CAP END\r\n");
-    } else if (!strncmp(command, "QUIT", 4)) {
+    } else if (!strncmp(command, "QUIT", 4) || !strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m\n", g - 3, "", nickname);
         return;
     } else if (!strncmp(command, "JOIN", 4)) {
         printf("%*s--> \x1b[32;1m%s\x1b[0m\n", g - 3, "", nickname);
+        return;
+    } else if (!strncmp(command, "NICK", 4)) {
+        printf("\x1b[35;1m%*s\x1b[0m --> \x1b[35;1m%s\x1b[0m\n", g - 4, nickname, message);
         return;
     } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
         printf("%*s\x1b[43;1m%-.*s\x1b[0m ", s, "", g, nickname);
