@@ -39,27 +39,6 @@
 
 ![Screenshot 1](/.github/example2.png)
 
-## Usage
-
-```shell
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]
--s     server address (default: 'irc.freenode.org')
--p     server port (default: '6667')
--c     channel name(s), delimited by a "," or "|" character (default: 'kirc')
--n     nickname (required)
--u     server username (optional)
--k     server password (optional)
--a     PLAIN SASL authentication token (optional)
--r     real name (optional)
--v     version information
--V     verbose output (e.g. raw stream)
--o     output path to log irc stream
--x     send command to irc server after inital connection
--w     maximum width of the printed left column (default: '20')
--W     maximum width of the entire printed stream (default '80')
--h     basic usage information
-```
-
 ## Installation
 
 Building and installing on **KISS Linux** using the Community repository:
@@ -84,6 +63,27 @@ git clone https://github.com/mcpcpc/kirc.git
 cd kirc
 make
 make install
+```
+
+## Usage
+
+```shell
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]
+-s     server address (default: 'irc.freenode.org')
+-p     server port (default: '6667')
+-c     channel name(s), delimited by a "," or "|" character (default: 'kirc')
+-n     nickname (required)
+-u     server username (optional)
+-k     server password (optional)
+-a     PLAIN SASL authentication token (optional)
+-r     real name (optional)
+-v     version information
+-V     verbose output (e.g. raw stream)
+-o     output path to log irc stream
+-x     send command to irc server after inital connection
+-w     maximum width of the printed left column (default: '20')
+-W     maximum width of the entire printed stream (default '80')
+-h     basic usage information
 ```
 
 ## Transport Layer Security (TLS) Support
