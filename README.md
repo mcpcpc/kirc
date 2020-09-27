@@ -1,3 +1,9 @@
+<!--
+  Title: KISS for IRC (kirc)
+  Description: A tiny IRC client written in POSIX C99.
+  Author: mcpcpc
+-->
+
 <h3 align="center"><img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="logo" height="170px"></h3>
 <p align="center">KISS for IRC, a tiny IRC client written in POSIX C99.</p>
 <p align="center">
