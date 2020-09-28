@@ -17,7 +17,7 @@
 
 *   Excellent cross-platform compatibility (due to [POSIX](https://opensource.com/article/19/7/what-posix-richard-stallman-explains) standard compliance).
 *   No dependencies other than a [C99 compiler](https://en.wikipedia.org/wiki/C99).
-*   Native [SASL PLAIN](https://tools.ietf.org/html/rfc4422) and [SASL EXTERNAL](https://tools.ietf.org/html/rfc4422) authentication support.
+*   Native [SASL PLAIN and EXTERNAL](https://tools.ietf.org/html/rfc4422) authentication support.
 *   [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) protocol capable (via external TLS utilities).
 *   Chat history logging.
 *   Multi-channel joining at server connection.
