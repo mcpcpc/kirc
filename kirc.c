@@ -15,14 +15,11 @@
 
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* guaranteed max channel length */
-#define VERSION      "0.1.1"             /* software version */
-#define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] \
-[-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
-[-w columns] [-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
 static char   chan_default[MSG_MAX];     /* default channel for PRIVMSG */
 static int    verb = 0;                  /* verbose output (e.g. raw stream) */
+static int    sasl = 0;                  /* SASL method (PLAIN=0, EXTERNAL=1) */
 static size_t cmax = 80;                 /* max number of chars per line */
 static size_t gutl = 20;                 /* max char width of left column */
 static char * host = "irc.freenode.org"; /* irc host address */
@@ -148,11 +145,6 @@ raw_parser(char *string) {
         return;
     }
 
-    if (!strncmp(string, "AUTHENTICATE +", 14)) {
-        raw("AUTHENTICATE %s\r\n", auth);
-        return;
-    }
-
     if (string[0] != ':') return;
 
     if (olog) log_append(string, olog);
@@ -168,8 +160,6 @@ raw_parser(char *string) {
             strcpy(chan_default, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
-    } else if (!strncmp(command, "90", 2)) {
-        raw("CAP END\r\n");
     } else if (!strncmp(command, "QUIT", 4) || !strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m\n", g - 3, "", nickname);
         return;
@@ -275,45 +265,55 @@ keyboard_hit() {
     return byteswaiting;
 }
 
+static void
+usage(void) {
+    fputs("kirc [-s hostname] [-p port] [-c channel] [-n nick] \
+[-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
+[-w columns] [-W columns] [-o path] [-e|v|V]\n", stderr);
+    exit(EXIT_FAILURE);
+}
+
 int
 main(int argc, char **argv) {
 
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hevV")) != -1) {
         switch (cval) {
-            case 'V' : verb = 1;                     break;
-            case 's' : host = optarg;                break;
-            case 'p' : port = optarg;                break;
-            case 'r' : real = optarg;                break;
-            case 'u' : user = optarg;                break;
-            case 'a' : auth = optarg;                break;
-            case 'o' : olog = optarg;                break;
-            case 'n' : nick = optarg;                break;
-            case 'k' : pass = optarg;                break;
-            case 'c' : chan = optarg;                break;
-            case 'x' : inic = optarg;                break;
-            case 'w' : gutl = atoi(optarg);          break;
-            case 'W' : cmax = atoi(optarg);          break;
-            case 'v' : printf("kirc %s\n", VERSION); return EXIT_SUCCESS;
-            case 'h' : printf("usage: %s\n", USAGE); return EXIT_SUCCESS;
-            case '?' :                               return EXIT_FAILURE;
+            case 'V' : ++verb;               break;
+            case 'e' : ++sasl;               break;
+            case 's' : host = optarg;        break;
+            case 'p' : port = optarg;        break;
+            case 'r' : real = optarg;        break;
+            case 'u' : user = optarg;        break;
+            case 'a' : auth = optarg;        break;
+            case 'o' : olog = optarg;        break;
+            case 'n' : nick = optarg;        break;
+            case 'k' : pass = optarg;        break;
+            case 'c' : chan = optarg;        break;
+            case 'x' : inic = optarg;        break;
+            case 'w' : gutl = atoi(optarg);  break;
+            case 'W' : cmax = atoi(optarg);  break;
+            case 'v' : puts("kirc 0.1.2\n"); break;
+            case '?' : usage();              break;
         }
     }
 
     if (!nick) {
         fputs("Nick not specified\n", stderr);
-        return EXIT_FAILURE;
+        usage();
     }
 
     if (connection_initialize() != 0) {
         return EXIT_FAILURE;
     }
 
-    if (auth) raw("CAP REQ :sasl\r\n");
+    if (auth || sasl) raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
-    if (auth) raw("AUTHENTICATE PLAIN\r\n");
+    if (auth || sasl) raw("AUTHENTICATE %s\r\n", (sasl ? "EXTERNAL" : "PLAIN"));
+    if (auth || sasl) raw("AUTHENTICATE %s\r\n", (sasl ? "+" : auth));
+    if (auth || sasl) raw("CAP END\r\n");
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
