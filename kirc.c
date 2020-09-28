@@ -15,10 +15,6 @@
 
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* guaranteed max channel length */
-#define VERSION      "0.1.1"             /* software version */
-#define USAGE        "kirc [-s hostname] [-p port] [-c channel] [-n nick] \
-[-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
-[-w columns] [-W columns] [-o path] [-h|v|V]"
 
 static int    conn;                      /* connection socket */
 static char   chan_default[MSG_MAX];     /* default channel for PRIVMSG */
@@ -275,6 +271,14 @@ keyboard_hit() {
     return byteswaiting;
 }
 
+static void
+usage(void) {
+    fputs("kirc [-s hostname] [-p port] [-c channel] [-n nick] \
+[-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
+[-w columns] [-W columns] [-o path] [-h|v|V]\n", stderr);
+    exit(EXIT_FAILURE);
+}
+
 int
 main(int argc, char **argv) {
 
@@ -282,28 +286,27 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hvV")) != -1) {
         switch (cval) {
-            case 'V' : verb = 1;                     break;
-            case 's' : host = optarg;                break;
-            case 'p' : port = optarg;                break;
-            case 'r' : real = optarg;                break;
-            case 'u' : user = optarg;                break;
-            case 'a' : auth = optarg;                break;
-            case 'o' : olog = optarg;                break;
-            case 'n' : nick = optarg;                break;
-            case 'k' : pass = optarg;                break;
-            case 'c' : chan = optarg;                break;
-            case 'x' : inic = optarg;                break;
-            case 'w' : gutl = atoi(optarg);          break;
-            case 'W' : cmax = atoi(optarg);          break;
-            case 'v' : printf("kirc %s\n", VERSION); return EXIT_SUCCESS;
-            case 'h' : printf("usage: %s\n", USAGE); return EXIT_SUCCESS;
-            case '?' :                               return EXIT_FAILURE;
+            case 'V' : verb = 1;             break;
+            case 's' : host = optarg;        break;
+            case 'p' : port = optarg;        break;
+            case 'r' : real = optarg;        break;
+            case 'u' : user = optarg;        break;
+            case 'a' : auth = optarg;        break;
+            case 'o' : olog = optarg;        break;
+            case 'n' : nick = optarg;        break;
+            case 'k' : pass = optarg;        break;
+            case 'c' : chan = optarg;        break;
+            case 'x' : inic = optarg;        break;
+            case 'w' : gutl = atoi(optarg);  break;
+            case 'W' : cmax = atoi(optarg);  break;
+            case 'v' : puts("kirc 0.1.2\n"); break;
+            case '?' : usage();              break;
         }
     }
 
     if (!nick) {
         fputs("Nick not specified\n", stderr);
-        return EXIT_FAILURE;
+        usage();
     }
 
     if (connection_initialize() != 0) {
