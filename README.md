@@ -68,14 +68,15 @@ make install
 ## Usage
 
 ```shell
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-h|v|V]
+usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-e|v|V]
 -s     server address (default: 'irc.freenode.org')
 -p     server port (default: '6667')
 -c     channel name(s), delimited by a "," or "|" character (default: 'kirc')
 -n     nickname (required)
 -u     server username (optional)
 -k     server password (optional)
--a     PLAIN SASL authentication token (optional)
+-a     PLAIN SASL authentication token (optional, specified with nick)
+-e     EXTERNAL SASL authentication (optional)
 -r     real name (optional)
 -v     version information
 -V     verbose output (e.g. raw stream)
@@ -83,7 +84,6 @@ usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u us
 -x     send command to irc server after inital connection
 -w     maximum width of the printed left column (default: '20')
 -W     maximum width of the entire printed stream (default '80')
--h     basic usage information
 ```
 
 ## Transport Layer Security (TLS) Support
