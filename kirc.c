@@ -13,6 +13,8 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
+#define VERSION "0.1.3"
+
 #define MSG_MAX      512                 /* guaranteed max message length */
 #define CHA_MAX      200                 /* guaranteed max channel length */
 
@@ -280,22 +282,22 @@ main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hevV")) != -1) {
         switch (cval) {
-            case 'V' : ++verb;               break;
-            case 'e' : ++sasl;               break;
-            case 's' : host = optarg;        break;
-            case 'p' : port = optarg;        break;
-            case 'r' : real = optarg;        break;
-            case 'u' : user = optarg;        break;
-            case 'a' : auth = optarg;        break;
-            case 'o' : olog = optarg;        break;
-            case 'n' : nick = optarg;        break;
-            case 'k' : pass = optarg;        break;
-            case 'c' : chan = optarg;        break;
-            case 'x' : inic = optarg;        break;
-            case 'w' : gutl = atoi(optarg);  break;
-            case 'W' : cmax = atoi(optarg);  break;
-            case 'v' : puts("kirc 0.1.2\n"); break;
-            case '?' : usage();              break;
+            case 'V' : ++verb;                break;
+            case 'e' : ++sasl;                break;
+            case 's' : host = optarg;         break;
+            case 'p' : port = optarg;         break;
+            case 'r' : real = optarg;         break;
+            case 'u' : user = optarg;         break;
+            case 'a' : auth = optarg;         break;
+            case 'o' : olog = optarg;         break;
+            case 'n' : nick = optarg;         break;
+            case 'k' : pass = optarg;         break;
+            case 'c' : chan = optarg;         break;
+            case 'x' : inic = optarg;         break;
+            case 'w' : gutl = atoi(optarg);   break;
+            case 'W' : cmax = atoi(optarg);   break;
+            case 'v' : puts("kirc-" VERSION); break;
+            case '?' : usage();               break;
         }
     }
 
