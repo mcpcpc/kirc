@@ -92,10 +92,10 @@ There is no native TLS/SSL support. Instead, users can achieve this functionalit
 
 *   [socat](https://linux.die.net/man/1/socat) example (remember to replace items enclosed with `<>`):
 
-```shell
-socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
-kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
-```
+    ```shell
+    socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
+    kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
+    ```
 
 ## SASL PLAIN Authentication
 
@@ -119,11 +119,11 @@ Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate
 
 *   [socat](https://linux.die.net/man/1/socat) example (remember to replace items enclosed with `<>`):
 
-```shell
-socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
-socat TCP4-LISTEN:1111,fork,bind=0,reuseaddr 'OPENSSL:127.0.0.1:1110,verify=0,cert=<path_to_pem>'
-kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
-```
+    ```shell
+    socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
+    socat TCP4-LISTEN:1111,fork,bind=0,reuseaddr 'OPENSSL:127.0.0.1:1110,verify=0,cert=<path_to_pem>'
+    kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
+    ```
 
 ## Contact
 
