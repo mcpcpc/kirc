@@ -1,0 +1,77 @@
+.TH KIRC 1 kirc\-VERSION
+.SH NAME
+kirc \- KISS for IRC
+.SH SYNOPSIS
+.B kirc
+.RB [ \-s
+.IR server ]
+.RB [ \-p
+.IR port ]
+.RB [ \-n
+.IR nick ]
+.RB [ \-c
+.IR chan ]
+.RB ...
+.SH DESCRIPTION
+.B kirc
+is an extremely fast and simple IRC client designed with portability in mind.
+This client reads from stdin and prints to stdout, so all traffic can
+multiplexed and text parsed or modified using external commands. All highlighted
+text and color can be controlled with ANSI escape sequences.
+.SH OPTIONS
+.TP
+.BI \-s " server"
+Overrides the default host (irc.freenode.org)
+.TP
+.BI \-p " port"
+Overrides the default port (6697)
+.TP
+.BI \-c " chan"
+Specifies the channel(s) to JOIN (delimited by "," or "|")
+.TP
+.BI \-n " nick"
+Specifies the NICK connection nickname
+.TP
+.BI \-u " real"
+Specifies the users real name
+.TP
+.BI \-u " user"
+Specifies the USER connection username
+.TP
+.BI \-k " pass"
+Specifies the PASS connection password
+.TP
+.BI \-w " nick_width"
+Specifies max character width printed in the left column
+.TP
+.BI \-W " max_width"
+Specifies max printed with of the IRC stream
+.TP
+.BI \-a " auth"
+Specifies SASL PLAIN authentication token
+.TP
+.BI \-e
+Specifies SASL EXTERNAL
+.TP
+.BI \-v
+Prints the version information to stderr, then exits
+.SH COMMANDS
+.TP
+.BI /<command>
+Send message to IRC host (e.g. /JOIN, /PART, /WHOIS, etc.)
+.TP
+.BI /?
+Print current default message channel
+.TP
+.BI /#<channel>
+Set default message channel to <channel>
+.TP
+.BI <message>
+Send PRIVMSG to default message channel with <message> as the content
+.TP
+.BI /@<channel|nick>
+Send PRIVMSG to specified <channel> or <nick>
+.SH AUTHOR
+Michael Czigler <michaelczigler at icloud dot com>
+.SH BUGS
+Please report them!
