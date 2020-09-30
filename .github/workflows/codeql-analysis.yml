@@ -5,8 +5,6 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-  schedule:
-    - cron: '0 20 * * 0'
 
 jobs:
   analyze:
@@ -22,14 +20,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        fetch-depth: 2
+        token: ${{ secrets.MARIO_PAT }}
+        submodules: true
     - run: git checkout HEAD^2
       if: ${{ github.event_name == 'pull_request' }}
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
          languages: ${{ matrix.language }}
-         config-file: michael-scott-paper-company/open-codeql-config/config.yml@master
+         config-file: ./.github/codeql/config.yml
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
     - name: Perform CodeQL Analysis
