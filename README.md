@@ -75,7 +75,7 @@ Consult `man kirc` for a full list of available arguments and options.
 
 There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
 
-### `socat` example 
+### Example using `socat` 
 
 Remember to replace items enclosed with `<>`.
 
@@ -104,7 +104,7 @@ $ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 
 Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate using credentials by external means. An example where this might be required is when trying to connect to an IRC host through [Tor](https://www.torproject.org/). To do so, we can using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
 
-### `socat` example 
+### Example using `socat` 
 
 Remember to replace items enclosed with `<>`.
 
@@ -118,13 +118,13 @@ kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
 
 Applying a new color scheme is easy! One of the quickest ways is to use an application, such as [kfc](https://github.com/mcpcpc/kfc), to apply pre-made color palettes. Alternatively, you can manually apply escape sequences to change the default terminal colors.
 
-### `kfc` example:
+### Example using `kfc`
 
 ```shell
 kfc -s gruvbox
 ```
 
-### ANSI escape sequences example:
+### Example using ANSI escape sequences
 
 ```shell
 printf -e "\033]4;<color_number>;#<hex_color_code>"
