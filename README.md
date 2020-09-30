@@ -41,7 +41,7 @@
 
 *   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code), allowing for uniform color definition across all shell applications.
 
-## Installation
+## Installation & Usage
 
 Building and installing on **KISS Linux** using the Community repository:
 
@@ -67,9 +67,13 @@ make
 make install
 ```
 
-## Usage
+### Usage
 
-Consult `man kirc` for a full list of available arguments and options.
+Consult `man kirc` for a full list and explanation of available `kirc` arguments.
+
+```shell
+kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-x command] [-w nick_width] [-W max_width] [-o logfile] [-e|v|V]
+```
 
 ## Transport Layer Security (TLS) Support
 
