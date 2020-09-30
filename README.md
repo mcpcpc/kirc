@@ -4,13 +4,21 @@
   Author: mcpcpc
 -->
 
-<h3 align="center"><img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="logo" height="170px"></h3>
+<h3 align="center">
+  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="KISS for IRC" height="170px">
+</h3>
+
 <p align="center">KISS for IRC, a tiny IRC client written in POSIX C99.</p>
+
 <p align="center">
-<a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-<a href="https://github.com/mcpcpc/kirc/releases"><img src="https://img.shields.io/github/v/release/mcpcpc/kirc.svg"></a>
-<a href="https://repology.org/metapackage/kirc"><img src="https://repology.org/badge/tiny-repos/kirc.svg" alt="Packaging status"></a>
-<a href="https://www.codacy.com/manual/mcpcpc/kirc/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mcpcpc/kirc&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/5616c0ed4b2f4209826038dbc270dbf5" alt="Codacy status"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/mcpcpc/kirc/releases"><img src="https://img.shields.io/github/v/release/mcpcpc/kirc.svg"></a>
+  <a href="https://repology.org/metapackage/kirc"><img src="https://repology.org/badge/tiny-repos/kirc.svg" alt="Packaging status"></a>
+  <a href="https://www.codacy.com/manual/mcpcpc/kirc/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mcpcpc/kirc&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/5616c0ed4b2f4209826038dbc270dbf5" alt="Codacy status"></a>
+</p>
+
+<p align="center">
+  <img src=".github/example2.png" width="550">
 </p>
 
 ## Features
@@ -32,12 +40,6 @@
 ```
 
 *   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
-
-## Screenshots
-
-![Screenshot 1](/.github/example.png)
-
-![Screenshot 1](/.github/example2.png)
 
 ## Installation
 
