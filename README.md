@@ -124,7 +124,7 @@ Not satisfied with the default colors? Applying a new color scheme is easy! One 
 kfc -s gruvbox
 ```
 
-### ANSI escape sequences:
+### ANSI escape sequences example:
 
 ```shell
 printf -e "\033]4;<color_number>;#<hex_color_code>"
