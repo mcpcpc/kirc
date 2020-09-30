@@ -5,7 +5,7 @@
 -->
 
 <h3 align="center">
-  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="KISS for IRC" height="170px">
+  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="kirc" height="170px">
 </h3>
 
 <p align="center">KISS for IRC, a tiny IRC client written in POSIX C99.</p>
@@ -27,7 +27,7 @@
 *   No dependencies other than a [C99 compiler](https://en.wikipedia.org/wiki/C99).
 *   Native [SASL PLAIN and EXTERNAL](https://tools.ietf.org/html/rfc4422) authentication support.
 *   [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) protocol capable (via external TLS utilities).
-*   Chat history logging.
+*   Full chat history logging.
 *   Multi-channel joining at server connection.
 *   Simple shortcut commands and full support for all IRC commands in the [RFC 2812](https://tools.ietf.org/html/rfc2812) standard:
 
@@ -39,7 +39,7 @@
 /?                        Print current message channel.
 ```
 
-*   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code). Therefore, one could theoretically achieve uniform color definition across all shell applications and tools.
+*   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code), allowing for uniform color definition across all shell applications.
 
 ## Installation
 
@@ -69,24 +69,7 @@ make install
 
 ## Usage
 
-```shell
-usage: kirc [-s hostname] [-p port] [-c channel] [-n nick] [-r real name] [-u username] [-k password] [-x init command] [-w columns] [-W columns] [-o path] [-e|v|V]
--s     server address (default: 'irc.freenode.org')
--p     server port (default: '6667')
--c     channel name(s), delimited by a "," or "|" character (default: 'kirc')
--n     nickname (required)
--u     server username (optional)
--k     server password (optional)
--a     PLAIN SASL authentication token (optional, specified with nick)
--e     EXTERNAL SASL authentication (optional)
--r     real name (optional)
--v     version information
--V     verbose output (e.g. raw stream)
--o     output path to log irc stream
--x     send command to irc server after inital connection
--w     maximum width of the printed left column (default: '20')
--W     maximum width of the entire printed stream (default '80')
-```
+Consult `man kirc` for a full list of available arguments and options.
 
 ## Transport Layer Security (TLS) Support
 
@@ -127,7 +110,17 @@ Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate
     kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
     ```
 
+## Color Scheme Definition
+
+Not satisfied with the default colors? Applying a new color scheme is easy!  One of the quickest ways is to use an application, such as [kfc](https://github.com/mcpcpc/kfc), to apply pre-made color palettes.  
+
+*   [kfc](https://github.com/mcpcpc/kfc) example:
+
+    ```shell
+    kfc -s gruvbox
+    ```
+
 ## Contact
 
-For any further questions or concerns, feel free to reach out to me on `#kirc`
+For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
 or `#kisslinux` channels of the _irc.freenode.org_ server.
