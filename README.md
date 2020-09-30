@@ -153,6 +153,10 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 # 15 - Bright White
 ```
 
+## FAQ
+
+*   __KISS__ is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
+
 ## Contact
 
 For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
