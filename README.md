@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src=".github/example2.png" width="550">
+  <img src=".github/example4.png" width="550">
 </p>
 
 ## Features
