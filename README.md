@@ -151,7 +151,7 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 
 ## FAQ
 
-*   **KISS** is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
+**KISS** is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
 
 ## Contact
 
