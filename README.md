@@ -127,27 +127,27 @@ kfc -s gruvbox
 ### ANSI escape sequences:
 
 ```shell
-    printf -e "\033]4;<color_number>;#<hex_color_code>"
-    
-    # Replace <hex_color_code> with the desired Hex code (e.g. #FFFFFF is white).
-    # Replace <color_number> with the one of the numbers below:
-    # 0 -  Regular Black
-    # 1 -  Regular Red
-    # 2 -  Regular Green
-    # 3 -  Regular Yellow
-    # 4 -  Regular Blue
-    # 5 -  Regular Magenta
-    # 6 -  Regular Cyan
-    # 7 -  Regular White
-    # 8 -  Bright Black
-    # 9 -  Bright Red
-    # 10 - Bright Green
-    # 11 - Bright Yellow
-    # 12 - Bright Blue
-    # 13 - Bright Magenta
-    # 14 - Bright Cyan
-    # 15 - Bright White
-    ```
+printf -e "\033]4;<color_number>;#<hex_color_code>"
+
+# Replace <hex_color_code> with the desired Hex code (e.g. #FFFFFF is white).
+# Replace <color_number> with the one of the numbers below:
+# 0 -  Regular Black
+# 1 -  Regular Red
+# 2 -  Regular Green
+# 3 -  Regular Yellow
+# 4 -  Regular Blue
+# 5 -  Regular Magenta
+# 6 -  Regular Cyan
+# 7 -  Regular White
+# 8 -  Bright Black
+# 9 -  Bright Red
+# 10 - Bright Green
+# 11 - Bright Yellow
+# 12 - Bright Blue
+# 13 - Bright Magenta
+# 14 - Bright Cyan
+# 15 - Bright White
+```
 
 ## Contact
 
