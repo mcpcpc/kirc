@@ -116,7 +116,7 @@ kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
 
 ## Color Scheme Definition
 
-Not satisfied with the default colors? Applying a new color scheme is easy! One of the quickest ways is to use an application, such as [kfc](https://github.com/mcpcpc/kfc), to apply pre-made color palettes. Alternatively, you can manually apply escape sequences to change the default terminal colors.
+Applying a new color scheme is easy! One of the quickest ways is to use an application, such as [kfc](https://github.com/mcpcpc/kfc), to apply pre-made color palettes. Alternatively, you can manually apply escape sequences to change the default terminal colors.
 
 ### `kfc` example:
 
