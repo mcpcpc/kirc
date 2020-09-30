@@ -79,14 +79,12 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 
 There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
 
-### Example using `socat` 
+*   Example using `socat`. Remember to replace items enclosed with `<>`.
 
-Remember to replace items enclosed with `<>`.
-
-```shell
-socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
-kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
-```
+    ```shell
+    socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
+    kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
+    ```
 
 ## SASL PLAIN Authentication
 
@@ -108,25 +106,23 @@ $ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 
 Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate using credentials by external means. An example where this might be required is when trying to connect to an IRC host through [Tor](https://www.torproject.org/). To do so, we can using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
 
-### Example using `socat` 
+*   Example using `socat`. Remember to replace items enclosed with `<>`.
 
-Remember to replace items enclosed with `<>`.
-
-```shell
-socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
-socat TCP4-LISTEN:1111,fork,bind=0,reuseaddr 'OPENSSL:127.0.0.1:1110,verify=0,cert=<path_to_pem>'
-kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
-```
+    ```shell
+    socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
+    socat TCP4-LISTEN:1111,fork,bind=0,reuseaddr 'OPENSSL:127.0.0.1:1110,verify=0,cert=<path_to_pem>'
+    kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
+    ```
 
 ## Color Scheme Definition
 
 Applying a new color scheme is easy! One of the quickest ways is to use an application, such as [kfc](https://github.com/mcpcpc/kfc), to apply pre-made color palettes. Alternatively, you can manually apply escape sequences to change the default terminal colors.
 
-### Example using `kfc`
+*   Example using `kfc`
 
-```shell
-kfc -s gruvbox
-```
+    ```shell
+    kfc -s gruvbox
+    ```
 
 ### Example using ANSI escape sequences
 
@@ -155,7 +151,7 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 
 ## FAQ
 
-*   __KISS__ is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
+*   **KISS** is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
 
 ## Contact
 
