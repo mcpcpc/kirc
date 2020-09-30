@@ -20,7 +20,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        token: ${{ secrets.MARIO_PAT }}
+        ssh-key: ${{ secrets.MARIO_DEPLOY_KEY }}
         submodules: true
     - run: git checkout HEAD^2
       if: ${{ github.event_name == 'pull_request' }}
