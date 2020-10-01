@@ -72,7 +72,7 @@ make install
 Consult `man kirc` for a full list and explanation of available `kirc` arguments.
 
 ```shell
-kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-x command] [-w nick_width] [-W max_width] [-o logfile] [-e|v|V]
+kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-w nick_width] [-W max_width] [-o logfile] [-e|v|V]
 ```
 
 ## Transport Layer Security (TLS) Support
