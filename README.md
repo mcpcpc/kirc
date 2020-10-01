@@ -153,6 +153,10 @@ Applying a new color scheme is easy! One of the quickest ways is to use an appli
 
 **KISS** is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
 
+## Known Bugs
+
+Depending on the terminal emulator, some users may experience abnormal _BACKSPACE_ key press behavior. For example, when inputting text that exceeds the width of the terminal window and wraps to a new line, the user is unable to return to editing the previous line of text.  This has been confirmed to be an [upstream issue](https://github.com/mcpcpc/kirc/issues/39) and has been reported accordingly.  While we wait for the upstream fixes, I would recommend using [urxvt](https://wiki.archlinux.org/index.php/Rxvt-unicode) or a terminal multiplexer (such as [screen](https://www.gnu.org/software/screen/) or [tmux](https://github.com/tmux/tmux/wiki)), which seemed to have resolved these issues.  
+
 ## Contact
 
 For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
