@@ -18,7 +18,6 @@
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
 
-static unsigned short cmax;                      /* max printed line chars */
 static int            conn;                      /* connection socket */
 static char           chan_default[MSG_MAX];     /* default PRIVMSG channel */
 static int            verb = 0;                  /* verbose output */
@@ -119,6 +118,14 @@ connection_initialize(void) {
 static void
 message_wrap(char *line, size_t offset) {
 
+    struct winsize window_dims;
+    
+    if (ioctl(0, TIOCGWINSZ, &window_dims) < 0) {
+        perror("ioctrl");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned short cmax = window_dims.ws_col;
     char    *tok;
     size_t  wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
 
@@ -318,8 +325,6 @@ main(int argc, char **argv) {
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
-    struct winsize window_dims;
-
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
     fds[1].fd = conn;
@@ -333,8 +338,6 @@ main(int argc, char **argv) {
                 handle_user_input();
             }
             if (fds[1].revents & POLLIN && (keyboard_hit() < 1)) {
-                ioctl(0, TIOCGWINSZ, &window_dims);
-                cmax = window_dims.ws_col;
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
