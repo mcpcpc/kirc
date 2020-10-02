@@ -328,13 +328,13 @@ main(int argc, char **argv) {
 
     for (;;) {
         int poll_res = poll(fds, 2, -1);
-        ioctl(0, TIOCGWINSZ, &window_dims);
-        cmax = window_dims.ws_col;
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 handle_user_input();
             }
             if (fds[1].revents & POLLIN && (keyboard_hit() < 1)) {
+                ioctl(0, TIOCGWINSZ, &window_dims);
+                cmax = window_dims.ws_col;
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
