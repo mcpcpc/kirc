@@ -15,25 +15,25 @@
 
 #define VERSION "0.1.3"
 
-#define MSG_MAX      512                 /* guaranteed max message length */
-#define CHA_MAX      200                 /* guaranteed max channel length */
+#define MSG_MAX              512                 /* max message length */
+#define CHA_MAX              200                 /* max channel length */
 
-static int    conn;                      /* connection socket */
-static char   chan_default[MSG_MAX];     /* default channel for PRIVMSG */
-static int    verb = 0;                  /* verbose output (e.g. raw stream) */
-static int    sasl = 0;                  /* SASL method (PLAIN=0, EXTERNAL=1) */
-static size_t cmax = 80;                 /* max number of chars per line */
-static size_t gutl = 20;                 /* max char width of left column */
-static char * host = "irc.freenode.org"; /* irc host address */
-static char * port = "6667";             /* server port */
-static char * chan = NULL;               /* channel(s) */
-static char * nick = NULL;               /* nickname */
-static char * pass = NULL;               /* server password */
-static char * user = NULL;               /* server user name */
-static char * auth = NULL;               /* PLAIN SASL authentication token */
-static char * real = NULL;               /* server user real name */
-static char * olog = NULL;               /* log irc stream path */
-static char * inic = NULL;               /* server command after connection */
+static unsigned short cmax;                      /* max printed line chars */
+static int            conn;                      /* connection socket */
+static char           chan_default[MSG_MAX];     /* default PRIVMSG channel */
+static int            verb = 0;                  /* verbose output */
+static int            sasl = 0;                  /* SASL method */
+static size_t         gutl = 20;                 /* max printed nick chars */
+static char         * host = "irc.freenode.org"; /* host address */
+static char         * port = "6667";             /* port */
+static char         * chan = NULL;               /* channel(s) */
+static char         * nick = NULL;               /* nickname */
+static char         * pass = NULL;               /* password */
+static char         * user = NULL;               /* user name */
+static char         * auth = NULL;               /* PLAIN SASL token */
+static char         * real = NULL;               /* real name */
+static char         * olog = NULL;               /* chat log path*/
+static char         * inic = NULL;               /* additional server command */
 
 static void
 log_append(char *str, char *path) {
@@ -280,7 +280,7 @@ main(int argc, char **argv) {
 
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:W:a:hevV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:a:hevV")) != -1) {
         switch (cval) {
             case 'V' : ++verb;                break;
             case 'e' : ++sasl;                break;
@@ -295,7 +295,6 @@ main(int argc, char **argv) {
             case 'c' : chan = optarg;         break;
             case 'x' : inic = optarg;         break;
             case 'w' : gutl = atoi(optarg);   break;
-            case 'W' : cmax = atoi(optarg);   break;
             case 'v' : puts("kirc-" VERSION); break;
             case '?' : usage();               break;
         }
@@ -319,6 +318,8 @@ main(int argc, char **argv) {
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
+    struct winsize window_dims;
+
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
     fds[1].fd = conn;
@@ -327,6 +328,8 @@ main(int argc, char **argv) {
 
     for (;;) {
         int poll_res = poll(fds, 2, -1);
+        ioctl(0, TIOCGWINSZ, &window_dims);
+        cmax = window_dims.ws_col;
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 handle_user_input();

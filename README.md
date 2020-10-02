@@ -72,7 +72,7 @@ make install
 Consult `man kirc` for a full list and explanation of available `kirc` arguments.
 
 ```shell
-kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-w nick_width] [-W max_width] [-o logfile] [-e|v|V]
+kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-w nick_width] [-o logfile] [-e|v|V]
 ```
 
 ## Transport Layer Security (TLS) Support
@@ -161,4 +161,4 @@ Some users may experience abnormal *BACKSPACE* key press behavior, particularly 
 ## Contact
 
 For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
-or `#kisslinux` channels of the _irc.freenode.org_ server.
+or `#kisslinux` channels of the *irc.freenode.org* server.
