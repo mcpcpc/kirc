@@ -161,4 +161,4 @@ Some users may experience abnormal *BACKSPACE* key press behavior, particularly 
 ## Contact
 
 For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
-or `#kisslinux` channels of the _irc.freenode.org_ server.
+or `#kisslinux` channels of the *irc.freenode.org* server.
