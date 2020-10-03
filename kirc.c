@@ -119,17 +119,17 @@ static void
 message_wrap(char *line, size_t offset) {
 
     struct winsize window_dims;
-    
+
     if (ioctl(0, TIOCGWINSZ, &window_dims) < 0) {
         perror("ioctrl");
         exit(EXIT_FAILURE);
     }
 
     unsigned short cmax = window_dims.ws_col;
-    char    *tok;
-    size_t  wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
+    char          *tok;
+    size_t         wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
 
-    for(tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
+    for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\n%*.s%s ", (int) gutl + 1, " ", tok);
@@ -146,7 +146,7 @@ message_wrap(char *line, size_t offset) {
 static void
 raw_parser(char *string) {
 
-    if (verb) printf(">> %s\n", string);
+    if (verb) printf(">> %s", string);
 
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
@@ -235,7 +235,7 @@ handle_user_input(void) {
 
     if (fgets(usrin, MSG_MAX, stdin) == NULL) {
         perror("fgets");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     size_t msg_len = strlen(usrin);
@@ -276,9 +276,9 @@ keyboard_hit() {
 
 static void
 usage(void) {
-    fputs("kirc [-s hostname] [-p port] [-c channel] [-n nick] \
-[-r real_name] [-u username] [-k password] [-a token] [-x init_command] \
-[-w columns] [-W columns] [-o path] [-e|v|V]\n", stderr);
+    fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
+[-u username] [-k password] [-a token] [-x command] [-w columns] [-o path] \
+[-e|v|V]\n", stderr);
     exit(EXIT_FAILURE);
 }
 
@@ -287,7 +287,7 @@ main(int argc, char **argv) {
 
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:a:hevV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:a:evV")) != -1) {
         switch (cval) {
             case 'V' : ++verb;                break;
             case 'e' : ++sasl;                break;
@@ -319,9 +319,10 @@ main(int argc, char **argv) {
     if (auth || sasl) raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
-    if (auth || sasl) raw("AUTHENTICATE %s\r\n", (sasl ? "EXTERNAL" : "PLAIN"));
-    if (auth || sasl) raw("AUTHENTICATE %s\r\n", (sasl ? "+" : auth));
-    if (auth || sasl) raw("CAP END\r\n");
+    if (auth || sasl) {
+        raw("AUTHENTICATE %s\r\n", (sasl ? "EXTERNAL" : "PLAIN"));
+        raw("AUTHENTICATE %s\r\nCAP END\r\n", (sasl ? "+" : auth));
+    }
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
 
