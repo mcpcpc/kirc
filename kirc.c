@@ -34,20 +34,19 @@ static char         * real = NULL;               /* real name */
 static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
-/* START KLINE --------------------------------*/
-static struct      termios orig;
-static int         rawmode = 0;
-static int atexit_registered = 0;
+static struct         termios orig;
+static int            rawmode = 0;
+static int            atexit_registered = 0;
 
-struct state {
-    int         ifd;    /* Terminal stdin file descriptor. */
-    int         ofd;    /* Terminal stdout file descriptor. */
-    char       *buf;    /* Edited line buffer. */
-    size_t      buflen; /* Edited line buffer size. */
-    size_t      pos;    /* Current cursor position. */
-    size_t      oldpos; /* Previous refresh cursor position. */
-    size_t      len;    /* Current edited line length. */
-    size_t      cols;   /* Number of columns in terminal. */
+struct State {
+    int               ifd;    /* Terminal stdin file descriptor. */
+    int               ofd;    /* Terminal stdout file descriptor. */
+    char             *buf;    /* Edited line buffer. */
+    size_t            buflen; /* Edited line buffer size. */
+    size_t            pos;    /* Current cursor position. */
+    size_t            oldpos; /* Previous refresh cursor position. */
+    size_t            len;    /* Current edited line length. */
+    size_t            cols;   /* Number of columns in terminal. */
 };
 
 static void disableRawMode() {
@@ -154,7 +153,7 @@ static void abFree(struct abuf *ab) {
     free(ab->b);
 }
 
-static void refreshLine(struct state *l) {
+static void refreshLine(struct State *l) {
     char seq[64];
     int fd = l->ofd;
     char *buf = l->buf;
@@ -183,7 +182,7 @@ static void refreshLine(struct state *l) {
     abFree(&ab);
 }
 
-static int editInsert(struct state *l, char c) {
+static int editInsert(struct State *l, char c) {
     if (l->len < l->buflen) {
         if (l->len == l->pos) {
             l->buf[l->pos] = c;
@@ -208,35 +207,35 @@ static int editInsert(struct state *l, char c) {
     return 0;
 }
 
-static void editMoveLeft(struct state *l) {
+static void editMoveLeft(struct State *l) {
     if (l->pos > 0) {
         l->pos--;
         refreshLine(l);
     }
 }
 
-static void editMoveRight(struct state *l) {
+static void editMoveRight(struct State *l) {
     if (l->pos != l->len) {
         l->pos++;
         refreshLine(l);
     }
 }
 
-static void editMoveHome(struct state *l) {
+static void editMoveHome(struct State *l) {
     if (l->pos != 0) {
         l->pos = 0;
         refreshLine(l);
     }
 }
 
-static void editMoveEnd(struct state *l) {
+static void editMoveEnd(struct State *l) {
     if (l->pos != l->len) {
         l->pos = l->len;
         refreshLine(l);
     }
 }
 
-static void editDelete(struct state *l) {
+static void editDelete(struct State *l) {
     if (l->len > 0 && l->pos < l->len) {
         memmove(l->buf+l->pos,l->buf+l->pos+1,l->len-l->pos-1);
         l->len--;
@@ -245,7 +244,7 @@ static void editDelete(struct state *l) {
     }
 }
 
-static void editBackspace(struct state *l) {
+static void editBackspace(struct State *l) {
     if (l->pos > 0 && l->len > 0) {
         memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
         l->pos--;
@@ -255,7 +254,7 @@ static void editBackspace(struct state *l) {
     }
 }
 
-static void editDeletePrevWord(struct state *l) {
+static void editDeletePrevWord(struct State *l) {
     size_t old_pos = l->pos;
     size_t diff;
 
@@ -271,7 +270,7 @@ static void editDeletePrevWord(struct state *l) {
 
 static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen)
 {
-    struct state l;
+    struct State l;
 
     l.ifd = stdin_fd;
     l.ofd = stdout_fd;
@@ -371,50 +370,6 @@ static int klineRaw(char *buf, size_t buflen) {
     return count;
 }
 
-static char *noTTY(void) {
-    char *line = NULL;
-    size_t len = 0, maxlen = 0;
-
-    while(1) {
-        if (len == maxlen) {
-            if (maxlen == 0) maxlen = 16;
-            maxlen *= 2;
-            char *oldval = line;
-            line = realloc(line,maxlen);
-            if (line == NULL) {
-                if (oldval) free(oldval);
-                return NULL;
-            }
-        }
-        int c = fgetc(stdin);
-        if (c == EOF || c == '\n') {
-            if (c == EOF && len == 0) {
-                free(line);
-                return NULL;
-            } else {
-                line[len] = '\0';
-                return line;
-            }
-        } else {
-            line[len] = c;
-            len++;
-        }
-    }
-}
-
-char *kline(const size_t max_line) {
-    char buf[max_line];
-    int count;
-
-    if (!isatty(STDIN_FILENO)) {
-        return noTTY();
-    } else {
-        count = klineRaw(buf, max_line);
-        if (count == -1) return NULL;
-        return strdup(buf);
-    }
-}
-/* END KLINE -------------------------------- */
 static void log_append(char *str, char *path) {
     FILE *out;
 
@@ -684,8 +639,11 @@ int main(int argc, char **argv) {
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 byteswaiting = 0;
-                strcpy(usrin, kline(MSG_MAX));
-                usrin[MSG_MAX -1] = '\n';
+                for (int i = 0;  i < gutl;  i++, putchar('.'));
+                putchar('\n');
+                klineRaw(usrin, MSG_MAX);
+                for (int i = 0;  i < gutl;  i++, putchar('.'));
+                putchar('\n');
                 handle_user_input(usrin);
                 byteswaiting = 1;
             }
