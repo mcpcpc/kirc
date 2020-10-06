@@ -245,20 +245,6 @@ static void handle_user_input(void) {
     }
 }
 
-static int keyboard_hit() {
-    struct termios save, tp;
-    int    byteswaiting;
-
-    tcgetattr(STDIN_FILENO, &tp);
-    save = tp;
-    tp.c_lflag &= ~ICANON;
-    tcsetattr(STDIN_FILENO, TCSANOW, &tp);
-    ioctl(STDIN_FILENO, FIONREAD, &byteswaiting);
-    tcsetattr(STDIN_FILENO, TCSANOW, &save);
-
-    return byteswaiting;
-}
-
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-x command] [-w columns] [-o path] \
@@ -320,7 +306,7 @@ int main(int argc, char **argv) {
             if (fds[0].revents & POLLIN) {
                 handle_user_input();
             }
-            if (fds[1].revents & POLLIN && (keyboard_hit() < 1)) {
+            if (fds[1].revents & POLLIN) {
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
