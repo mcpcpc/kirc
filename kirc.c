@@ -34,9 +34,7 @@ static char         * real = NULL;               /* real name */
 static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
-static void
-log_append(char *str, char *path) {
-
+static void log_append(char *str, char *path) {
     FILE *out;
 
     if ((out = fopen(path, "a")) == NULL) {
@@ -48,9 +46,7 @@ log_append(char *str, char *path) {
     fclose(out);
 }
 
-static void
-raw(char *fmt, ...) {
-
+static void raw(char *fmt, ...) {
     va_list ap;
     char *cmd_str = malloc(MSG_MAX);
 
@@ -73,9 +69,7 @@ raw(char *fmt, ...) {
     free(cmd_str);
 }
 
-static int
-connection_initialize(void) {
-
+static int connection_initialize(void) {
     int    gai_status;
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
@@ -115,9 +109,7 @@ connection_initialize(void) {
     return 0;
 }
 
-static void
-message_wrap(char *line, size_t offset) {
-
+static void message_wrap(char *line, size_t offset) {
     struct winsize window_dims;
 
     if (ioctl(0, TIOCGWINSZ, &window_dims) < 0) {
@@ -143,9 +135,7 @@ message_wrap(char *line, size_t offset) {
     putchar('\n');
 }
 
-static void
-raw_parser(char *string) {
-
+static void raw_parser(char *string) {
     if (verb) printf(">> %s", string);
 
     if (!strncmp(string, "PING", 4)) {
@@ -191,8 +181,7 @@ raw_parser(char *string) {
 static char   message_buffer[MSG_MAX + 1];
 static size_t message_end = 0;
 
-static int
-handle_server_message(void) {
+static int handle_server_message(void) {
     for (;;) {
         ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
         if (sl == -1) {
@@ -228,9 +217,7 @@ handle_server_message(void) {
     }
 }
 
-static void
-handle_user_input(void) {
-
+static void handle_user_input(void) {
     char usrin[MSG_MAX], *tok;
 
     if (fgets(usrin, MSG_MAX, stdin) == NULL) {
@@ -258,9 +245,7 @@ handle_user_input(void) {
     }
 }
 
-static int
-keyboard_hit() {
-
+static int keyboard_hit() {
     struct termios save, tp;
     int    byteswaiting;
 
@@ -274,17 +259,14 @@ keyboard_hit() {
     return byteswaiting;
 }
 
-static void
-usage(void) {
+static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-x command] [-w columns] [-o path] \
 [-e|v|V]\n", stderr);
     exit(EXIT_FAILURE);
 }
 
-int
-main(int argc, char **argv) {
-
+int main(int argc, char **argv) {
     int cval;
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:a:evV")) != -1) {
