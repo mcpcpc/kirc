@@ -34,6 +34,387 @@ static char         * real = NULL;               /* real name */
 static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
+/* START KLINE --------------------------------*/
+static struct      termios orig;
+static int         rawmode = 0;
+static int atexit_registered = 0;
+
+struct state {
+    int         ifd;    /* Terminal stdin file descriptor. */
+    int         ofd;    /* Terminal stdout file descriptor. */
+    char       *buf;    /* Edited line buffer. */
+    size_t      buflen; /* Edited line buffer size. */
+    size_t      pos;    /* Current cursor position. */
+    size_t      oldpos; /* Previous refresh cursor position. */
+    size_t      len;    /* Current edited line length. */
+    size_t      cols;   /* Number of columns in terminal. */
+};
+
+static void disableRawMode() {
+    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1)
+        rawmode = 0;
+}
+
+static int enableRawMode(int fd) {
+    struct termios raw;
+
+    if (!isatty(STDIN_FILENO)) {
+        errno = ENOTTY;
+        return -1;
+    }
+    if (!atexit_registered) {
+        atexit(disableRawMode);
+        atexit_registered = 1;
+    }
+    if (tcgetattr(fd,&orig) == -1) {
+        errno = ENOTTY;
+        return -1;
+    } 
+
+    raw = orig;
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    raw.c_oflag &= ~(OPOST);
+    raw.c_cflag |= (CS8);
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    raw.c_cc[VMIN] = 1; 
+    raw.c_cc[VTIME] = 0;
+
+    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) {
+        errno = ENOTTY;
+        return -1;
+    }
+
+    rawmode = 1;
+    return 0;
+}
+
+static int getCursorPosition(int ifd, int ofd) {
+    char buf[32];
+    int cols, rows;
+    unsigned int i = 0;
+
+    if (write(ofd, "\x1b[6n", 4) != 4) return -1;
+
+    while (i < sizeof(buf)-1) {
+        if (read(ifd,buf+i,1) != 1) break;
+        if (buf[i] == 'R') break;
+        i++;
+    }
+    buf[i] = '\0';
+
+    if (buf[0] != 27 || buf[1] != '[') return -1;
+    if (sscanf(buf+2,"%d;%d",&rows,&cols) != 2) return -1;
+    return cols;
+}
+
+static int getColumns(int ifd, int ofd) {
+    struct winsize ws;
+
+    if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+        int start, cols;
+
+        start = getCursorPosition(ifd,ofd);
+        if (start == -1) return 80;
+
+        if (write(ofd,"\x1b[999C",6) != 6) return 80;
+        cols = getCursorPosition(ifd,ofd);
+        if (cols == -1) return 80;
+
+        if (cols > start) {
+            char seq[32];
+            snprintf(seq,32,"\x1b[%dD",cols-start);
+            if (write(ofd,seq,strlen(seq)) == -1) {}
+        }
+        return cols;
+    } else {
+        return ws.ws_col;
+    }
+}
+
+struct abuf {
+    char *b;
+    int len;
+};
+
+static void abInit(struct abuf *ab) {
+    ab->b = NULL;
+    ab->len = 0;
+}
+
+static void abAppend(struct abuf *ab, const char *s, int len) {
+    char *new = realloc(ab->b,ab->len+len);
+
+    if (new == NULL) return;
+    memcpy(new+ab->len,s,len);
+    ab->b = new;
+    ab->len += len;
+}
+
+static void abFree(struct abuf *ab) {
+    free(ab->b);
+}
+
+static void refreshLine(struct state *l) {
+    char seq[64];
+    int fd = l->ofd;
+    char *buf = l->buf;
+    size_t len = l->len;
+    size_t pos = l->pos;
+    struct abuf ab;
+
+    while(pos >= l->cols) {
+        buf++;
+        len--;
+        pos--;
+    }
+    while (len > l->cols) {
+        len--;
+    }
+
+    abInit(&ab);
+    snprintf(seq,64,"\r");
+    abAppend(&ab,seq,strlen(seq));
+    abAppend(&ab,buf,len);
+    snprintf(seq,64,"\x1b[0K");
+    abAppend(&ab,seq,strlen(seq));
+    snprintf(seq,64,"\r\x1b[%dC", (int)(pos));
+    abAppend(&ab,seq,strlen(seq));
+    if (write(fd,ab.b,ab.len) == -1) {} /* Can't recover from write error. */
+    abFree(&ab);
+}
+
+static int editInsert(struct state *l, char c) {
+    if (l->len < l->buflen) {
+        if (l->len == l->pos) {
+            l->buf[l->pos] = c;
+            l->pos++;
+            l->len++;
+            l->buf[l->len] = '\0';
+            if ((l->len < l->cols)) {
+                char d = c;
+                if (write(l->ofd,&d,1) == -1) return -1;
+            } else {
+                refreshLine(l);
+            }
+        } else {
+            memmove(l->buf+l->pos+1,l->buf+l->pos,l->len-l->pos);
+            l->buf[l->pos] = c;
+            l->len++;
+            l->pos++;
+            l->buf[l->len] = '\0';
+            refreshLine(l);
+        }
+    }
+    return 0;
+}
+
+static void editMoveLeft(struct state *l) {
+    if (l->pos > 0) {
+        l->pos--;
+        refreshLine(l);
+    }
+}
+
+static void editMoveRight(struct state *l) {
+    if (l->pos != l->len) {
+        l->pos++;
+        refreshLine(l);
+    }
+}
+
+static void editMoveHome(struct state *l) {
+    if (l->pos != 0) {
+        l->pos = 0;
+        refreshLine(l);
+    }
+}
+
+static void editMoveEnd(struct state *l) {
+    if (l->pos != l->len) {
+        l->pos = l->len;
+        refreshLine(l);
+    }
+}
+
+static void editDelete(struct state *l) {
+    if (l->len > 0 && l->pos < l->len) {
+        memmove(l->buf+l->pos,l->buf+l->pos+1,l->len-l->pos-1);
+        l->len--;
+        l->buf[l->len] = '\0';
+        refreshLine(l);
+    }
+}
+
+static void editBackspace(struct state *l) {
+    if (l->pos > 0 && l->len > 0) {
+        memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
+        l->pos--;
+        l->len--;
+        l->buf[l->len] = '\0';
+        refreshLine(l);
+    }
+}
+
+static void editDeletePrevWord(struct state *l) {
+    size_t old_pos = l->pos;
+    size_t diff;
+
+    while (l->pos > 0 && l->buf[l->pos-1] == ' ')
+        l->pos--;
+    while (l->pos > 0 && l->buf[l->pos-1] != ' ')
+        l->pos--;
+    diff = old_pos - l->pos;
+    memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
+    l->len -= diff;
+    refreshLine(l);
+}
+
+static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen)
+{
+    struct state l;
+
+    l.ifd = stdin_fd;
+    l.ofd = stdout_fd;
+    l.buf = buf;
+    l.buflen = buflen;
+    l.oldpos = l.pos = 0;
+    l.len = 0;
+    l.cols = getColumns(stdin_fd, stdout_fd);
+
+    l.buf[0] = '\0';
+    l.buflen--; /* Make sure there is always space for the nulterm */
+
+    while(1) {
+        char c;
+        int nread;
+        char seq[3];
+
+        nread = read(l.ifd,&c,1);
+        if (nread <= 0) return l.len;
+
+        switch(c) {
+            case 3:     /* ctrl-c */
+                errno = EAGAIN;
+                return -1;
+            case 4:     /* ctrl-d, remove char at right of cursor, or if the
+                                line is empty, act as end-of-file. */
+                if (l.len > 0) {
+                    editDelete(&l);
+                } else {
+                    return -1;
+                }
+                break;
+            case 13:  return (int)l.len;              /* enter */
+            case 127:                                 /* backspace */
+            case 8:   editBackspace(&l);       break; /* backspace */
+            case 2:   editMoveLeft(&l);        break; /* ctrl+b */
+            case 6:   editMoveRight(&l);       break; /* ctrl+f */
+            case 1:   editMoveHome(&l);        break; /* ctrl+a */
+            case 5:   editMoveEnd(&l);         break; /* ctrl+e */
+            case 23:  editDeletePrevWord(&l);  break; /* ctrl+w */
+            case 27:                                  /* esc sequence */
+                if (read(l.ifd,seq,1) == -1)   break;
+                if (read(l.ifd,seq+1,1) == -1) break;
+                if (seq[0] == '[') {
+                    if (seq[1] >= '0' && seq[1] <= '9') {
+                        if (read(l.ifd,seq+2,1) == -1) break;
+                        if (seq[2] == '~') {
+                            switch(seq[1]) {
+                            case '3': editDelete(&l); break;
+                            }
+                        }
+                    } else {
+                        switch(seq[1]) {
+                            case 'C': editMoveRight(&l); break;
+                            case 'D': editMoveLeft(&l);  break;
+                            case 'H': editMoveHome(&l);  break;
+                            case 'F': editMoveEnd(&l);   break;
+                        }
+                    }
+                } else if (seq[0] == 'O') {
+                    switch(seq[1]) {
+                        case 'H': editMoveHome(&l); break;
+                        case 'F': editMoveEnd(&l);  break;
+                    }
+                }
+                break;
+            case 21: /* Ctrl+u, delete the whole line. */
+                buf[0] = '\0';
+                l.pos = l.len = 0;
+                refreshLine(&l);
+                break;
+            case 11: /* Ctrl+k, delete from current to end of line. */
+                buf[l.pos] = '\0';
+                l.len = l.pos;
+                refreshLine(&l);
+                break;
+            default:
+                if (editInsert(&l,c)) return -1;
+                break;
+        }
+    }
+    return l.len;
+}
+
+static int klineRaw(char *buf, size_t buflen) {
+    int count;
+
+    if (buflen == 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (enableRawMode(STDIN_FILENO) == -1) return -1;
+    count = edit(STDIN_FILENO, STDOUT_FILENO, buf, buflen);
+    disableRawMode();
+    printf("\n");
+    return count;
+}
+
+static char *noTTY(void) {
+    char *line = NULL;
+    size_t len = 0, maxlen = 0;
+
+    while(1) {
+        if (len == maxlen) {
+            if (maxlen == 0) maxlen = 16;
+            maxlen *= 2;
+            char *oldval = line;
+            line = realloc(line,maxlen);
+            if (line == NULL) {
+                if (oldval) free(oldval);
+                return NULL;
+            }
+        }
+        int c = fgetc(stdin);
+        if (c == EOF || c == '\n') {
+            if (c == EOF && len == 0) {
+                free(line);
+                return NULL;
+            } else {
+                line[len] = '\0';
+                return line;
+            }
+        } else {
+            line[len] = c;
+            len++;
+        }
+    }
+}
+
+char *kline(const size_t max_line) {
+    char buf[max_line];
+    int count;
+
+    if (!isatty(STDIN_FILENO)) {
+        return noTTY();
+    } else {
+        count = klineRaw(buf, max_line);
+        if (count == -1) return NULL;
+        return strdup(buf);
+    }
+}
+/* END KLINE -------------------------------- */
 static void log_append(char *str, char *path) {
     FILE *out;
 
@@ -217,13 +598,8 @@ static int handle_server_message(void) {
     }
 }
 
-static void handle_user_input(void) {
-    char usrin[MSG_MAX], *tok;
-
-    if (fgets(usrin, MSG_MAX, stdin) == NULL) {
-        perror("fgets");
-        exit(EXIT_FAILURE);
-    }
+static void handle_user_input(char *usrin) {
+    char *tok;
 
     size_t msg_len = strlen(usrin);
     if (usrin[msg_len - 1] == '\n') {
@@ -300,13 +676,20 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
+    char usrin[MSG_MAX];
+    int  byteswaiting = 1;
+
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                handle_user_input();
+                byteswaiting = 0;
+                strcpy(usrin, kline(MSG_MAX));
+                usrin[MSG_MAX -1] = '\n';
+                handle_user_input(usrin);
+                byteswaiting = 1;
             }
-            if (fds[1].revents & POLLIN) {
+            if (fds[1].revents & POLLIN && byteswaiting) {
                 int rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
