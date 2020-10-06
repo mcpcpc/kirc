@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#define VERSION "0.1.3"
+#define VERSION "0.1.4"
 
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
@@ -295,8 +295,7 @@ static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen)
             case 3:     /* ctrl-c */
                 errno = EAGAIN;
                 return -1;
-            case 4:     /* ctrl-d, remove char at right of cursor, or if the
-                                line is empty, act as end-of-file. */
+            case 4:
                 if (l.len > 0) {
                     editDelete(&l);
                 } else {
@@ -353,21 +352,6 @@ static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen)
         }
     }
     return l.len;
-}
-
-static int klineRaw(char *buf, size_t buflen) {
-    int count;
-
-    if (buflen == 0) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    if (enableRawMode(STDIN_FILENO) == -1) return -1;
-    count = edit(STDIN_FILENO, STDOUT_FILENO, buf, buflen);
-    disableRawMode();
-    printf("\n");
-    return count;
 }
 
 static void log_append(char *str, char *path) {
@@ -632,18 +616,16 @@ int main(int argc, char **argv) {
     fds[1].events = POLLIN;
 
     char usrin[MSG_MAX];
-    int  byteswaiting = 1;
+    int  count, byteswaiting = 1;
 
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 byteswaiting = 0;
-                for (int i = 0;  i < gutl;  i++, putchar('.'));
-                putchar('\n');
-                klineRaw(usrin, MSG_MAX);
-                for (int i = 0;  i < gutl;  i++, putchar('.'));
-                putchar('\n');
+                if (enableRawMode(STDIN_FILENO) == -1) return -1;
+                count = edit(STDIN_FILENO, STDOUT_FILENO, usrin, MSG_MAX);
+                disableRawMode();
                 handle_user_input(usrin);
                 byteswaiting = 1;
             }
