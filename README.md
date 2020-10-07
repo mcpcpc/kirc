@@ -23,14 +23,14 @@
 
 ## Features
 
-*   Excellent cross-platform compatibility (due to [POSIX](https://opensource.com/article/19/7/what-posix-richard-stallman-explains) standard compliance).
-*   No dependencies other than a [C99 compiler](https://en.wikipedia.org/wiki/C99).
-*   Native [SASL PLAIN and EXTERNAL](https://tools.ietf.org/html/rfc4422) authentication support.
-*   [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) protocol capable (via external TLS utilities).
+*   Excellent cross-platform compatibility (due to POSIX standard compliance).
+*   No dependencies other than a C99 compiler.
+*   Native SASL PLAIN and EXTERNAL authentication support.
+*   TLS/SSL protocol capable (via external TLS utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
-*   Simple command aliases and full support for all [RFC 2812](https://tools.ietf.org/html/rfc2812) commands.
-*   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code), allowing for uniform color definition across all shell applications.
+*   Simple command aliases and full support for all RFC 2812 commands.
+*   Color scheme definition via ANSI 8-bit colors, allowing for uniform color definition across all shell applications.
 
 ## Installation & Usage
 
@@ -115,7 +115,7 @@ $ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 
 ## SASL EXTERNAL Authentication
 
-Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate using credentials by external means. An example where this might be required is when trying to connect to an IRC host through [Tor](https://www.torproject.org/). To do so, we can using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
+Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate using credentials by external means. An example where this might be required is when trying to connect to an IRC host through [Tor](https://www.torproject.org/). To do so, we can using third-party utilities (e.g. stunnel, socat, ghosttunnel, etc).
 
 *   Example using `socat`. Remember to replace items enclosed with `<>`.
 
