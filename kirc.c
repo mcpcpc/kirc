@@ -624,8 +624,7 @@ int main(int argc, char **argv) {
                 byteswaiting = 0;
                 //count = edit(usrin, MSG_MAX);
                 edit(usrin, MSG_MAX);
-				//printf("\n\x1b[0F\x1b[0K");
-				printf("\x1b[E");
+				printf("\n\x1b[0F\x1b[0K");
                 handleUserInput(usrin);
                 byteswaiting = 1;
             }
