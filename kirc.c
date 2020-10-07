@@ -68,14 +68,14 @@ static int enableRawMode(int fd) {
     if (tcgetattr(fd,&orig) == -1) {
         errno = ENOTTY;
         return -1;
-    } 
+    }
 
     raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    raw.c_cc[VMIN] = 1; 
+    raw.c_cc[VMIN] = 1;
     raw.c_cc[VTIME] = 0;
 
     if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) {
@@ -490,8 +490,8 @@ static void rawParser(char *string) {
     } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
         printf("%*s\x1b[43;1m%-.*s\x1b[0m ", s, "", g, nickname);
     } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan_default) == NULL) {
-        printf("%*s\x1b[33;1m%-.*s\x1b[0m [\x1b[33m%s\x1b[0m] ", s, "", \
-        g, nickname, channel);
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        printf("[\x1b[33m%s\x1b[0m] ", channel);
         offset += 12 + strlen(channel);
     } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
     messageWrap((message ? message : " "), offset);
@@ -547,7 +547,7 @@ static void handleUserInput(char *usrin) {
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
         printf("new channel: #%s\n", chan_default);
-    } else if (usrin[0] == '/' && usrin[1] == '?' && msg_len == 3) {
+    } else if (usrin[0] == '/' && usrin[1] == '?') {
         printf("current channel: #%s\n", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
@@ -622,7 +622,6 @@ int main(int argc, char **argv) {
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 byteswaiting = 0;
-                //count = edit(usrin, MSG_MAX);
                 edit(usrin, MSG_MAX);
 				printf("\n\x1b[0F\x1b[0K");
                 handleUserInput(usrin);
