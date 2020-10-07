@@ -544,9 +544,9 @@ static void handleUserInput(char *usrin) {
 
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
-        printf("new channel: #%s\n", chan_default);
+        printf("new channel: #%s\x1b[0F\n\n", chan_default);
     } else if (usrin[0] == '/' && usrin[1] == '?') {
-        printf("current channel: #%s\n", chan_default);
+        printf("current channel: #%s\x1b[0F\n\n", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
     } else if (usrin[0] == '@') {
