@@ -429,15 +429,9 @@ static int connectionInit(void) {
 }
 
 static void messageWrap(char *line, size_t offset) {
-    struct winsize window_dims;
 
-    if (ioctl(0, TIOCGWINSZ, &window_dims) < 0) {
-        perror("ioctrl");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned short cmax = window_dims.ws_col;
     char          *tok;
+    size_t         cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
     size_t         wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
 
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
