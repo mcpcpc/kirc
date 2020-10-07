@@ -544,16 +544,18 @@ static void handleUserInput(char *usrin) {
 
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
-        printf("new channel: #%s\x1b[0F\n\n", chan_default);
+        printf("\x1b[35mnew channel: #%s\x1b[0m\x1b[0F\n\n", chan_default);
     } else if (usrin[0] == '/' && usrin[1] == '?') {
-        printf("current channel: #%s\x1b[0F\n\n", chan_default);
+        printf("\x1b[35mcurrent channel: #%s\x1b[0m\x1b[0F\n\n", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
     } else if (usrin[0] == '@') {
         strtok_r(usrin, " ", &tok);
         raw("privmsg %s :%s\r\n", usrin + 1, tok);
+        printf("\x1b[35mprivmsg %s :%s\x1b[0m\x1b[0F\n\n", usrin + 1, tok);
     } else {
         raw("privmsg #%s :%s\r\n", chan_default, usrin);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\x1b[0F\n\n", chan_default, usrin);
     }
 }
 
