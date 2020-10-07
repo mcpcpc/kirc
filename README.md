@@ -68,7 +68,7 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 
 ### Command Aliases
 
-```
+```shell
 <message>                 Send a PRIVMSG to the current channel.
 @<channel|nick> <message> Send a message to a specified channel or nick 
 /<command>                Send command to IRC server (see RFC 2812 for full list).
