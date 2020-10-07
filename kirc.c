@@ -284,9 +284,8 @@ static int edit(char *buf, size_t buflen)
     l.buflen--; /* Make sure there is always space for the nulterm */
 
     while(1) {
-        char c;
-        int nread;
-        char seq[3];
+        int  nread;
+        char c, seq[3];
 
         nread = read(l.ifd,&c,1);
         if (nread <= 0) return l.len;
@@ -539,8 +538,8 @@ static int handleServerMessage(void) {
 
 static void handleUserInput(char *usrin) {
     char *tok;
-
     size_t msg_len = strlen(usrin);
+
     if (usrin[msg_len - 1] == '\n') {
         usrin[msg_len - 1] = '\0';
     }
@@ -623,18 +622,21 @@ int main(int argc, char **argv) {
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 byteswaiting = 0;
-                if (enableRawMode(STDIN_FILENO) == -1) return -1;
-                count = edit(usrin, MSG_MAX);
-                disableRawMode();
+                //count = edit(usrin, MSG_MAX);
+                edit(usrin, MSG_MAX);
+				//printf("\n\x1b[0F\x1b[0K");
+				printf("\x1b[E");
                 handleUserInput(usrin);
                 byteswaiting = 1;
             }
             if (fds[1].revents & POLLIN && byteswaiting) {
+                disableRawMode();
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 };
+                if (enableRawMode(STDIN_FILENO) == -1) return -1;
             }
         } else {
             if (errno == EAGAIN) continue;
