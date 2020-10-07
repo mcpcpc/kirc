@@ -81,7 +81,7 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 *   **CTRL+B** or **LEFT ARROW** moves the cursor one character to the left.
 *   **CTRL+F** or **RIGHT ARROW** moves the cursor one character to the right.
 *   **CTRL+A** moves the cursor to the end of the line.
-*   **CTRL+E** moves the cursor to the start of the line.
+*   **CTRL+E** or **HOME** moves the cursor to the start of the line.
 *   **CTRL+W** deletes the previous word.
 *   **CTRL+U** deletes the entire line.
 *   **CTRL+K** deletes the from current character to end of line.
