@@ -29,16 +29,7 @@
 *   [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) protocol capable (via external TLS utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
-*   Simple shortcut commands and full support for all IRC commands in the [RFC 2812](https://tools.ietf.org/html/rfc2812) standard:
-
-```shell
-<message>                 Send a PRIVMSG to the current channel.
-@<channel|nick> <message> Send a message to a specified channel or nick 
-/<command>                Send command to IRC server (see RFC 2812 for full list).
-/#<channel>               Assign new default message channel.
-/?                        Print current message channel.
-```
-
+*   Simple command aliases and full support for all [RFC2812](https://tools.ietf.org/html/rfc2812) commands.
 *   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code), allowing for uniform color definition across all shell applications.
 
 ## Installation & Usage
@@ -74,6 +65,26 @@ Consult `man kirc` for a full list and explanation of available `kirc` arguments
 ```shell
 kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-w nick_width] [-o logfile] [-e|v|V]
 ```
+
+### Command Aliases
+
+```
+<message>                 Send a PRIVMSG to the current channel.
+@<channel|nick> <message> Send a message to a specified channel or nick 
+/<command>                Send command to IRC server (see RFC 2812 for full list).
+/#<channel>               Assign new default message channel.
+/?                        Print current message channel.
+```
+
+### Input Control Keys
+
+*   [CTRL+B] Move cursor one character to the left.
+*   [CTRL+F] Move cursor one character to the right.
+*   [CTRL+A] Move cursor to the end of the line.
+*   [CTRL+E] Move cursor to the start of the line.
+*   [CTRL+W] Delete previous word.
+*   [CTRL+U] Delete entire line.
+*   [CTRL+K] Delete from current character to end of line.
 
 ## Transport Layer Security (TLS) Support
 
@@ -153,10 +164,6 @@ Applying a new color scheme is easy! One of the quickest ways is to use an appli
 
 *   **KISS** is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
 *   **POSIX** is an acronym for [Portable Operating System Interface](https://opensource.com/article/19/7/what-posix-richard-stallman-explains), which is a family of standards specified by the IEEE Computer Society for maintaining compatibility between operating systems. The *C99* Standard is preferred over other versions (e.g. *C89* or *C11*) since this currently the only one specified by [POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html).
-
-## Known Bugs
-
-Some users may experience abnormal *BACKSPACE* key press behavior, particularly when trying to return to a previous line being editted.  This has been confirmed to be an [upstream issue](https://github.com/mcpcpc/kirc/issues/39) and has been reported accordingly to the known impacted terminal emulators.  While we wait for the upstream fixes, I would recommend using [urxvt](https://wiki.archlinux.org/index.php/Rxvt-unicode) or a terminal multiplexer (such as [screen](https://www.gnu.org/software/screen/) or [tmux](https://github.com/tmux/tmux/wiki)), which seemed to have resolved this by setting the [terminfo](https://osr507doc.sco.com/en/man/html.M/terminfo.M.html) `<bw>` flag as default.  Alternatively, you can try to set terminfo `<bw>` flag manually by passing the command escape sequence `echo -e "\x1b[?45h"` or using the *tputs* function before starting *kirc*.
 
 ## Contact
 
