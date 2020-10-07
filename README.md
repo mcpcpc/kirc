@@ -76,7 +76,7 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 /?                        Print current message channel.
 ```
 
-### Input Control Keys
+### User Input Key Bindings
 
 *   **CTRL+B** or **LEFT ARROW** moves the cursor one character to the left.
 *   **CTRL+F** or **RIGHT ARROW** moves the cursor one character to the right.
