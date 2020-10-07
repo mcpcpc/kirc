@@ -268,17 +268,17 @@ static void editDeletePrevWord(struct State *l) {
     refreshLine(l);
 }
 
-static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen)
+static int edit(char *buf, size_t buflen)
 {
     struct State l;
 
-    l.ifd = stdin_fd;
-    l.ofd = stdout_fd;
+    l.ifd = STDIN_FILENO;
+    l.ofd = STDOUT_FILENO;
     l.buf = buf;
     l.buflen = buflen;
     l.oldpos = l.pos = 0;
     l.len = 0;
-    l.cols = getColumns(stdin_fd, stdout_fd);
+    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
 
     l.buf[0] = '\0';
     l.buflen--; /* Make sure there is always space for the nulterm */
@@ -354,7 +354,7 @@ static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen)
     return l.len;
 }
 
-static void log_append(char *str, char *path) {
+static void logAppend(char *str, char *path) {
     FILE *out;
 
     if ((out = fopen(path, "a")) == NULL) {
@@ -380,7 +380,7 @@ static void raw(char *fmt, ...) {
     va_end(ap);
 
     if (verb) printf("<< %s", cmd_str);
-    if (olog) log_append(cmd_str, olog);
+    if (olog) logAppend(cmd_str, olog);
     if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
         perror("write");
         exit(EXIT_FAILURE);
@@ -389,7 +389,7 @@ static void raw(char *fmt, ...) {
     free(cmd_str);
 }
 
-static int connection_initialize(void) {
+static int connectionInit(void) {
     int    gai_status;
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
@@ -429,7 +429,7 @@ static int connection_initialize(void) {
     return 0;
 }
 
-static void message_wrap(char *line, size_t offset) {
+static void messageWrap(char *line, size_t offset) {
     struct winsize window_dims;
 
     if (ioctl(0, TIOCGWINSZ, &window_dims) < 0) {
@@ -455,7 +455,7 @@ static void message_wrap(char *line, size_t offset) {
     putchar('\n');
 }
 
-static void raw_parser(char *string) {
+static void rawParser(char *string) {
     if (verb) printf(">> %s", string);
 
     if (!strncmp(string, "PING", 4)) {
@@ -466,7 +466,7 @@ static void raw_parser(char *string) {
 
     if (string[0] != ':') return;
 
-    if (olog) log_append(string, olog);
+    if (olog) logAppend(string, olog);
 
     char *tok, *prefix = strtok(string, " ") + 1, *suffix = strtok(NULL, ":"),
          *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
@@ -495,13 +495,13 @@ static void raw_parser(char *string) {
         g, nickname, channel);
         offset += 12 + strlen(channel);
     } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-    message_wrap((message ? message : " "), offset);
+    messageWrap((message ? message : " "), offset);
 }
 
 static char   message_buffer[MSG_MAX + 1];
 static size_t message_end = 0;
 
-static int handle_server_message(void) {
+static int handleServerMessage(void) {
     for (;;) {
         ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
         if (sl == -1) {
@@ -524,7 +524,7 @@ static int handle_server_message(void) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
                 char saved_char = message_buffer[i + 1];
                 message_buffer[i + 1] = '\0';
-                raw_parser(message_buffer);
+                rawParser(message_buffer);
                 message_buffer[i + 1] = saved_char;
                 memmove(&message_buffer, &message_buffer[i + 1], message_end - i - 1);
                 message_end = message_end - i - 1;
@@ -537,7 +537,7 @@ static int handle_server_message(void) {
     }
 }
 
-static void handle_user_input(char *usrin) {
+static void handleUserInput(char *usrin) {
     char *tok;
 
     size_t msg_len = strlen(usrin);
@@ -595,7 +595,7 @@ int main(int argc, char **argv) {
         usage();
     }
 
-    if (connection_initialize() != 0) {
+    if (connectionInit() != 0) {
         return EXIT_FAILURE;
     }
 
@@ -624,13 +624,13 @@ int main(int argc, char **argv) {
             if (fds[0].revents & POLLIN) {
                 byteswaiting = 0;
                 if (enableRawMode(STDIN_FILENO) == -1) return -1;
-                count = edit(STDIN_FILENO, STDOUT_FILENO, usrin, MSG_MAX);
+                count = edit(usrin, MSG_MAX);
                 disableRawMode();
-                handle_user_input(usrin);
+                handleUserInput(usrin);
                 byteswaiting = 1;
             }
             if (fds[1].revents & POLLIN && byteswaiting) {
-                int rc = handle_server_message();
+                int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
