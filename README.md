@@ -29,7 +29,7 @@
 *   [TLS/SSL](https://en.m.wikipedia.org/wiki/Transport_Layer_Security) protocol capable (via external TLS utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
-*   Simple command aliases and full support for all [RFC2812](https://tools.ietf.org/html/rfc2812) commands.
+*   Simple command aliases and full support for all [RFC 2812](https://tools.ietf.org/html/rfc2812) commands.
 *   Color scheme definition via [ANSI 8-bit colors](https://en.wikipedia.org/wiki/ANSI_escape_code), allowing for uniform color definition across all shell applications.
 
 ## Installation & Usage
