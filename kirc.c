@@ -445,7 +445,7 @@ static void messageWrap(char *line, size_t offset) {
         spaceleft -= (wordwidth + spacewidth);
     }
 
-    putchar('\n');
+    puts("\x1b[0m\n");
 }
 
 static void rawParser(char *string) {
@@ -481,13 +481,17 @@ static void rawParser(char *string) {
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m --> \x1b[35;1m%s\x1b[0m\n", g - 4, nickname, message);
         return;
-    } else if (!strncmp(command, "PRIVMSG", 7) && strcmp(channel, nick) == 0) {
-        printf("%*s\x1b[43;1m%-.*s\x1b[0m ", s, "", g, nickname);
-    } else if (!strncmp(command, "PRIVMSG", 7) && strstr(channel, chan_default) == NULL) {
+    } else if (!strncmp(command, "PRIVMSG", 7)) {
+        if (strcmp(channel, nick) == 0) {
+            printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
+        } else if (strstr(channel, chan_default) == NULL) {
+            printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+            printf("[\x1b[33m%s\x1b[0m] ", channel);
+            offset += 12 + strlen(channel);
+        }
+    } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-        printf("[\x1b[33m%s\x1b[0m] ", channel);
-        offset += 12 + strlen(channel);
-    } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+    }
     messageWrap((message ? message : " "), offset);
 }
 
@@ -555,7 +559,7 @@ static void handleUserInput(char *usrin) {
 
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
-[-u username] [-k password] [-a token] [-x command] [-w columns] [-o path] \
+[-u username] [-k password] [-a token] [-x command] [-w nickwidth] [-o path] \
 [-e|v|V]\n", stderr);
     exit(EXIT_FAILURE);
 }
@@ -617,7 +621,7 @@ int main(int argc, char **argv) {
             if (fds[0].revents & POLLIN) {
                 byteswaiting = 0;
                 edit(usrin, MSG_MAX);
-				printf("\n\x1b[0F\x1b[0K");
+                printf("\n\x1b[0F\x1b[0K");
                 handleUserInput(usrin);
                 byteswaiting = 1;
             }
