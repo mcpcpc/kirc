@@ -78,13 +78,13 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 
 ### Input Control Keys
 
-*   [CTRL+B] Move cursor one character to the left.
-*   [CTRL+F] Move cursor one character to the right.
-*   [CTRL+A] Move cursor to the end of the line.
-*   [CTRL+E] Move cursor to the start of the line.
-*   [CTRL+W] Delete previous word.
-*   [CTRL+U] Delete entire line.
-*   [CTRL+K] Delete from current character to end of line.
+*   **[CTRL+B]** or **LEFT ARROW** moves the cursor one character to the left.
+*   **[CTRL+F]** or **RIGHT ARROW** moves the cursor one character to the right.
+*   **[CTRL+A]** moves the cursor to the end of the line.
+*   **[CTRL+E]** moves the cursor to the start of the line.
+*   **[CTRL+W]** deletes the previous word.
+*   **[CTRL+U]** deletes the entire line.
+*   **[CTRL+K]** deletes the from current character to end of line.
 
 ## Transport Layer Security (TLS) Support
 
