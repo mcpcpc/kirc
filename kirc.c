@@ -445,7 +445,7 @@ static void messageWrap(char *line, size_t offset) {
         spaceleft -= (wordwidth + spacewidth);
     }
 
-    puts("\x1b[0m\n");
+    puts("\x1b[0m");
 }
 
 static void rawParser(char *string) {
@@ -488,7 +488,7 @@ static void rawParser(char *string) {
             printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
             printf("[\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
-        }
+        } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
     }
