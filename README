@@ -1,3 +1,4 @@
+<!-- vim: syntax=Markdown -->
 <!--
   Title: KISS for IRC (kirc)
   Description: A tiny IRC client written in POSIX C99.
