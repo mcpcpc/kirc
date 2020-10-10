@@ -618,7 +618,7 @@ int main(int argc, char **argv) {
     fds[1].events = POLLIN;
 
     char usrin[MSG_MAX];
-    int  count, byteswaiting = 1;
+    int  byteswaiting = 1;
 
     for (;;) {
         int poll_res = poll(fds, 2, -1);
