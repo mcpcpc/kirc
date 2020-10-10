@@ -618,19 +618,16 @@ int main(int argc, char **argv) {
     fds[1].events = POLLIN;
 
     char usrin[MSG_MAX];
-    int  byteswaiting = 1;
 
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                byteswaiting = 0;
                 edit(usrin, MSG_MAX);
                 printf("\n\x1b[0F\x1b[0K");
                 handleUserInput(usrin);
-                byteswaiting = 1;
             }
-            if (fds[1].revents & POLLIN && byteswaiting) {
+            if (fds[1].revents & POLLIN) {
                 disableRawMode();
                 int rc = handleServerMessage();
                 if (rc != 0) {
