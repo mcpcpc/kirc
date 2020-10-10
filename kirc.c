@@ -536,10 +536,12 @@ static int handleServerMessage(void) {
 }
 
 static void handleUserInput(char *usrin) {
+    if (usrin == NULL) return;
+
     char *tok;
     size_t msg_len = strlen(usrin);
 
-    if (usrin[msg_len - 1] == '\n') {
+    if (msg_len > 0 && usrin[msg_len - 1] == '\n') {
         usrin[msg_len - 1] = '\0';
     }
 
