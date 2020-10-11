@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#define VERSION "0.1.4"
+#define VERSION "0.1.5"
 
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
