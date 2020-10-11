@@ -444,8 +444,6 @@ static void messageWrap(char *line, size_t offset) {
         }
         spaceleft -= (wordwidth + spacewidth);
     }
-
-    puts("\x1b[0m\x1b[E");
 }
 
 static void rawParser(char *string) {
@@ -472,15 +470,22 @@ static void rawParser(char *string) {
             strcpy(chan_default, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
-    } else if (!strncmp(command, "QUIT", 4) || !strncmp(command, "PART", 4)) {
-        printf("%*s<-- \x1b[34;1m%s\x1b[0m\n\x1b[E", g - 3, "", nickname);
+    } else if (!strncmp(command, "QUIT", 4)) {
+        printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        puts("\x1b[0m\x1b[0F\x1b[E");
+        return;
+    } else if (!strncmp(command, "PART", 4)) {
+        printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        puts("\x1b[0m\x1b[0F\x1b[E");
         return;
     } else if (!strncmp(command, "JOIN", 4)) {
-        printf("%*s--> \x1b[32;1m%s\x1b[0m\n\x1b[E", g - 3, "", nickname);
+        printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+        puts("\x1b[0m\x1b[0F\x1b[E");
         return;
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
-        printf("--> \x1b[35;1m%s\x1b[0m\n\x1b[E", message);
+        printf("--> \x1b[35;1m%s\x1b[0m", message);
+        puts("\x1b[0m\x1b[0F\x1b[E");
         return;
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (strcmp(channel, nick) == 0) {
@@ -494,6 +499,7 @@ static void rawParser(char *string) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
     }
     messageWrap((message ? message : " "), offset);
+    puts("\x1b[0m\x1b[0F\x1b[E");
 }
 
 static char   message_buffer[MSG_MAX + 1];
@@ -511,7 +517,8 @@ static int handleServerMessage(void) {
             }
         }
         if (sl == 0) {
-            fputs("Connection closed\n", stderr);
+            fputs("Connection closed", stderr);
+            puts("\x1b[0F\x1b[E");
             return -1;
         }
 
@@ -545,6 +552,7 @@ static void handleUserInput(char *usrin) {
         usrin[msg_len - 1] = '\0';
     }
 
+    printf("\x1b[0F\x1b[E");
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
         printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
@@ -552,6 +560,7 @@ static void handleUserInput(char *usrin) {
         printf("\x1b[35mcurrent channel: #%s\x1b[0m", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
+        printf("\x1b[35m%s\x1b[0m", usrin);
     } else if (usrin[0] == '@') {
         strtok_r(usrin, " ", &tok);
         raw("privmsg %s :%s\r\n", usrin + 1, tok);
