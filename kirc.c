@@ -547,19 +547,20 @@ static void handleUserInput(char *usrin) {
 
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
-        printf("\x1b[35mnew channel: #%s\x1b[0m\x1b[0F\n\n", chan_default);
+        printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
     } else if (usrin[0] == '/' && usrin[1] == '?') {
-        printf("\x1b[35mcurrent channel: #%s\x1b[0m\x1b[0F\n\n", chan_default);
+        printf("\x1b[35mcurrent channel: #%s\x1b[0m", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
     } else if (usrin[0] == '@') {
         strtok_r(usrin, " ", &tok);
         raw("privmsg %s :%s\r\n", usrin + 1, tok);
-        printf("\x1b[35mprivmsg %s :%s\x1b[0m\x1b[0F\n\n", usrin + 1, tok);
+        printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
     } else {
         raw("privmsg #%s :%s\r\n", chan_default, usrin);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\x1b[0F\n\n", chan_default, usrin);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", chan_default, usrin);
     }
+    puts("\x1b[0F\x1b[E");
 }
 
 static void usage(void) {
@@ -625,7 +626,6 @@ int main(int argc, char **argv) {
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 edit(usrin, MSG_MAX);
-                printf("\x1b[E");
                 handleUserInput(usrin);
             }
             if (fds[1].revents & POLLIN) {
