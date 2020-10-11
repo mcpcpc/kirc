@@ -437,7 +437,7 @@ static void messageWrap(char *line, size_t offset) {
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\n%*.s%s ", (int) gutl + 1, " ", tok);
+            printf("\n\x1b[E%*.s%s ", (int) gutl + 1, " ", tok);
             spaceleft = cmax - (gutl + 1);
         } else {
             printf("%s ", tok);
@@ -445,7 +445,7 @@ static void messageWrap(char *line, size_t offset) {
         spaceleft -= (wordwidth + spacewidth);
     }
 
-    puts("\x1b[0m");
+    puts("\x1b[0m\x1b[E");
 }
 
 static void rawParser(char *string) {
@@ -473,14 +473,14 @@ static void rawParser(char *string) {
             raw("JOIN #%s\r\n", tok);
         } return;
     } else if (!strncmp(command, "QUIT", 4) || !strncmp(command, "PART", 4)) {
-        printf("%*s<-- \x1b[34;1m%s\x1b[0m\n", g - 3, "", nickname);
+        printf("%*s<-- \x1b[34;1m%s\x1b[0m\n\x1b[E", g - 3, "", nickname);
         return;
     } else if (!strncmp(command, "JOIN", 4)) {
-        printf("%*s--> \x1b[32;1m%s\x1b[0m\n", g - 3, "", nickname);
+        printf("%*s--> \x1b[32;1m%s\x1b[0m\n\x1b[E", g - 3, "", nickname);
         return;
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
-        printf("--> \x1b[35;1m%s\x1b[0m\n", message);
+        printf("--> \x1b[35;1m%s\x1b[0m\n\x1b[E", message);
         return;
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (strcmp(channel, nick) == 0) {
@@ -536,10 +536,12 @@ static int handleServerMessage(void) {
 }
 
 static void handleUserInput(char *usrin) {
+    if (usrin == NULL) return;
+
     char *tok;
     size_t msg_len = strlen(usrin);
 
-    if (usrin[msg_len - 1] == '\n') {
+    if (msg_len > 0 && usrin[msg_len - 1] == '\n') {
         usrin[msg_len - 1] = '\0';
     }
 
@@ -616,26 +618,22 @@ int main(int argc, char **argv) {
     fds[1].events = POLLIN;
 
     char usrin[MSG_MAX];
-    int  count, byteswaiting = 1;
 
+    if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                byteswaiting = 0;
                 edit(usrin, MSG_MAX);
-                printf("\n\x1b[0F\x1b[0K");
+                printf("\x1b[E");
                 handleUserInput(usrin);
-                byteswaiting = 1;
             }
-            if (fds[1].revents & POLLIN && byteswaiting) {
-                disableRawMode();
+            if (fds[1].revents & POLLIN) {
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 };
-                if (enableRawMode(STDIN_FILENO) == -1) return -1;
             }
         } else {
             if (errno == EAGAIN) continue;
