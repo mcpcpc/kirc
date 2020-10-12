@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#define VERSION "0.1.4"
+#define VERSION "0.1.5"
 
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
@@ -437,15 +437,13 @@ static void messageWrap(char *line, size_t offset) {
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\n%*.s%s ", (int) gutl + 1, " ", tok);
+            printf("\r\n%*.s%s ", (int) gutl + 1, " ", tok);
             spaceleft = cmax - (gutl + 1);
         } else {
             printf("%s ", tok);
         }
         spaceleft -= (wordwidth + spacewidth);
     }
-
-    puts("\x1b[0m");
 }
 
 static void rawParser(char *string) {
@@ -461,10 +459,15 @@ static void rawParser(char *string) {
 
     if (olog) logAppend(string, olog);
 
-    char *tok, *prefix = strtok(string, " ") + 1, *suffix = strtok(NULL, ":"),
-         *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
-         *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
-    int  g = gutl, s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+    char *tok;
+    char *prefix =   strtok(string, " ") + 1;
+    char *suffix =   strtok(NULL, ":");
+    char *message =  strtok(NULL, "\r");
+    char *nickname = strtok(prefix, "!");
+    char *command =  strtok(suffix, "#& ");
+    char *channel =  strtok(NULL, " \r");
+    int   g = gutl;
+    int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
     size_t offset = 0;
 
     if (!strncmp(command, "001", 3) && chan != NULL) {
@@ -472,28 +475,35 @@ static void rawParser(char *string) {
             strcpy(chan_default, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
-    } else if (!strncmp(command, "QUIT", 4) || !strncmp(command, "PART", 4)) {
-        printf("%*s<-- \x1b[34;1m%s\x1b[0m\n", g - 3, "", nickname);
-        return;
+    } else if (!strncmp(command, "QUIT", 4)) {
+        printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+    } else if (!strncmp(command, "PART", 4)) {
+        printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        if (strstr(channel, chan_default) == NULL) {
+            printf(" [\x1b[33m%s\x1b[0m] ", channel);
+        }
     } else if (!strncmp(command, "JOIN", 4)) {
-        printf("%*s--> \x1b[32;1m%s\x1b[0m\n", g - 3, "", nickname);
-        return;
+        printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+        if (strstr(channel, chan_default) == NULL) {
+            printf(" [\x1b[33m%s\x1b[0m] ", channel);
+        }
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
-        printf("--> \x1b[35;1m%s\x1b[0m\n", message);
-        return;
+        printf("--> \x1b[35;1m%s\x1b[0m", message);
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (strcmp(channel, nick) == 0) {
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
         } else if (strstr(channel, chan_default) == NULL) {
-            printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-            printf("[\x1b[33m%s\x1b[0m] ", channel);
+            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
+            printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
         } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        messageWrap((message ? message : " "), offset);
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        messageWrap((message ? message : " "), offset);
     }
-    messageWrap((message ? message : " "), offset);
+    puts("\x1b[0m\r");
 }
 
 static char   message_buffer[MSG_MAX + 1];
@@ -511,7 +521,8 @@ static int handleServerMessage(void) {
             }
         }
         if (sl == 0) {
-            fputs("Connection closed\n", stderr);
+            fputs("Connection closed", stderr);
+            puts("\x1b[0F\x1b[E");
             return -1;
         }
 
@@ -545,21 +556,24 @@ static void handleUserInput(char *usrin) {
         usrin[msg_len - 1] = '\0';
     }
 
+    printf("\r\x1b[0K");
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
-        printf("\x1b[35mnew channel: #%s\x1b[0m\x1b[0F\n\n", chan_default);
+        printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
     } else if (usrin[0] == '/' && usrin[1] == '?') {
-        printf("\x1b[35mcurrent channel: #%s\x1b[0m\x1b[0F\n\n", chan_default);
+        printf("\x1b[35mcurrent channel: #%s\x1b[0m", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
+        printf("\x1b[35m%s\x1b[0m", usrin);
     } else if (usrin[0] == '@') {
         strtok_r(usrin, " ", &tok);
         raw("privmsg %s :%s\r\n", usrin + 1, tok);
-        printf("\x1b[35mprivmsg %s :%s\x1b[0m\x1b[0F\n\n", usrin + 1, tok);
+        printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
     } else {
         raw("privmsg #%s :%s\r\n", chan_default, usrin);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\x1b[0F\n\n", chan_default, usrin);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", chan_default, usrin);
     }
+    printf("\r\n");
 }
 
 static void usage(void) {
@@ -619,22 +633,20 @@ int main(int argc, char **argv) {
 
     char usrin[MSG_MAX];
 
+    if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 edit(usrin, MSG_MAX);
-                printf("\n\x1b[0F\x1b[0K");
                 handleUserInput(usrin);
             }
             if (fds[1].revents & POLLIN) {
-                disableRawMode();
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 };
-                if (enableRawMode(STDIN_FILENO) == -1) return -1;
             }
         } else {
             if (errno == EAGAIN) continue;
