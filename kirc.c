@@ -437,7 +437,7 @@ static void messageWrap(char *line, size_t offset) {
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\n\x1b[E%*.s%s ", (int) gutl + 1, " ", tok);
+            printf("\r\n%*.s%s ", (int) gutl + 1, " ", tok);
             spaceleft = cmax - (gutl + 1);
         } else {
             printf("%s ", tok);
@@ -459,10 +459,15 @@ static void rawParser(char *string) {
 
     if (olog) logAppend(string, olog);
 
-    char *tok, *prefix = strtok(string, " ") + 1, *suffix = strtok(NULL, ":"),
-         *message = strtok(NULL, "\r"), *nickname = strtok(prefix, "!"),
-         *command = strtok(suffix, "#& "), *channel = strtok(NULL, " ");
-    int  g = gutl, s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+    char *tok;
+    char *prefix =   strtok(string, " ") + 1;
+    char *suffix =   strtok(NULL, ":");
+    char *message =  strtok(NULL, "\r");
+    char *nickname = strtok(prefix, "!");
+    char *command =  strtok(suffix, "#& ");
+    char *channel =  strtok(NULL, " \r");
+    int   g = gutl;
+    int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
     size_t offset = 0;
 
     if (!strncmp(command, "001", 3) && chan != NULL) {
@@ -474,8 +479,14 @@ static void rawParser(char *string) {
         printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        if (strstr(channel, chan_default) == NULL) {
+            printf(" [\x1b[33m%s\x1b[0m] ", channel);
+        }
     } else if (!strncmp(command, "JOIN", 4)) {
         printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+        if (strstr(channel, chan_default) == NULL) {
+            printf(" [\x1b[33m%s\x1b[0m] ", channel);
+        }
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
         printf("--> \x1b[35;1m%s\x1b[0m", message);
@@ -483,8 +494,8 @@ static void rawParser(char *string) {
         if (strcmp(channel, nick) == 0) {
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
         } else if (strstr(channel, chan_default) == NULL) {
-            printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-            printf("[\x1b[33m%s\x1b[0m] ", channel);
+            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
+            printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
         } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
         messageWrap((message ? message : " "), offset);
@@ -492,7 +503,7 @@ static void rawParser(char *string) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
         messageWrap((message ? message : " "), offset);
     }
-    puts("\x1b[0m\x1b[0F\x1b[E");
+    puts("\x1b[0m\r");
 }
 
 static char   message_buffer[MSG_MAX + 1];
@@ -545,7 +556,7 @@ static void handleUserInput(char *usrin) {
         usrin[msg_len - 1] = '\0';
     }
 
-    printf("\x1b[0F\x1b[E");
+    printf("\r\x1b[0K");
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
         printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
@@ -562,7 +573,7 @@ static void handleUserInput(char *usrin) {
         raw("privmsg #%s :%s\r\n", chan_default, usrin);
         printf("\x1b[35mprivmsg #%s :%s\x1b[0m", chan_default, usrin);
     }
-    puts("\x1b[0F\x1b[E");
+    printf("\r\n");
 }
 
 static void usage(void) {
