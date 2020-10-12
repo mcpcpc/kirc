@@ -472,21 +472,13 @@ static void rawParser(char *string) {
         } return;
     } else if (!strncmp(command, "QUIT", 4)) {
         printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-        puts("\x1b[0m\x1b[0F\x1b[E");
-        return;
     } else if (!strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-        puts("\x1b[0m\x1b[0F\x1b[E");
-        return;
     } else if (!strncmp(command, "JOIN", 4)) {
         printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
-        puts("\x1b[0m\x1b[0F\x1b[E");
-        return;
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
         printf("--> \x1b[35;1m%s\x1b[0m", message);
-        puts("\x1b[0m\x1b[0F\x1b[E");
-        return;
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (strcmp(channel, nick) == 0) {
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
@@ -495,10 +487,11 @@ static void rawParser(char *string) {
             printf("[\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
         } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        messageWrap((message ? message : " "), offset);
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        messageWrap((message ? message : " "), offset);
     }
-    messageWrap((message ? message : " "), offset);
     puts("\x1b[0m\x1b[0F\x1b[E");
 }
 
