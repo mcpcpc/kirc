@@ -24,14 +24,14 @@
 
 ## Features
 
-*   Excellent cross-platform compatibility (due to POSIX standard compliance).
+*   Excellent cross-platform compatibility.
 *   No dependencies other than a C99 compiler.
 *   Native SASL PLAIN and EXTERNAL authentication support.
 *   TLS/SSL protocol capable (via external TLS utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
 *   Simple command aliases and full support for all RFC 2812 commands.
-*   Color scheme definition via ANSI 8-bit colors, allowing for uniform color definition across all shell applications.
+*   Easy color scheme definition via ANSI 8-bit colors.
 
 ## Installation & Usage
 
