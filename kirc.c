@@ -13,7 +13,8 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#define VERSION "0.1.5"
+#define VERSION "0.1.6"
+#define PROMPTC "> "
 
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
@@ -35,8 +36,8 @@ static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
 static struct termios orig_termios; /* In order to restore at exit.*/
-static int    rawmode = 0; /* For atexit() function to check if restore is needed*/
-static int    atexit_registered = 0; /* Register atexit just 1 time. */
+static int rawmode = 0; /* For atexit() function to check if restore is needed*/
+static int atexit_registered = 0; /* Register atexit just 1 time. */
 
 struct State {
     int ifd;            /* Terminal stdin file descriptor. */
@@ -57,7 +58,6 @@ struct abuf {
 };
 
 static void disableRawMode(void) {
-    /* Don't even check the return value as it's too late. */
     if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig_termios) != -1)
         rawmode = 0;
 }
@@ -95,10 +95,8 @@ static int getCursorPosition(int ifd, int ofd) {
     char buf[32];
     int cols, rows;
     unsigned int i = 0;
-
     /* Report cursor location */
     if (write(ofd, "\x1b[6n", 4) != 4) return -1;
-
     /* Read the response: ESC [ rows ; cols R */
     while (i < sizeof(buf)-1) {
         if (read(ifd,buf+i,1) != 1) break;
@@ -106,7 +104,6 @@ static int getCursorPosition(int ifd, int ofd) {
         i++;
     }
     buf[i] = '\0';
-
     /* Parse it. */
     if (buf[0] != 27 || buf[1] != '[') return -1;
     if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2) return -1;
@@ -119,16 +116,13 @@ static int getColumns(int ifd, int ofd) {
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         /* ioctl() failed. Try to query the terminal itself. */
         int start, cols;
-
         /* Get the initial position so we can restore it later. */
         start = getCursorPosition(ifd,ofd);
         if (start == -1) goto failed;
-
         /* Go to right margin and get position. */
         if (write(ofd,"\x1b[999C",6) != 6) goto failed;
         cols = getCursorPosition(ifd,ofd);
         if (cols == -1) goto failed;
-
         /* Restore position. */
         if (cols > start) {
             char seq[32];
@@ -199,9 +193,6 @@ static void refreshLine(struct State *l) {
     abFree(&ab);
 }
 
-/* Insert the character 'c' at cursor current position.
- *
- * On error writing to the terminal -1 is returned, otherwise 0. */
 static int editInsert(struct State *l, char c) {
     if (l->len < l->buflen) {
         if (l->len == l->pos) {
@@ -325,7 +316,6 @@ static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const cha
     l.oldpos = l.pos = 0;
     l.len = 0;
     l.cols = getColumns(l.ifd, l.ofd);
-
     /* Buffer starts empty. */
     l.buf[0] = '\0';
     l.buflen--; /* Make sure there is always space for the nulterm */
@@ -340,8 +330,8 @@ static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const cha
         if (nread <= 0) return l.len;
 
         switch(c) {
-            case 13:                                return (int)l.len; /* enter */
-            case 3: errno = EAGAIN;                 return -1;         /* ctrl-c */
+            case 13:                            return (int)l.len; /* enter */
+            case 3: errno = EAGAIN;             return -1; /* ctrl-c */
             case 127:                                      /* backspace */
             case 8:  editBackspace(&l);             break; /* ctrl-h */
             case 2:  editMoveLeft(&l);              break; /* ctrl-b */
@@ -372,11 +362,7 @@ static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const cha
                         /* Extended escape, read additional byte. */
                         if (read(l.ifd,seq+2,1) == -1) break;
                         if (seq[2] == '~') {
-                            switch(seq[1]) {
-                            case '3': /* Delete key. */
-                                editDelete(&l);
-                                break;
-                            }
+                            if (seq[1] == 3) editDelete(&l);    /* Delete key. */
                         }
                     } else {
                         switch(seq[1]) {
@@ -687,7 +673,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                edit(STDIN_FILENO, STDOUT_FILENO, usrin, MSG_MAX,"> ");
+                edit(STDIN_FILENO, STDOUT_FILENO, usrin, MSG_MAX, PROMPTC);
                 handleUserInput(usrin);
             }
             if (fds[1].revents & POLLIN) {
