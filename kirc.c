@@ -303,12 +303,12 @@ static void editSwapCharWithPrev(struct State *l, char *buf) {
     }
 }
 
-static int edit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt)
+static int edit(char *buf, size_t buflen, const char *prompt)
 {
     struct State l;
 
-    l.ifd = stdin_fd;
-    l.ofd = stdout_fd;
+    l.ifd = STDIN_FILENO;
+    l.ofd = STDOUT_FILENO;
     l.buf = buf;
     l.buflen = buflen;
     l.prompt = prompt;
@@ -673,7 +673,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                edit(STDIN_FILENO, STDOUT_FILENO, usrin, MSG_MAX, PROMPTC);
+                edit(usrin, MSG_MAX, PROMPTC);
                 handleUserInput(usrin);
             }
             if (fds[1].revents & POLLIN) {
