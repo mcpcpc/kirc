@@ -13,9 +13,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#define VERSION "0.1.6"
-#define PROMPTC "> "
-
+#define VERSION             "0.1.6"              /* version */
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
 
@@ -673,7 +671,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                edit(usrin, MSG_MAX, PROMPTC);
+                edit(usrin, MSG_MAX, chan_default);
                 handleUserInput(usrin);
             }
             if (fds[1].revents & POLLIN) {
