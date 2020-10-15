@@ -86,9 +86,6 @@ fatal:
     return -1;
 }
 
-/* Use the ESC [6n escape sequence to query the horizontal cursor position
- * and return it. On error -1 is returned, on success the position of the
- * cursor. */
 static int getCursorPosition(int ifd, int ofd) {
     char buf[32];
     int cols, rows;
@@ -112,7 +109,6 @@ static int getColumns(int ifd, int ofd) {
     struct winsize ws;
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        /* ioctl() failed. Try to query the terminal itself. */
         int start, cols;
         /* Get the initial position so we can restore it later. */
         start = getCursorPosition(ifd,ofd);
@@ -199,8 +195,6 @@ static int editInsert(struct State *l, char c) {
             l->len++;
             l->buf[l->len] = '\0';
             if ((l->plen+l->len < l->cols)) {
-                /* Avoid a full update of the line in the
-                 * trivial case. */
                 char d = c;
                 if (write(l->ofd,&d,1) == -1) return -1;
             } else {
@@ -269,10 +263,9 @@ static void editDeletePrevWord(struct State *l) {
     size_t old_pos = l->pos;
     size_t diff;
 
-    while (l->pos > 0 && l->buf[l->pos-1] == ' ')
-        l->pos--;
-    while (l->pos > 0 && l->buf[l->pos-1] != ' ')
-        l->pos--;
+    while (l->pos > 0 && l->buf[l->pos-1] == ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos-1] != ' ') l->pos--;
+
     diff = old_pos - l->pos;
     memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
     l->len -= diff;
@@ -349,9 +342,6 @@ static int edit(char *buf, size_t buflen, const char *prompt)
                 }
                 break;
             case 27:    /* escape sequence */
-                /* Read the next two bytes representing the escape sequence.
-                * Use two calls to handle slow terminals returning the two
-                * chars at different times. */
                 if (read(l.ifd,seq,1) == -1) break;
                 if (read(l.ifd,seq+1,1) == -1) break;
                 /* ESC [ sequences. */
@@ -669,7 +659,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-				snprintf(promptc, CHA_MAX, "[%s] ", chan_default);
+				snprintf(promptc, CHA_MAX, "\x1b[35m%s\x1b[0m ", chan_default);
                 edit(usrin, MSG_MAX, promptc);
                 handleUserInput(usrin);
             }
