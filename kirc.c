@@ -662,14 +662,14 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[200];
+    char usrin[MSG_MAX], promptc[CHA_MAX];
 
     if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-				snprintf(promptc, 200, "[%s] ", chan_default);
+				snprintf(promptc, CHA_MAX, "[%s] ", chan_default);
                 edit(usrin, MSG_MAX, promptc);
                 handleUserInput(usrin);
             }
