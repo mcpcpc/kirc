@@ -33,13 +33,11 @@ static char         * real = NULL;               /* real name */
 static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
-static struct termios orig_termios; /* In order to restore at exit.*/
+static struct termios orig; /* In order to restore at exit.*/
 static int rawmode = 0; /* For atexit() function to check if restore is needed*/
 static int atexit_registered = 0; /* Register atexit just 1 time. */
 
 struct State {
-    int ifd;            /* Terminal stdin file descriptor. */
-    int ofd;            /* Terminal stdout file descriptor. */
     char *buf;          /* Edited line buffer. */
     size_t buflen;      /* Edited line buffer size. */
     const char *prompt; /* Prompt to display. */
@@ -56,7 +54,7 @@ struct abuf {
 };
 
 static void disableRawMode(void) {
-    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig_termios) != -1)
+    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1)
         rawmode = 0;
 }
 
@@ -68,9 +66,9 @@ static int enableRawMode(int fd) {
         atexit(disableRawMode);
         atexit_registered = 1;
     }
-    if (tcgetattr(fd,&orig_termios) == -1) goto fatal;
+    if (tcgetattr(fd,&orig) == -1) goto fatal;
 
-    raw = orig_termios;
+    raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
@@ -152,10 +150,23 @@ static void abFree(struct abuf *ab) {
     free(ab->b);
 }
 
+static size_t pstrlen(const char *s) {
+    size_t len = 0, i = 0;
+    while (s[i] != '\0') {
+        if (s[i] == '\033') {
+            i = strpbrk(s + i, "m") - s + 1;
+            continue;
+        }
+        len++;
+        i++;
+    }
+    return len;
+} 
+
 static void refreshLine(struct State *l) {
     char seq[64];
-    size_t plen = strlen(l->prompt);
-    int fd = l->ofd;
+    size_t plen = pstrlen(l->prompt);
+    int fd = STDOUT_FILENO;
     char *buf = l->buf;
     size_t len = l->len;
     size_t pos = l->pos;
@@ -194,9 +205,9 @@ static int editInsert(struct State *l, char c) {
             l->pos++;
             l->len++;
             l->buf[l->len] = '\0';
-            if ((l->plen+l->len < l->cols)) {
+            if (l->plen + l->len < l->cols) {
                 char d = c;
-                if (write(l->ofd,&d,1) == -1) return -1;
+                if (write(STDOUT_FILENO, &d, 1) == -1) return -1;
             } else {
                 refreshLine(l);
             }
@@ -298,30 +309,28 @@ static int edit(char *buf, size_t buflen, const char *prompt)
 {
     struct State l;
 
-    l.ifd = STDIN_FILENO;
-    l.ofd = STDOUT_FILENO;
     l.buf = buf;
     l.buflen = buflen;
     l.prompt = prompt;
-    l.plen = strlen(prompt);
+    l.plen = pstrlen(prompt);
     l.oldpos = l.pos = 0;
     l.len = 0;
-    l.cols = getColumns(l.ifd, l.ofd);
+    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
     /* Buffer starts empty. */
     l.buf[0] = '\0';
     l.buflen--; /* Make sure there is always space for the nulterm */
 
-    if (write(l.ofd,prompt,l.plen) == -1) return -1;
+    if (write(STDOUT_FILENO,prompt,strlen(prompt)) == -1) return -1;
     while(1) {
         char c;
         int nread;
         char seq[3];
 
-        nread = read(l.ifd,&c,1);
+        nread = read(STDIN_FILENO, &c ,1);
         if (nread <= 0) return l.len;
 
         switch(c) {
-            case 13:                            return (int)l.len; /* enter */
+            case 13:                    return (int)l.len; /* enter */
             case 3: errno = EAGAIN;             return -1; /* ctrl-c */
             case 127:                                      /* backspace */
             case 8:  editBackspace(&l);             break; /* ctrl-h */
@@ -342,13 +351,13 @@ static int edit(char *buf, size_t buflen, const char *prompt)
                 }
                 break;
             case 27:    /* escape sequence */
-                if (read(l.ifd,seq,1) == -1) break;
-                if (read(l.ifd,seq+1,1) == -1) break;
+                if (read(STDIN_FILENO, seq, 1) == -1) break;
+                if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
                 /* ESC [ sequences. */
                 if (seq[0] == '[') {
                     if (seq[1] >= '0' && seq[1] <= '9') {
                         /* Extended escape, read additional byte. */
-                        if (read(l.ifd,seq+2,1) == -1) break;
+                        if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
                         if (seq[2] == '~') {
                             if (seq[1] == 3) editDelete(&l);    /* Delete key. */
                         }
@@ -369,13 +378,12 @@ static int edit(char *buf, size_t buflen, const char *prompt)
                     }
                 }
                 break;
-            default: if (editInsert(&l,c)) return -1; break;
+            default: if (editInsert(&l, c)) return -1; break;
 
         }
     }
     return l.len;
 }
-
 static void logAppend(char *str, char *path) {
     FILE *out;
 
@@ -659,7 +667,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-				snprintf(promptc, CHA_MAX, "\x1b[35m%s\x1b[0m ", chan_default);
+                snprintf(promptc, CHA_MAX, "\x1b[35m%s\x1b[0m ", chan_default);
                 edit(usrin, MSG_MAX, promptc);
                 handleUserInput(usrin);
             }
