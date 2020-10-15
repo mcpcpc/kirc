@@ -593,8 +593,6 @@ static void handleUserInput(char *usrin) {
     if (usrin[0] == '/' && usrin[1] == '#') {
         strcpy(chan_default, usrin + 2);
         printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
-    } else if (usrin[0] == '/' && usrin[1] == '?') {
-        printf("\x1b[35mcurrent channel: #%s\x1b[0m", chan_default);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
         printf("\x1b[35m%s\x1b[0m", usrin);
@@ -671,8 +669,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-			    strcpy(promptc, chan_default);
-				strcat(promptc, ": ");
+				snprintf(promptc, 200, "[%s] ", chan_default);
                 edit(usrin, MSG_MAX, promptc);
                 handleUserInput(usrin);
             }
