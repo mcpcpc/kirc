@@ -667,7 +667,7 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                snprintf(promptc, CHA_MAX, "\x1b[35m%s\x1b[0m ", chan_default);
+                snprintf(promptc, CHA_MAX, "[\x1b[35m%s\x1b[0m] ", chan_default);
                 edit(usrin, MSG_MAX, promptc);
                 handleUserInput(usrin);
             }
