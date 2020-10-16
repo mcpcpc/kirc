@@ -4,17 +4,19 @@ layout: default
 
 ## About
 
-**kirc** ("KISS for IRC") is a tiny open-source Internet Relay Chat (IRC) client designed with usability and cross-platform compatibility in mind.
+**kirc** ("KISS for IRC") is a tiny open-source Internet Relay Chat (IRC) client designed with *usability* and *cross-platform compatibility* in mind. 
+
+
 
 ## Features
 
 *   No dependencies other than a C99 compiler.
-*   Native SASL PLAIN and EXTERNAL authentication support.
-*   TLS/SSL protocol capable (via external TLS utilities).
+*   SASL PLAIN and EXTERNAL authentication support.
+*   TLS/SSL protocol support (via external TLS utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
 *   Simple command aliases and full support for all RFC 2812 commands.
-*   Easy color scheme definition via ANSI 8-bit colors.
+*   Easy customized color scheme definition.
 
 ## Installation
 
@@ -60,6 +62,8 @@ kirc [-s server] [-p port] [-n nick] [-c chan] ...
 ```
 
 ### User Input Key Bindings
+
+A number of key bindings have been supplied to make text editing and string manipulation a breeze! 
 
 | Key Binding           | Behavior Description                               |
 |-----------------------|----------------------------------------------------|
