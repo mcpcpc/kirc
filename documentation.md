@@ -4,6 +4,8 @@ layout: default
 
 ## Support Documentation
 
+Examples and troubleshooting information for `kirc`.
+
 ### Transport Layer Security (TLS) Support
 
 There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
