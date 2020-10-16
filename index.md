@@ -1,37 +1,72 @@
-## Welcome to GitHub Pages
+---
+layout: default
+---
 
-You can use the [editor on GitHub](https://github.com/mcpcpc/kirc/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+## About
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+**kirc** is a tiny open-source Internet Relay Chat (IRC) client designed with usability and cross-platform compatibility in mind.
 
-### Markdown
+## Features
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+*   No dependencies other than a C99 compiler.
+*   Native SASL PLAIN and EXTERNAL authentication support.
+*   TLS/SSL protocol capable (via external TLS utilities).
+*   Full chat history logging.
+*   Multi-channel joining at server connection.
+*   Simple command aliases and full support for all RFC 2812 commands.
+*   Easy color scheme definition via ANSI 8-bit colors.
 
-```markdown
-Syntax highlighted code block
+## Installation
 
-# Header 1
-## Header 2
-### Header 3
+Building and installing on **KISS Linux** using the Community repository:
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```shell
+kiss b kirc
+kiss i kirc
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+Building and installing on **Arch** and **Arch-based** distros using the AUR:
 
-### Jekyll Themes
+```shell
+git clone https://aur.archlinux.org/kirc-git.git
+cd kirc
+makepkg -si
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/mcpcpc/kirc/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+Building and installing from source (works on **Raspbian**, **Debian**, **Ubuntu** and many other Unix distributions):
 
-### Support or Contact
+```shell
+git clone https://github.com/mcpcpc/kirc.git
+cd kirc
+make
+make install
+```
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+## Usage
+
+Consult `man kirc` for a full list and explanation of available `kirc` arguments.
+
+```shell
+kirc [-s server] [-p port] [-n nick] [-c chan] ...
+```
+
+### Command Aliases
+
+```shell
+<message>                 Send a PRIVMSG to the current channel.
+@<channel|nick> <message> Send a message to a specified channel or nick 
+/<command>                Send command to IRC server (see RFC 2812 for full list).
+/#<channel>               Assign new default message channel.
+```
+
+### User Input Key Bindings
+
+| Key Binding           | Behavior Description                               |
+|-----------------------|----------------------------------------------------|
+| CTRL+B or LEFT ARROW  | moves the cursor one character to the left.        |
+| CTRL+F or RIGHT ARROW | moves the cursor one character to the right.       |
+| CTRL+A                | moves the cursor to the end of the line.           |
+| CTRL+E or HOME        | moves the cursor to the start of the line.         |
+| CTRL+W                | deletes the previous word.                         |
+| CTRL+U                | deletes the entire line.                           |
+| CTRL+K                | deletes the from current character to end of line. |
