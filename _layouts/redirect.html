@@ -1,14 +1,19 @@
- <html>
- <head>
-     <meta charset="utf-8"/>
-     <meta http-equiv="refresh" content="1;url={{ page.redirect }}"/>
-     <link rel="canonical" href="{{ page.redirect }}"/>
-     <script type="text/javascript">
-             window.location.href = "{{ page.redirect }}"
-     </script>
-     <title>Page Redirection</title>
- </head>
- <body>
- If you are not redirected automatically, follow <a href='{{ page.redirect }}'>this link</a>.
- </body>
- </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  {% comment %}
+    Don't use 'redirect_to' to avoid conflict
+    with the page redirection plugin: if that is defined
+    it takes over.
+  {% endcomment %}
+  <link rel="canonical" href="{{ page.redir_to }}"/>
+  <meta http-equiv="refresh" content="0;url={{ page.redir_to }}" />
+</head>
+<body>
+  <h1>Redirecting...</h1>
+  <a href="{{ page.redir_to }}">Click here if you are not redirected.<a>
+  <script>location='{{ page.redir_to }}'</script>
+</body>
+</html>
