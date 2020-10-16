@@ -6,3 +6,10 @@ show_downloads: true
 author:
   name: "Michael Czigler"
   email: "info@kirc.chat"
+
+github:
+  is_project_page: false
+  is_user_page: false
+
+plugins:
+  - jekyll-sitemap
