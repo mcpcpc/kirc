@@ -10,6 +10,8 @@ author:
 github:
   is_project_page: false
   is_user_page: false
-
+  zip_url: https://github.com/mcpcpc/kirc/zipball/master
+  tar_url: https://github.com/mcpcpc/kirc/tarball/master
+  
 plugins:
   - jekyll-sitemap
