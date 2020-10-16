@@ -6,8 +6,6 @@ layout: default
 
 **kirc** ("KISS for IRC") is a tiny open-source Internet Relay Chat (IRC) client designed with *usability* and *cross-platform compatibility* in mind. 
 
-
-
 ## Features
 
 *   No dependencies other than a C99 compiler.
