@@ -510,7 +510,7 @@ static void rawParser(char *string) {
         printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && sstrstr(channel, chan_default) == NULL) {
+        if (channel != NULL && strstr(channel, chan_default) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "JOIN", 4)) {
