@@ -108,20 +108,15 @@ static int getColumns(int ifd, int ofd) {
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
-        /* Get the initial position so we can restore it later. */
         start = getCursorPosition(ifd,ofd);
         if (start == -1) goto failed;
-        /* Go to right margin and get position. */
         if (write(ofd,"\x1b[999C",6) != 6) goto failed;
         cols = getCursorPosition(ifd,ofd);
         if (cols == -1) goto failed;
-        /* Restore position. */
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD",cols-start);
-            if (write(ofd,seq,strlen(seq)) == -1) {
-                /* Can't recover... */
-            }
+            if (write(ofd,seq,strlen(seq)) == -1) {} /* Can't recover from write error. */
         }
         return cols;
     } else {
@@ -182,16 +177,12 @@ static void refreshLine(struct State *l) {
     }
 
     abInit(&ab);
-    /* Cursor to left edge */
     snprintf(seq, sizeof(seq), "\r");
     abAppend(&ab, seq, strlen(seq));
-    /* Write the prompt and the current buffer content */
     abAppend(&ab,l->prompt, strlen(l->prompt));
     abAppend(&ab, buf, len);
-    /* Erase to right */
     snprintf(seq, sizeof(seq), "\x1b[0K");
     abAppend(&ab, seq, strlen(seq));
-    /* Move cursor to original position. */
     snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
     abAppend(&ab, seq, strlen(seq));
     if (write(fd, ab.b, ab.len) == -1) {} /* Can't recover from write error. */
@@ -305,47 +296,35 @@ static void editSwapCharWithPrev(struct State *l, char *buf) {
     }
 }
 
-static int edit(char *buf, size_t buflen, const char *prompt)
+static int edit(struct State *l, const char *prompt)
 {
-    struct State l;
-
-    l.buf = buf;
-    l.buflen = buflen;
-    l.prompt = prompt;
-    l.plen = pstrlen(prompt);
-    l.oldpos = l.pos = 0;
-    l.len = 0;
-    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    /* Buffer starts empty. */
-    l.buf[0] = '\0';
-    l.buflen--; /* Make sure there is always space for the nulterm */
-
     if (write(STDOUT_FILENO,prompt,strlen(prompt)) == -1) return -1;
+
     while(1) {
         char c;
         int nread;
         char seq[3];
 
         nread = read(STDIN_FILENO, &c ,1);
-        if (nread <= 0) return l.len;
+        if (nread <= 0) return 1;
 
         switch(c) {
-            case 13:                    return (int)l.len; /* enter */
+            case 13:                            return 1;  /* enter */
             case 3: errno = EAGAIN;             return -1; /* ctrl-c */
             case 127:                                      /* backspace */
-            case 8:  editBackspace(&l);             break; /* ctrl-h */
-            case 2:  editMoveLeft(&l);              break; /* ctrl-b */
-            case 6:  editMoveRight(&l);             break; /* ctrl-f */
-            case 1:  editMoveHome(&l);              break; /* Ctrl+a */
-            case 5:  editMoveEnd(&l);               break; /* ctrl+e */
-            case 23: editDeletePrevWord(&l);        break; /* ctrl+w */
-            case 21: editDeleteWholeLine(&l, buf);  break; /* Ctrl+u */
-            case 11: editDeleteLineToEnd(&l, buf);  break; /* Ctrl+k */
-            case 20: editSwapCharWithPrev(&l, buf); break; /* ctrl-t */
+            case 8:  editBackspace(l);             break; /* ctrl-h */
+            case 2:  editMoveLeft(l);              break; /* ctrl-b */
+            case 6:  editMoveRight(l);             break; /* ctrl-f */
+            case 1:  editMoveHome(l);              break; /* Ctrl+a */
+            case 5:  editMoveEnd(l);               break; /* ctrl+e */
+            case 23: editDeletePrevWord(l);        break; /* ctrl+w */
+            case 21: editDeleteWholeLine(l, l->buf);  break; /* Ctrl+u */
+            case 11: editDeleteLineToEnd(l, l->buf);  break; /* Ctrl+k */
+            case 20: editSwapCharWithPrev(l,l->buf); break; /* ctrl-t */
             case 4:     /* ctrl-d, remove char at right of cursor, or if the
                                 line is empty, act as end-of-file. */
-                if (l.len > 0) {
-                    editDelete(&l);
+                if (l->len > 0) {
+                    editDelete(l);
                 } else {
                     return -1;
                 }
@@ -359,30 +338,30 @@ static int edit(char *buf, size_t buflen, const char *prompt)
                         /* Extended escape, read additional byte. */
                         if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
                         if (seq[2] == '~') {
-                            if (seq[1] == 3) editDelete(&l);    /* Delete key. */
+                            if (seq[1] == 3) editDelete(l);    /* Delete key. */
                         }
                     } else {
                         switch(seq[1]) {
-                            case 'C': editMoveRight(&l); break; /* Right */
-                            case 'D': editMoveLeft(&l);  break; /* Left */
-                            case 'H': editMoveHome(&l);  break; /* Home */
-                            case 'F': editMoveEnd(&l);   break; /* End*/
+                            case 'C': editMoveRight(l); break; /* Right */
+                            case 'D': editMoveLeft(l);  break; /* Left */
+                            case 'H': editMoveHome(l);  break; /* Home */
+                            case 'F': editMoveEnd(l);   break; /* End*/
                         }
                     }
                 }
                 /* ESC O sequences. */
                 else if (seq[0] == 'O') {
                     switch(seq[1]) {
-                        case 'H': editMoveHome(&l); break; /* Home */
-                        case 'F': editMoveEnd(&l);  break; /* End*/
+                        case 'H': editMoveHome(l); break; /* Home */
+                        case 'F': editMoveEnd(l);  break; /* End*/
                     }
                 }
                 break;
-            default: if (editInsert(&l, c)) return -1; break;
+            default: if (editInsert(l, c)) return -1; break;
 
         }
     }
-    return l.len;
+    return 0;
 }
 static void logAppend(char *str, char *path) {
     FILE *out;
@@ -660,16 +639,35 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[CHA_MAX];
+    char usrin[MSG_MAX], promptc[CHA_MAX] = ">";
+
+    struct State l;
+
+    l.buf = usrin;
+    l.buflen = MSG_MAX;
+    l.prompt = promptc;
+    l.plen = pstrlen(promptc);
+    l.oldpos = l.pos = 0;
+    l.len = 0;
+    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    l.buf[0] = '\0';
+    l.buflen--; 
 
     if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
-                edit(usrin, MSG_MAX, promptc);
-                handleUserInput(usrin);
+                //snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
+                if (edit(&l, promptc) > 0) {
+                    handleUserInput(usrin);
+                    l.buflen = MSG_MAX;
+                    l.oldpos = l.pos = 0;
+                    l.len = 0;
+                    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+                    l.buf[0] = '\0';
+                    l.buflen--; 
+                }
             }
             if (fds[1].revents & POLLIN) {
                 int rc = handleServerMessage();
