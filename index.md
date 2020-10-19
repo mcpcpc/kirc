@@ -11,9 +11,9 @@ layout: default
 *   No dependencies other than a C99 compiler.
 *   SASL PLAIN and EXTERNAL authentication support.
 *   TLS/SSL protocol support (via external TLS utilities).
-*   Full chat history logging.
+*   Simple chat history logging.
 *   Multi-channel joining at server connection.
-*   Simple command aliases and full support for all RFC 2812 commands.
+*   Full support for all RFC 2812 commands.
 *   Easy customized color scheme definition.
 
 ## Installation
