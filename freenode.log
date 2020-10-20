@@ -1,0 +1,3002 @@
+NICK JohnNH1
+
+USER JohnNH1 - - :JohnNH1
+
+:rothfuss.freenode.net NOTICE * :*** Looking up your hostname...
+
+:rothfuss.freenode.net NOTICE * :*** Checking Ident
+
+:rothfuss.freenode.net NOTICE * :*** Found your hostname
+
+:rothfuss.freenode.net NOTICE * :*** No Ident response
+
+:rothfuss.freenode.net 001 JohnNH1 :Welcome to the freenode Internet Relay Chat Network JohnNH1
+
+JOIN #aachat
+
+:rothfuss.freenode.net 002 JohnNH1 :Your host is rothfuss.freenode.net[84.17.44.180/6667], running version ircd-seven-1.1.9
+
+:rothfuss.freenode.net 003 JohnNH1 :This server was created Thu Aug 20 2020 at 18:11:04 UTC
+
+:rothfuss.freenode.net 004 JohnNH1 rothfuss.freenode.net ircd-seven-1.1.9 DOQRSZaghilopsuwz CFILMPQSbcefgijklmnopqrstuvz bkloveqjfI
+
+:rothfuss.freenode.net 005 JohnNH1 CHANTYPES=# EXCEPTS INVEX CHANMODES=eIbq,k,flj,CFLMPQScgimnprstuz CHANLIMIT=#:120 PREFIX=(ov)@+ MAXLIST=bqeI:100 MODES=4 NETWORK=freenode STATUSMSG=@+ CALLERID=g CASEMAPPING=rfc1459 :are supported by this server
+
+:rothfuss.freenode.net 005 JohnNH1 CHARSET=ascii NICKLEN=16 CHANNELLEN=50 TOPICLEN=390 DEAF=D FNC TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,PRIVMSG:4,NOTICE:4,ACCEPT:,MONITOR: EXTBAN=$,ajrxz CLIENTVER=3.0 KNOCK WHOX SAFELIST :are supported by this server
+
+:rothfuss.freenode.net 005 JohnNH1 ELIST=CTU ETRACE CPRIVMSG CNOTICE MONITOR=100 :are supported by this server
+
+:rothfuss.freenode.net 251 JohnNH1 :There are 95 users and 81776 invisible on 31 servers
+
+:rothfuss.freenode.net 252 JohnNH1 39 :IRC Operators online
+
+:rothfuss.freenode.net 253 JohnNH1 33 :unknown connection(s)
+
+:rothfuss.freenode.net 254 JohnNH1 47211 :channels formed
+
+:rothfuss.freenode.net 255 JohnNH1 :I have 3412 clients and 1 servers
+
+:rothfuss.freenode.net 265 JohnNH1 3412 3745 :Current local users 3412, max 3745
+
+:rothfuss.freenode.net 266 JohnNH1 81871 87998 :Current global users 81871, max 87998
+
+:rothfuss.freenode.net 250 JohnNH1 :Highest connection count: 3746 (3745 clients) (270264 connections received)
+
+:rothfuss.freenode.net 375 JohnNH1 :- rothfuss.freenode.net Message of the Day - 
+
+:rothfuss.freenode.net 372 JohnNH1 :- Welcome to freenode - supporting the free and open source
+
+:rothfuss.freenode.net 372 JohnNH1 :- software communities since 1998.
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- By connecting to freenode you indicate that you have read and
+
+:rothfuss.freenode.net 372 JohnNH1 :- accept our policies and guidelines as set out on https://freenode.net
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- In the event that you observe behaviour that contravenes our policies,
+
+:rothfuss.freenode.net 372 JohnNH1 :- please notify a volunteer staff member via private message, or send us an
+
+:rothfuss.freenode.net 372 JohnNH1 :- e-mail to complaints@freenode.net -- we will do our best to address the
+
+:rothfuss.freenode.net 372 JohnNH1 :- situation within a reasonable period of time, and we may request further
+
+:rothfuss.freenode.net 372 JohnNH1 :- information or, as appropriate, involve other parties such as channel operators 
+
+:rothfuss.freenode.net 372 JohnNH1 :- Group Contacts representing an on-topic group.
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- freenode runs an open proxy scanner.
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- If you are looking for assistance, you may be able to find a list of 
+
+:rothfuss.freenode.net 372 JohnNH1 :- volunteer staff on '/stats p' (shows only on-call staff) or by joining 
+
+:rothfuss.freenode.net 372 JohnNH1 :- #freenode and using the '/who freenode/staff/*' command. You may message
+
+:rothfuss.freenode.net 372 JohnNH1 :- any of us at any time. Please note that freenode predominantly provides 
+
+:rothfuss.freenode.net 372 JohnNH1 :- assistance via private message, and while we have a network channel the 
+
+:rothfuss.freenode.net 372 JohnNH1 :- primary venue for support requests is via private message to a member 
+
+:rothfuss.freenode.net 372 JohnNH1 :- of the volunteer staff team.
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- From time to time, volunteer staff may send server-wide notices relating to
+
+:rothfuss.freenode.net 372 JohnNH1 :- the project, or the communities that we host. The majority of such notices
+
+:rothfuss.freenode.net 372 JohnNH1 :- will be sent as wallops, and you can '/mode <yournick> +w' to ensure that you
+
+:rothfuss.freenode.net 372 JohnNH1 :- do not miss them. Important messages relating to the freenode project, including
+
+:rothfuss.freenode.net 372 JohnNH1 :- notices of upcoming maintenance and other scheduled downtime will be issued as
+
+:rothfuss.freenode.net 372 JohnNH1 :- global notices.
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- Representing an on-topic project? Don't forget to register, more information
+
+:rothfuss.freenode.net 372 JohnNH1 :- can be found on the https://freenode.net website under "Group Registration".
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- Thank you also to our server sponsors for the sustained support in keeping the
+
+:rothfuss.freenode.net 372 JohnNH1 :- network going for close to two decades.
+
+:rothfuss.freenode.net 372 JohnNH1 :-  
+
+:rothfuss.freenode.net 372 JohnNH1 :- Thank you for using freenode!
+
+:rothfuss.freenode.net 376 JohnNH1 :End of /MOTD command.
+
+:JohnNH1 MODE JohnNH1 :+i
+
+:freenode-connect!frigg@freenode/utility-bot/frigg NOTICE JohnNH1 :Welcome to freenode. To protect the network all new connections will be scanned for vulnerabilities. This will not harm your computer, and vulnerable hosts will be notified.
+
+:freenode-connect!frigg@freenode/utility-bot/frigg PRIVMSG JohnNH1 :VERSION
+
+:JohnNH1!~JohnNH1@107-207-104-167.lightspeed.bcvloh.sbcglobal.net JOIN #aachat
+
+:rothfuss.freenode.net MODE #aachat +ns
+
+:rothfuss.freenode.net 353 JohnNH1 @ #aachat :@JohnNH1
+
+:rothfuss.freenode.net 366 JohnNH1 #aachat :End of /NAMES list.
+
+:services. MODE #aachat -o JohnNH1   
+
+:rothfuss.freenode.net NOTICE #aachat :*** Notice -- TS for #aachat changed from 1603021554 to 1279702804
+
+:services. MODE #aachat +ct-s 
+
+:ChanServ!ChanServ@services. JOIN #aachat
+
+:services. MODE #aachat +o ChanServ   
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :test
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+whois JohnNH1
+
+:rothfuss.freenode.net 311 JohnNH1 JohnNH1 ~JohnNH1 107-207-104-167.lightspeed.bcvloh.sbcglobal.net * :JohnNH1
+
+:rothfuss.freenode.net 319 JohnNH1 JohnNH1 :#aachat 
+
+:rothfuss.freenode.net 312 JohnNH1 JohnNH1 rothfuss.freenode.net :Los Angeles, US
+
+:rothfuss.freenode.net 378 JohnNH1 JohnNH1 :is connecting from *@107-207-104-167.lightspeed.bcvloh.sbcglobal.net 107.207.104.167
+
+:rothfuss.freenode.net 317 JohnNH1 JohnNH1 39468 1603021548 :seconds idle, signon time
+
+:rothfuss.freenode.net 318 JohnNH1 JohnNH1 :End of /WHOIS list.
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :testing
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+nick mcpcpc
+
+:JohnNH1!~JohnNH1@107-207-104-167.lightspeed.bcvloh.sbcglobal.net NICK :mcpcpc
+
+:NickServ!NickServ@services. NOTICE mcpcpc :This nickname is registered. Please choose a different nickname, or identify via /msg NickServ identify <password>.
+
+JohnNH1
+
+:rothfuss.freenode.net 421 mcpcpc JohnNH1 :Unknown command
+
+nick JohnNH1
+
+:mcpcpc!~JohnNH1@107-207-104-167.lightspeed.bcvloh.sbcglobal.net NICK :JohnNH1
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+privmsg #aachat :
+
+:rothfuss.freenode.net 412 JohnNH1 :No text to send
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 JOIN #aachat
+
+:ChanServ!ChanServ@services. PART #aachat
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :helloooooo john
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :it feels like i haven't talked to you in weeks
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and it's only been a day lol
+
+:JohnNH!~JohnNH@72.71.234.192 JOIN #aachat
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Hi My Friend Anna :) :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :helloooooo john
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :it feels like i haven't talked to you in weeks
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and it's only been a day lol
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :You had a good weekend. Reset your clock!!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am happy to be home
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I bet
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i did except yesterday, i did not get hugs from the young niece because i put her into meltdown mode
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Ah, the power of the truth!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :she slapped me in the face (it was playing around) but i did not think it to be and i repremanded her
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and then she went crying to my sister
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and my sister blamed me for not understanding and then i was apologizing to the 7yr old
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :She wanted to slap her mom, but chose you instead.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :fucked up
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :It was safer.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :she is a future member of aa
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :so is the other one
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :The whole family :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and toula she needs to be commited
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :she hears nothing i say
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :You had the glow and she felt she could do whatever to you.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :she is rude and interupts me when i speak
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and to be honest
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am tired of going there
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :but i will go for christmas
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :You don't have to decide right now!
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I am wondering whether Covid will change lots of minds.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :true i don't
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i told her i would
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :see
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and then she suggested i drive
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Yup. Much better to say God willing :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and i am like it's 12hrs and that's too much these days
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yeah, i will see
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i would rahter stay in my house and do nothing
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Do zoom.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :haha yes, exactly
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Not sure why JohnNH1 is still on??
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Maybe freenode is confused?
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :everyone is confused
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :A LOT are!
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Glad I just finished my chix soup with an ear of corn.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I did the First Light of Day group earlier. Today is
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :their tradition day.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :not many know the tradisitons
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Tradition 7
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i just started in the past year
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :And then the 'you should give more' crowd.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :NA has a book about them. Pretty good.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :$1 yesterd is worth $1000 today :).
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i thinks it's the book you gave me on the memory stick
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Glad we are talking. A voice of reason.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :One of them.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :They have several: guiding-principles, It-Works and some
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :stuff in the basic text. Maybe more?
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :The traditions continue to amaze me.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :They are as good for a business as for a group.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I have the nachat group running in another window.
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :that's great
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i have the heater running in the background
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i could use a nap right about now
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :nice
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am overloaded with aa and sponsees and self
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i need to pause
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am going to go to the gym after work and then a bath and then sleep
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :yup. on phone.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :phone will be turned off after i leave work
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i do not want to talk to anyone
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :back. Vincent gets to a funny place and says:
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :"Let me put you on hold." lol.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Patterns
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I waited a minute.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I suspect it is the family stuff that is the really big deal.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Same for me.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Sent e-mail -- no response.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I am saving chat.
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :so you got put on hold...you are nicer than me; lol because i ask why and when she says because my boygriend i say oh no...
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :lol
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Yup. Gotta ask the boy friend.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :or girl friend.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :not interested and not waiting
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :The power of the opposite sex.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i pushed off starting school for the spring
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Well said!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am going to, by the greace of god, pass my board exams
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Good. Good to get well settled down and serene.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and then go to scholl
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :my boss asked when i was taking the test
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i said soon
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :After I retire :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :haha
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :well seeing they have already paid $1000k toward that i beleive i kinda have to do it soon
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :especially since he asked
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :so i will schedule that for the end of november
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Yup. So you keep coming in reliably and do whatever.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes, exactly
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :plus it's nice on my piece of paper called the resume
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :lol
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Or you get income from lots of properties :).
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I've got some nice paper. Even a PE stamp!
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :saved again.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :lol...yes, i want the properties...i am actually going to go on friday to look at a property
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Nice!
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :we'll see
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :this one is 65k but much less work
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :so we will see
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i think less work is much better than more work
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :but will see
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Yup. Good analysis is the key.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i have to do billing tomorrow as it's not fair to my contractor has waited
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Fun to see how helpers handle that sort of thing. Who
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :are the real helpers.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes, daymel has become a good asset to me
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :so they get special treatment, bonus, etc.
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :ok i have to go and brb...
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :yup.
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I found 2 open 24 7 AA meetings :). More peaceful than NA.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :nachat is basically dead.
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :s
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am back
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :hi, me too :).
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :how was your afternoon
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am preparing for my 1pm progress meeting with the owner
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :oh, what fun :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :ughhh not!!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am turning my phone off as soon as i leave here
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am done....
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am tired...
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :First agenda item. More $$ :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :my battery is drained
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I bet!! Be gentle.
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i only have a few hours and then i am leaving.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i really don't feel like having my phone on...
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i realize since i returned from my grand canon trip i haven't been off of it
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :it's addicting
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :just like food
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :reading
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :etc
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :yup. Turning it off is a good beginning !!!
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Vincent picks an argument, pretends to get angry, then
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :puts me on hold forever! His pattern. Not sure what his
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :who did he pick an arguement with
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :real problem was?
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :With me :).
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Said he 'knows' the weather, cause he listens to the forecast.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I said he was playing God :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :he probably didn't like what you had to say and knows you are probably right...just like when you suggested not having matt move in with me
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and then well you know....he did
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and then was goine in five days
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :You were SO LUCKY !!!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :hahahah he was palying god
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :they don't know
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :hahah
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :He was insisting they do !!
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :So I get to be in peace :).
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :hahaha lol
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :well he is sadly mistaken and well i will pray for him
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Almost like turning off phone!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :how long did he keep you on hold
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I waited 1 min. Been there before!
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Then I just hung up.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and did he come back or did you hang up
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :ah i see
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :When I have my whits about me, I say call me back.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Too quick this time.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I seem to sleep better with all the RF stuff off.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I wanted the phone on last night since you were travelling,
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :tonight I will turn it all off. You can call the house if
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :needed and talk to the answering machine speaker.
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :thank you fo rleaving the phone on
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i was knocked out asleep within five minutes of hitting the pillow
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :it was an emotional overload this weekend
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :and of course toula sucks up the most
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I bet. I suspect the family stuff is the big stuff.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Some writing will help when the time comes.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :They ALL find you an example of what they could be!!
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :well that's tiresome
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Sure is. Family stuff is THE big deal.
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :well yes, it is and then the matt stuff and toula stuff and sponsee stufff
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :It is all part of the package. The 'sponsees' teach us how
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :to deal with our 'sometimes deranged' family systems.
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes they do
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :as the budhist say - it is within teaching one is taught
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Yup. You are a GREAT teacher!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i suppose...
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i guess i am a great learner too as i am getting an entirely new lesson with matt (insert eye roll)
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :What fun !!
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Almost time for your meeting?
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :these are so boring
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Gotta pretend to be interested!
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Just had a liverwurst, cabbage, parsley sandwich :).
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yumm
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :meeting over?
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :just now
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :matt just sent me a text that said i need cuddles
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :omg it's amazing when you can read into shit and finally see it omg
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Wow. Just sitting outside in sun. 60F Now cloudy.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :He is thinks you are his answer :) :). Have fun !!
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes, he does....
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes, yes, he does
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :he misses being truly loved...he's never had it, and i gave it to him
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I was so lucky that Ann said yes to me!!!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes, you are
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I remember watching their family movies. My father in law
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i don't beleve we every really see it because we are so selfish
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :was surprised I didn't feel more connected.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I had no idea until many years later!! So shut down.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :well, i don't think we know connection until we got here
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :We ARE the lucky ones. We really learn about it and how to
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :keep it. Amazing. It is so much of a blessing!!
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :my life is a blessing for sure
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I like the check list.
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :what does shut down mean
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :spiritually, mind and body
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Not having feelings.
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :I put a wall up. Buried myself in work, etc.
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 PRIVMSG #aachat :Helps if you are running a company!
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :yes it does
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 PRIVMSG #aachat :i am leaving
+
+:AnnaK!32fd0989@gateway/web/cgi-irc/kiwiirc.com/ip.50.253.9.137 QUIT :Quit: Connection closed
+
+PONG :rothfuss.freenode.net
+
+
+:JohnNH!~JohnNH@72.71.234.192 QUIT :Quit: leaving
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+PONG :rothfuss.freenode.net
+
+
+quit
+
+:JohnNH1!~JohnNH1@107-207-104-167.lightspeed.bcvloh.sbcglobal.net QUIT :Quit: JohnNH1
+

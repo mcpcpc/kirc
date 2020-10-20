@@ -300,66 +300,63 @@ static int edit(struct State *l, const char *prompt)
 {
     if (write(STDOUT_FILENO,prompt,strlen(prompt)) == -1) return -1;
 
-    while(1) {
-        char c;
-        int nread;
-        char seq[3];
+    char c;
+    int nread;
+    char seq[3];
 
-        nread = read(STDIN_FILENO, &c ,1);
-        if (nread <= 0) return 1;
+    nread = read(STDIN_FILENO, &c ,1);
+    if (nread <= 0) return 1;
 
-        switch(c) {
-            case 13:                            return 1;  /* enter */
-            case 3: errno = EAGAIN;             return -1; /* ctrl-c */
-            case 127:                                      /* backspace */
-            case 8:  editBackspace(l);             break; /* ctrl-h */
-            case 2:  editMoveLeft(l);              break; /* ctrl-b */
-            case 6:  editMoveRight(l);             break; /* ctrl-f */
-            case 1:  editMoveHome(l);              break; /* Ctrl+a */
-            case 5:  editMoveEnd(l);               break; /* ctrl+e */
-            case 23: editDeletePrevWord(l);        break; /* ctrl+w */
-            case 21: editDeleteWholeLine(l, l->buf);  break; /* Ctrl+u */
-            case 11: editDeleteLineToEnd(l, l->buf);  break; /* Ctrl+k */
-            case 20: editSwapCharWithPrev(l,l->buf); break; /* ctrl-t */
-            case 4:     /* ctrl-d, remove char at right of cursor, or if the
-                                line is empty, act as end-of-file. */
-                if (l->len > 0) {
-                    editDelete(l);
+    switch(c) {
+        case 13:                             return 1;  /* enter */
+        case 3: errno = EAGAIN;              return -1; /* ctrl-c */
+        case 127:                                       /* backspace */
+        case 8:  editBackspace(l);               break; /* ctrl-h */
+        case 2:  editMoveLeft(l);                break; /* ctrl-b */
+        case 6:  editMoveRight(l);               break; /* ctrl-f */
+        case 1:  editMoveHome(l);                break; /* Ctrl+a */
+        case 5:  editMoveEnd(l);                 break; /* ctrl+e */
+        case 23: editDeletePrevWord(l);          break; /* ctrl+w */
+        case 21: editDeleteWholeLine(l, l->buf); break; /* Ctrl+u */
+        case 11: editDeleteLineToEnd(l, l->buf); break; /* Ctrl+k */
+        case 20: editSwapCharWithPrev(l,l->buf); break; /* ctrl-t */
+        case 4:     /* ctrl-d, remove char at right of cursor, or if the
+                            line is empty, act as end-of-file. */
+            if (l->len > 0) {
+                editDelete(l);
+            } else {
+                return -1;
+            }
+            break;
+        case 27:    /* escape sequence */
+            if (read(STDIN_FILENO, seq, 1) == -1) break;
+            if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
+            /* ESC [ sequences. */
+            if (seq[0] == '[') {
+                if (seq[1] >= '0' && seq[1] <= '9') {
+                    /* Extended escape, read additional byte. */
+                    if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
+                    if (seq[2] == '~') {
+                        if (seq[1] == 3) editDelete(l);    /* Delete key. */
+                    }
                 } else {
-                    return -1;
-                }
-                break;
-            case 27:    /* escape sequence */
-                if (read(STDIN_FILENO, seq, 1) == -1) break;
-                if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-                /* ESC [ sequences. */
-                if (seq[0] == '[') {
-                    if (seq[1] >= '0' && seq[1] <= '9') {
-                        /* Extended escape, read additional byte. */
-                        if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
-                        if (seq[2] == '~') {
-                            if (seq[1] == 3) editDelete(l);    /* Delete key. */
-                        }
-                    } else {
-                        switch(seq[1]) {
-                            case 'C': editMoveRight(l); break; /* Right */
-                            case 'D': editMoveLeft(l);  break; /* Left */
-                            case 'H': editMoveHome(l);  break; /* Home */
-                            case 'F': editMoveEnd(l);   break; /* End*/
-                        }
-                    }
-                }
-                /* ESC O sequences. */
-                else if (seq[0] == 'O') {
                     switch(seq[1]) {
-                        case 'H': editMoveHome(l); break; /* Home */
-                        case 'F': editMoveEnd(l);  break; /* End*/
+                        case 'C': editMoveRight(l); break; /* Right */
+                        case 'D': editMoveLeft(l);  break; /* Left */
+                        case 'H': editMoveHome(l);  break; /* Home */
+                        case 'F': editMoveEnd(l);   break; /* End*/
                     }
                 }
-                break;
-            default: if (editInsert(l, c)) return -1; break;
-
-        }
+            }
+            /* ESC O sequences. */
+            else if (seq[0] == 'O') {
+                switch(seq[1]) {
+                    case 'H': editMoveHome(l); break; /* Home */
+                    case 'F': editMoveEnd(l);  break; /* End*/
+                }
+            }
+            break;
+        default: if (editInsert(l, c)) return -1; break;
     }
     return 0;
 }
@@ -639,7 +636,7 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[CHA_MAX] = ">";
+    char usrin[MSG_MAX], promptc[CHA_MAX] = "";
 
     struct State l;
 
@@ -665,15 +662,16 @@ int main(int argc, char **argv) {
                     l.len = 0;
                     l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                     l.buf[0] = '\0';
-                    l.buflen--; 
+                    l.buflen--;
                 }
             }
             if (fds[1].revents & POLLIN) {
                 int rc = handleServerMessage();
+				refreshLine(&l);
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
-                };
+                }
             }
         } else {
             if (errno == EAGAIN) continue;
