@@ -579,6 +579,19 @@ static void handleUserInput(char *usrin) {
     printf("\r\n");
 }
 
+static void stateSet(struct State *l, char *buf, char *prompt, size_t n) {
+    snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", chan_default);
+    l->buf = buf;
+    l->buflen = MSG_MAX;
+    l->prompt = prompt;
+    l->plen = pstrlen(prompt);
+    l->oldpos = l->pos = 0;
+    l->len = 0;
+    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    l->buf[0] = '\0';
+    l->buflen--; 
+}
+
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-x command] [-w nickwidth] [-o path] \
@@ -636,19 +649,8 @@ int main(int argc, char **argv) {
 
     char usrin[MSG_MAX], promptc[CHA_MAX];
 
-    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
-
     struct State l;
-
-    l.buf = usrin;
-    l.buflen = MSG_MAX;
-    l.prompt = promptc;
-    l.plen = pstrlen(promptc);
-    l.oldpos = l.pos = 0;
-    l.len = 0;
-    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    l.buf[0] = '\0';
-    l.buflen--; 
+    stateSet(&l, usrin, promptc, CHA_MAX);
 
     int eflag = 0;
 
@@ -660,14 +662,7 @@ int main(int argc, char **argv) {
                 eflag = edit(&l, promptc);
                 if (eflag > 0) {
                     handleUserInput(l.buf);
-                    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
-                    l.prompt = promptc;
-                    l.plen = pstrlen(promptc);
-                    l.oldpos = l.pos = 0;
-                    l.len = 0;
-                    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-                    l.buf[0] = '\0';
-                    l.buflen--;
+                    stateSet(&l, usrin, promptc, CHA_MAX);
                 } else if (eflag < 0) {
                    printf("\r\n");
                    return EXIT_SUCCESS;
