@@ -359,6 +359,20 @@ static int edit(struct State *l, const char *prompt) {
     }
     return 0;
 }
+
+static void stateSet(struct State *l, char *buf, char *prompt, size_t n) {
+    snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", chan_default);
+    l->buf = buf;
+    l->buflen = MSG_MAX;
+    l->prompt = prompt;
+    l->plen = pstrlen(prompt);
+    l->oldpos = l->pos = 0;
+    l->len = 0;
+    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    l->buf[0] = '\0';
+    l->buflen--; 
+}
+
 static void logAppend(char *str, char *path) {
     FILE *out;
 
@@ -577,19 +591,6 @@ static void handleUserInput(char *usrin) {
         printf("\x1b[35mprivmsg #%s :%s\x1b[0m", chan_default, usrin);
     }
     printf("\r\n");
-}
-
-static void stateSet(struct State *l, char *buf, char *prompt, size_t n) {
-    snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", chan_default);
-    l->buf = buf;
-    l->buflen = MSG_MAX;
-    l->prompt = prompt;
-    l->plen = pstrlen(prompt);
-    l->oldpos = l->pos = 0;
-    l->len = 0;
-    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    l->buf[0] = '\0';
-    l->buflen--; 
 }
 
 static void usage(void) {
