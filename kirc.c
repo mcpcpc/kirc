@@ -309,8 +309,8 @@ static int edit(struct State *l, const char *prompt) {
 
     switch(c) {
         case 13:                             return 1;  /* enter */
-        //case 3: errno = EAGAIN;              return -1; /* ctrl-c */
-        case 3: errno = EAGAIN;                exit(1); /* ctrl-c */
+        case 3: errno = EAGAIN;              return -1; /* ctrl-c */
+        //case 3: errno = EAGAIN;                exit(1); /* ctrl-c */
         case 127:                                       /* backspace */
         case 8:  editBackspace(l);               break; /* ctrl-h */
         case 2:  editMoveLeft(l);                break; /* ctrl-b */
@@ -357,8 +357,8 @@ static int edit(struct State *l, const char *prompt) {
                 }
             }
             break;
-        default: if (editInsert(l, c)) exit(1);
-        //default: if (editInsert(l, c)) return -1; break;
+        //default: if (editInsert(l, c)) exit(1);
+        default: if (editInsert(l, c)) return -1; break;
     }
     return 0;
 }
@@ -653,12 +653,15 @@ int main(int argc, char **argv) {
     l.buf[0] = '\0';
     l.buflen--; 
 
+    int eflag = 0;
+
     if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                if (edit(&l, promptc) > 0) {
+                eflag = edit(&l, promptc);
+                if (eflag > 0) {
                     handleUserInput(l.buf);
                     snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
                     l.prompt = promptc;
@@ -668,16 +671,19 @@ int main(int argc, char **argv) {
                     l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                     l.buf[0] = '\0';
                     l.buflen--;
+                } else if (eflag < 0) {
+                   printf("\r\n");
+                   return EXIT_SUCCESS;
                 }
                 refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
                 int rc = handleServerMessage();
-                refreshLine(&l);
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 }
+                refreshLine(&l);
             }
         } else {
             if (errno == EAGAIN) continue;
