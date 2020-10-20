@@ -634,7 +634,9 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[CHA_MAX] = ">";
+    char usrin[MSG_MAX], promptc[CHA_MAX];
+
+    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
 
     struct State l;
 
@@ -653,9 +655,11 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                //snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
                 if (edit(&l, promptc) > 0) {
+                    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
                     handleUserInput(l.buf);
+                    l.prompt = promptc;
+                    l.plen = pstrlen(promptc);
                     l.oldpos = l.pos = 0;
                     l.len = 0;
                     l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
