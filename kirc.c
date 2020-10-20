@@ -510,7 +510,7 @@ static void rawParser(char *string) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
         printf("--> \x1b[35;1m%s\x1b[0m", message);
     } else if (!strncmp(command, "PRIVMSG", 7)) {
-        if (strcmp(channel, nick) == 0) {
+        if (channel != NULL && strcmp(channel, nick) == 0) {
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
         } else if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
