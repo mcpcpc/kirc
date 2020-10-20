@@ -10,7 +10,6 @@
 #include <poll.h>
 #include <errno.h>
 #include <termios.h>
-#include <sys/socket.h>
 #include <sys/ioctl.h>
 
 #define VERSION             "0.1.7"              /* version */
