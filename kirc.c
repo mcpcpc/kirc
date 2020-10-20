@@ -156,7 +156,7 @@ static size_t pstrlen(const char *s) {
         i++;
     }
     return len;
-} 
+}
 
 static void refreshLine(struct State *l) {
     char seq[64];
@@ -291,15 +291,14 @@ static void editSwapCharWithPrev(struct State *l, char *buf) {
         int aux = buf[l->pos - 1];
         buf[l->pos - 1] = buf[l->pos];
         buf[l->pos] = aux;
-        if (l->pos != l->len - 1) l->pos++;
+        if (l->pos != l->len - 1) {
+            l->pos++;
+        }
         refreshLine(l);
     }
 }
 
-static int edit(struct State *l, const char *prompt)
-{
-    if (write(STDOUT_FILENO,prompt,strlen(prompt)) == -1) return -1;
-
+static int edit(struct State *l, const char *prompt) {
     char c;
     int nread;
     char seq[3];
@@ -436,10 +435,9 @@ static int connectionInit(void) {
 }
 
 static void messageWrap(char *line, size_t offset) {
-
-    char          *tok;
-    size_t         cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    size_t         wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
+    char   *tok;
+    size_t cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    size_t wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
 
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
@@ -636,7 +634,7 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[CHA_MAX] = "";
+    char usrin[MSG_MAX], promptc[CHA_MAX] = ">";
 
     struct State l;
 
@@ -667,7 +665,7 @@ int main(int argc, char **argv) {
             }
             if (fds[1].revents & POLLIN) {
                 int rc = handleServerMessage();
-				refreshLine(&l);
+                refreshLine(&l);
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
