@@ -360,8 +360,7 @@ static int edit(struct State *l, const char *prompt) {
     return 0;
 }
 
-static void stateSet(struct State *l, char *buf, char *prompt, size_t n) {
-    snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", cdef);
+static void stateSet(struct State *l, char *buf, char *prompt) {
     l->plen = pstrlen(prompt);
     l->oldpos = l->pos = 0;
     l->len = 0;
@@ -463,8 +462,6 @@ static void messageWrap(char *line, size_t offset) {
 }
 
 static void rawParser(char *string) {
-
-
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
         raw("%s\r\n", string);
@@ -656,7 +653,7 @@ int main(int argc, char **argv) {
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = promptc;
-    stateSet(&l, usrin, promptc, CHA_MAX);
+    stateSet(&l, usrin, promptc);
 
     int editReturnFlag = 0;
 
@@ -668,7 +665,8 @@ int main(int argc, char **argv) {
                 editReturnFlag = edit(&l, promptc);
                 if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
-                    stateSet(&l, usrin, promptc, CHA_MAX);
+                    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
+                    stateSet(&l, usrin, promptc);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
                    return EXIT_SUCCESS;
@@ -681,6 +679,7 @@ int main(int argc, char **argv) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 }
+                snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
                 refreshLine(&l);
             }
         } else {
