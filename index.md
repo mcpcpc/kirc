@@ -12,6 +12,7 @@ layout: default
 *   SASL PLAIN and EXTERNAL authentication support.
 *   TLS/SSL protocol support (via external TLS utilities).
 *   Simple chat history logging.
+*   Asynchronous message handling.
 *   Multi-channel joining at server connection.
 *   Full support for all RFC 2812 commands.
 *   Easy customized color scheme definition.
