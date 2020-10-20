@@ -526,7 +526,7 @@ static int handleServerMessage(void) {
             }
         }
         if (sl == 0) {
-            fputs("\rFconnection closed", stderr);
+            fputs("\rconnection closed", stderr);
             puts("\r\x1b[E");
             return -1;
         }
