@@ -310,7 +310,6 @@ static int edit(struct State *l, const char *prompt) {
     switch(c) {
         case 13:                             return 1;  /* enter */
         case 3: errno = EAGAIN;              return -1; /* ctrl-c */
-        //case 3: errno = EAGAIN;                exit(1); /* ctrl-c */
         case 127:                                       /* backspace */
         case 8:  editBackspace(l);               break; /* ctrl-h */
         case 2:  editMoveLeft(l);                break; /* ctrl-b */
@@ -357,7 +356,6 @@ static int edit(struct State *l, const char *prompt) {
                 }
             }
             break;
-        //default: if (editInsert(l, c)) exit(1);
         default: if (editInsert(l, c)) return -1; break;
     }
     return 0;
