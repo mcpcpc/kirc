@@ -17,7 +17,7 @@
 #define CHA_MAX              200                 /* max channel length */
 
 static int            conn;                      /* connection socket */
-static char           chan_default[MSG_MAX];     /* default PRIVMSG channel */
+static char           cdef[MSG_MAX];             /* default PRIVMSG channel */
 static int            verb = 0;                  /* verbose output */
 static int            sasl = 0;                  /* SASL method */
 static size_t         gutl = 20;                 /* max printed nick chars */
@@ -361,7 +361,7 @@ static int edit(struct State *l, const char *prompt) {
 }
 
 static void stateSet(struct State *l, char *buf, char *prompt, size_t n) {
-    snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", chan_default);
+    snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", cdef);
     l->plen = pstrlen(prompt);
     l->oldpos = l->pos = 0;
     l->len = 0;
@@ -491,19 +491,19 @@ static void rawParser(char *string) {
 
     if (!strncmp(command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-            strcpy(chan_default, tok);
+            strcpy(cdef, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
     } else if (!strncmp(command, "QUIT", 4)) {
         printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && strstr(channel, chan_default) == NULL) {
+        if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "JOIN", 4)) {
         printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && strstr(channel, chan_default) == NULL) {
+        if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "NICK", 4)) {
@@ -512,7 +512,7 @@ static void rawParser(char *string) {
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (strcmp(channel, nick) == 0) {
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
-        } else if (strstr(channel, chan_default) == NULL) {
+        } else if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
@@ -577,8 +577,8 @@ static void handleUserInput(char *usrin) {
 
     printf("\r\x1b[0K");
     if (usrin[0] == '/' && usrin[1] == '#') {
-        strcpy(chan_default, usrin + 2);
-        printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
+        strcpy(cdef, usrin + 2);
+        printf("\x1b[35mnew channel: #%s\x1b[0m", cdef);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
         printf("\x1b[35m%s\x1b[0m", usrin);
@@ -587,8 +587,8 @@ static void handleUserInput(char *usrin) {
         raw("privmsg %s :%s\r\n", usrin + 1, tok);
         printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
     } else {
-        raw("privmsg #%s :%s\r\n", chan_default, usrin);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", chan_default, usrin);
+        raw("privmsg #%s :%s\r\n", cdef, usrin);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", cdef, usrin);
     }
     printf("\r\n");
 }
@@ -651,6 +651,7 @@ int main(int argc, char **argv) {
     char usrin[MSG_MAX], promptc[CHA_MAX];
 
     struct State l;
+    
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = promptc;
