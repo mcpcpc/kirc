@@ -362,9 +362,6 @@ static int edit(struct State *l, const char *prompt) {
 
 static void stateSet(struct State *l, char *buf, char *prompt, size_t n) {
     snprintf(prompt, n, "[\x1b[35m#%s\x1b[0m] ", chan_default);
-    l->buf = buf;
-    l->buflen = MSG_MAX;
-    l->prompt = prompt;
     l->plen = pstrlen(prompt);
     l->oldpos = l->pos = 0;
     l->len = 0;
@@ -466,7 +463,7 @@ static void messageWrap(char *line, size_t offset) {
 }
 
 static void rawParser(char *string) {
-    if (verb) printf(">> %s", string);
+
 
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
@@ -476,6 +473,9 @@ static void rawParser(char *string) {
 
     if (string[0] != ':') return;
 
+    printf("\r");
+    
+    if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
 
     char *tok;
@@ -489,37 +489,38 @@ static void rawParser(char *string) {
     int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
     size_t offset = 0;
 
+
     if (!strncmp(command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(chan_default, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
     } else if (!strncmp(command, "QUIT", 4)) {
-        printf("\r%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "PART", 4)) {
-        printf("\r%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
         if (channel != NULL && strstr(channel, chan_default) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "JOIN", 4)) {
-        printf("\r%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
         if (channel != NULL && strstr(channel, chan_default) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "NICK", 4)) {
-        printf("\r\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
+        printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
         printf("--> \x1b[35;1m%s\x1b[0m", message);
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (strcmp(channel, nick) == 0) {
-            printf("\r%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
+            printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
         } else if (strstr(channel, chan_default) == NULL) {
-            printf("\r%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
+            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
         } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
         messageWrap((message ? message : " "), offset);
     } else {
-        printf("\r%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
         messageWrap((message ? message : " "), offset);
     }
     puts("\x1b[0m\r");
@@ -651,20 +652,23 @@ int main(int argc, char **argv) {
     char usrin[MSG_MAX], promptc[CHA_MAX];
 
     struct State l;
+    l.buf = usrin;
+    l.buflen = MSG_MAX;
+    l.prompt = promptc;
     stateSet(&l, usrin, promptc, CHA_MAX);
 
-    int eflag = 0;
+    int editReturnFlag = 0;
 
     if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                eflag = edit(&l, promptc);
-                if (eflag > 0) {
+                editReturnFlag = edit(&l, promptc);
+                if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
                     stateSet(&l, usrin, promptc, CHA_MAX);
-                } else if (eflag < 0) {
+                } else if (editReturnFlag < 0) {
                    printf("\r\n");
                    return EXIT_SUCCESS;
                 }
