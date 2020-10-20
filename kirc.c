@@ -641,6 +641,7 @@ int main(int argc, char **argv) {
     }
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
+    if (cdef[0] == '\0') strcpy(cdef, "?");
 
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
