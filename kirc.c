@@ -17,7 +17,7 @@
 #define CHA_MAX              200                 /* max channel length */
 
 static int            conn;                      /* connection socket */
-static char           cdef[MSG_MAX];             /* default PRIVMSG channel */
+static char           cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int            verb = 0;                  /* verbose output */
 static int            sasl = 0;                  /* SASL method */
 static size_t         gutl = 20;                 /* max printed nick chars */
