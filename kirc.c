@@ -32,9 +32,9 @@ static char         * real = NULL;               /* real name */
 static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
-static struct termios orig; /* In order to restore at exit.*/
-static int rawmode = 0; /* For atexit() function to check if restore is needed*/
-static int atexit_registered = 0; /* Register atexit just 1 time. */
+static struct         termios orig;              /* restore at exit. */
+static int            rawmode = 0;               /* check if restore is needed */
+static int            atexit_registered = 0;     /* register atexit() */
 
 struct State {
     char *buf;          /* Edited line buffer. */
@@ -638,7 +638,7 @@ int main(int argc, char **argv) {
     }
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
-    if (cdef[0] == '\0') strcpy(cdef, "?");
+//    if (cdef[0] == '\0') strcpy(cdef, "?");
 
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
