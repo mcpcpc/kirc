@@ -330,8 +330,7 @@ static int edit(struct State *l, const char *prompt) {
         case 27:    /* escape sequence */
             if (read(STDIN_FILENO, seq, 1) == -1) break;
             if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-            /* ESC [ sequences. */
-            if (seq[0] == '[') {
+            if (seq[0] == '[') { /* ESC [ sequences. */
                 if (seq[1] >= '0' && seq[1] <= '9') {
                     /* Extended escape, read additional byte. */
                     if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
@@ -347,8 +346,7 @@ static int edit(struct State *l, const char *prompt) {
                     }
                 }
             }
-            /* ESC O sequences. */
-            else if (seq[0] == 'O') {
+            else if (seq[0] == 'O') { /* ESC O sequences. */
                 switch(seq[1]) {
                     case 'H': editMoveHome(l); break; /* Home */
                     case 'F': editMoveEnd(l);  break; /* End*/
