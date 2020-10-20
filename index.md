@@ -72,3 +72,4 @@ A number of key bindings have been supplied to make text editing and string mani
 | CTRL+W                | deletes the previous word.                         |
 | CTRL+U                | deletes the entire line.                           |
 | CTRL+K                | deletes the from current character to end of line. |
+| CTRL+C                | force quit kirc.                                   |
