@@ -25,6 +25,7 @@
 ## Features
 
 *   Excellent cross-platform compatibility.
+*   Asynchronous user input and server messager handling.
 *   No dependencies other than a C99 compiler.
 *   Native SASL PLAIN and EXTERNAL authentication support.
 *   TLS/SSL protocol capable (via external TLS utilities).
@@ -85,6 +86,7 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 *   **CTRL+W** deletes the previous word.
 *   **CTRL+U** deletes the entire line.
 *   **CTRL+K** deletes the from current character to end of line.
+*   **CTRL+C** Force quit kirc
 
 ## Support Documentation
 

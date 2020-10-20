@@ -10,15 +10,14 @@
 #include <poll.h>
 #include <errno.h>
 #include <termios.h>
-#include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#define VERSION             "0.1.6"              /* version */
+#define VERSION             "0.1.7"              /* version */
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
 
 static int            conn;                      /* connection socket */
-static char           chan_default[MSG_MAX];     /* default PRIVMSG channel */
+static char           cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int            verb = 0;                  /* verbose output */
 static int            sasl = 0;                  /* SASL method */
 static size_t         gutl = 20;                 /* max printed nick chars */
@@ -54,8 +53,9 @@ struct abuf {
 };
 
 static void disableRawMode(void) {
-    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1)
+    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1) {
         rawmode = 0;
+    }
 }
 
 static int enableRawMode(int fd) {
@@ -108,20 +108,15 @@ static int getColumns(int ifd, int ofd) {
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
-        /* Get the initial position so we can restore it later. */
         start = getCursorPosition(ifd,ofd);
         if (start == -1) goto failed;
-        /* Go to right margin and get position. */
         if (write(ofd,"\x1b[999C",6) != 6) goto failed;
         cols = getCursorPosition(ifd,ofd);
         if (cols == -1) goto failed;
-        /* Restore position. */
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD",cols-start);
-            if (write(ofd,seq,strlen(seq)) == -1) {
-                /* Can't recover... */
-            }
+            if (write(ofd,seq,strlen(seq)) == -1) {} /* Can't recover from write error. */
         }
         return cols;
     } else {
@@ -161,7 +156,7 @@ static size_t pstrlen(const char *s) {
         i++;
     }
     return len;
-} 
+}
 
 static void refreshLine(struct State *l) {
     char seq[64];
@@ -182,16 +177,12 @@ static void refreshLine(struct State *l) {
     }
 
     abInit(&ab);
-    /* Cursor to left edge */
     snprintf(seq, sizeof(seq), "\r");
     abAppend(&ab, seq, strlen(seq));
-    /* Write the prompt and the current buffer content */
     abAppend(&ab,l->prompt, strlen(l->prompt));
     abAppend(&ab, buf, len);
-    /* Erase to right */
     snprintf(seq, sizeof(seq), "\x1b[0K");
     abAppend(&ab, seq, strlen(seq));
-    /* Move cursor to original position. */
     snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
     abAppend(&ab, seq, strlen(seq));
     if (write(fd, ab.b, ab.len) == -1) {} /* Can't recover from write error. */
@@ -300,90 +291,84 @@ static void editSwapCharWithPrev(struct State *l, char *buf) {
         int aux = buf[l->pos - 1];
         buf[l->pos - 1] = buf[l->pos];
         buf[l->pos] = aux;
-        if (l->pos != l->len - 1) l->pos++;
+        if (l->pos != l->len - 1) {
+            l->pos++;
+        }
         refreshLine(l);
     }
 }
 
-static int edit(char *buf, size_t buflen, const char *prompt)
-{
-    struct State l;
+static int edit(struct State *l, const char *prompt) {
+    char c;
+    int nread;
+    char seq[3];
 
-    l.buf = buf;
-    l.buflen = buflen;
-    l.prompt = prompt;
-    l.plen = pstrlen(prompt);
-    l.oldpos = l.pos = 0;
-    l.len = 0;
-    l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    /* Buffer starts empty. */
-    l.buf[0] = '\0';
-    l.buflen--; /* Make sure there is always space for the nulterm */
+    nread = read(STDIN_FILENO, &c ,1);
+    if (nread <= 0) return 1;
 
-    if (write(STDOUT_FILENO,prompt,strlen(prompt)) == -1) return -1;
-    while(1) {
-        char c;
-        int nread;
-        char seq[3];
-
-        nread = read(STDIN_FILENO, &c ,1);
-        if (nread <= 0) return l.len;
-
-        switch(c) {
-            case 13:                    return (int)l.len; /* enter */
-            case 3: errno = EAGAIN;             return -1; /* ctrl-c */
-            case 127:                                      /* backspace */
-            case 8:  editBackspace(&l);             break; /* ctrl-h */
-            case 2:  editMoveLeft(&l);              break; /* ctrl-b */
-            case 6:  editMoveRight(&l);             break; /* ctrl-f */
-            case 1:  editMoveHome(&l);              break; /* Ctrl+a */
-            case 5:  editMoveEnd(&l);               break; /* ctrl+e */
-            case 23: editDeletePrevWord(&l);        break; /* ctrl+w */
-            case 21: editDeleteWholeLine(&l, buf);  break; /* Ctrl+u */
-            case 11: editDeleteLineToEnd(&l, buf);  break; /* Ctrl+k */
-            case 20: editSwapCharWithPrev(&l, buf); break; /* ctrl-t */
-            case 4:     /* ctrl-d, remove char at right of cursor, or if the
-                                line is empty, act as end-of-file. */
-                if (l.len > 0) {
-                    editDelete(&l);
+    switch(c) {
+        case 13:                             return 1;  /* enter */
+        case 3: errno = EAGAIN;              return -1; /* ctrl-c */
+        case 127:                                       /* backspace */
+        case 8:  editBackspace(l);               break; /* ctrl-h */
+        case 2:  editMoveLeft(l);                break; /* ctrl-b */
+        case 6:  editMoveRight(l);               break; /* ctrl-f */
+        case 1:  editMoveHome(l);                break; /* Ctrl+a */
+        case 5:  editMoveEnd(l);                 break; /* ctrl+e */
+        case 23: editDeletePrevWord(l);          break; /* ctrl+w */
+        case 21: editDeleteWholeLine(l, l->buf); break; /* Ctrl+u */
+        case 11: editDeleteLineToEnd(l, l->buf); break; /* Ctrl+k */
+        case 20: editSwapCharWithPrev(l,l->buf); break; /* ctrl-t */
+        case 4:     /* ctrl-d, remove char at right of cursor, or if the
+                            line is empty, act as end-of-file. */
+            if (l->len > 0) {
+                editDelete(l);
+            } else {
+                return -1;
+            }
+            break;
+        case 27:    /* escape sequence */
+            if (read(STDIN_FILENO, seq, 1) == -1) break;
+            if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
+            /* ESC [ sequences. */
+            if (seq[0] == '[') {
+                if (seq[1] >= '0' && seq[1] <= '9') {
+                    /* Extended escape, read additional byte. */
+                    if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
+                    if (seq[2] == '~') {
+                        if (seq[1] == 3) editDelete(l);    /* Delete key. */
+                    }
                 } else {
-                    return -1;
-                }
-                break;
-            case 27:    /* escape sequence */
-                if (read(STDIN_FILENO, seq, 1) == -1) break;
-                if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-                /* ESC [ sequences. */
-                if (seq[0] == '[') {
-                    if (seq[1] >= '0' && seq[1] <= '9') {
-                        /* Extended escape, read additional byte. */
-                        if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
-                        if (seq[2] == '~') {
-                            if (seq[1] == 3) editDelete(&l);    /* Delete key. */
-                        }
-                    } else {
-                        switch(seq[1]) {
-                            case 'C': editMoveRight(&l); break; /* Right */
-                            case 'D': editMoveLeft(&l);  break; /* Left */
-                            case 'H': editMoveHome(&l);  break; /* Home */
-                            case 'F': editMoveEnd(&l);   break; /* End*/
-                        }
-                    }
-                }
-                /* ESC O sequences. */
-                else if (seq[0] == 'O') {
                     switch(seq[1]) {
-                        case 'H': editMoveHome(&l); break; /* Home */
-                        case 'F': editMoveEnd(&l);  break; /* End*/
+                        case 'C': editMoveRight(l); break; /* Right */
+                        case 'D': editMoveLeft(l);  break; /* Left */
+                        case 'H': editMoveHome(l);  break; /* Home */
+                        case 'F': editMoveEnd(l);   break; /* End*/
                     }
                 }
-                break;
-            default: if (editInsert(&l, c)) return -1; break;
-
-        }
+            }
+            /* ESC O sequences. */
+            else if (seq[0] == 'O') {
+                switch(seq[1]) {
+                    case 'H': editMoveHome(l); break; /* Home */
+                    case 'F': editMoveEnd(l);  break; /* End*/
+                }
+            }
+            break;
+        default: if (editInsert(l, c)) return -1; break;
     }
-    return l.len;
+    return 0;
 }
+
+static void stateSet(struct State *l, char *buf, char *prompt) {
+    l->plen = pstrlen(prompt);
+    l->oldpos = l->pos = 0;
+    l->len = 0;
+    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    l->buf[0] = '\0';
+    l->buflen--; 
+}
+
 static void logAppend(char *str, char *path) {
     FILE *out;
 
@@ -460,10 +445,9 @@ static int connectionInit(void) {
 }
 
 static void messageWrap(char *line, size_t offset) {
-
-    char          *tok;
-    size_t         cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    size_t         wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
+    char   *tok;
+    size_t cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    size_t wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
 
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
@@ -478,8 +462,6 @@ static void messageWrap(char *line, size_t offset) {
 }
 
 static void rawParser(char *string) {
-    if (verb) printf(">> %s", string);
-
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
         raw("%s\r\n", string);
@@ -488,6 +470,9 @@ static void rawParser(char *string) {
 
     if (string[0] != ':') return;
 
+    printf("\r");
+
+    if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
 
     char *tok;
@@ -503,28 +488,28 @@ static void rawParser(char *string) {
 
     if (!strncmp(command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-            strcpy(chan_default, tok);
+            strcpy(cdef, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
     } else if (!strncmp(command, "QUIT", 4)) {
         printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
     } else if (!strncmp(command, "PART", 4)) {
         printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && strstr(channel, chan_default) == NULL) {
+        if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "JOIN", 4)) {
         printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && strstr(channel, chan_default) == NULL) {
+        if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "NICK", 4)) {
         printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
         printf("--> \x1b[35;1m%s\x1b[0m", message);
     } else if (!strncmp(command, "PRIVMSG", 7)) {
-        if (strcmp(channel, nick) == 0) {
+        if (channel != NULL && strcmp(channel, nick) == 0) {
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
-        } else if (strstr(channel, chan_default) == NULL) {
+        } else if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
@@ -534,7 +519,7 @@ static void rawParser(char *string) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
         messageWrap((message ? message : " "), offset);
     }
-    puts("\x1b[0m\r");
+    printf("\x1b[0m\r\n");
 }
 
 static char   message_buffer[MSG_MAX + 1];
@@ -552,8 +537,8 @@ static int handleServerMessage(void) {
             }
         }
         if (sl == 0) {
-            fputs("Connection closed", stderr);
-            puts("\x1b[0F\x1b[E");
+            fputs("\rconnection closed", stderr);
+            puts("\r\x1b[E");
             return -1;
         }
 
@@ -589,8 +574,8 @@ static void handleUserInput(char *usrin) {
 
     printf("\r\x1b[0K");
     if (usrin[0] == '/' && usrin[1] == '#') {
-        strcpy(chan_default, usrin + 2);
-        printf("\x1b[35mnew channel: #%s\x1b[0m", chan_default);
+        strcpy(cdef, usrin + 2);
+        printf("\x1b[35mnew channel: #%s\x1b[0m", cdef);
     } else if (usrin[0] == '/') {
         raw("%s\r\n", usrin + 1);
         printf("\x1b[35m%s\x1b[0m", usrin);
@@ -599,8 +584,8 @@ static void handleUserInput(char *usrin) {
         raw("privmsg %s :%s\r\n", usrin + 1, tok);
         printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
     } else {
-        raw("privmsg #%s :%s\r\n", chan_default, usrin);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", chan_default, usrin);
+        raw("privmsg #%s :%s\r\n", cdef, usrin);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", cdef, usrin);
     }
     printf("\r\n");
 }
@@ -653,6 +638,7 @@ int main(int argc, char **argv) {
     }
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
+    if (cdef[0] == '\0') strcpy(cdef, "?");
 
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
@@ -662,21 +648,39 @@ int main(int argc, char **argv) {
 
     char usrin[MSG_MAX], promptc[CHA_MAX];
 
+    struct State l;
+    
+    l.buf = usrin;
+    l.buflen = MSG_MAX;
+    l.prompt = promptc;
+    stateSet(&l, usrin, promptc);
+
+    int editReturnFlag = 0;
+
     if (enableRawMode(STDIN_FILENO) == -1) return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", chan_default);
-                edit(usrin, MSG_MAX, promptc);
-                handleUserInput(usrin);
+                editReturnFlag = edit(&l, promptc);
+                if (editReturnFlag > 0) {
+                    handleUserInput(l.buf);
+                    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
+                    stateSet(&l, usrin, promptc);
+                } else if (editReturnFlag < 0) {
+                   printf("\r\n");
+                   return EXIT_SUCCESS;
+                }
+                refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
-                };
+                }
+                snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
+                refreshLine(&l);
             }
         } else {
             if (errno == EAGAIN) continue;
