@@ -474,7 +474,7 @@ static void rawParser(char *string) {
     int   g = gutl;
     int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
     size_t offset = 0;
-
+    puts("\x1b[0F");
     if (!strncmp(command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(chan_default, tok);
