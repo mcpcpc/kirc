@@ -25,6 +25,7 @@
 ## Features
 
 *   Excellent cross-platform compatibility.
+*   Asynchronous user input and server messager handling.
 *   No dependencies other than a C99 compiler.
 *   Native SASL PLAIN and EXTERNAL authentication support.
 *   TLS/SSL protocol capable (via external TLS utilities).
