@@ -470,7 +470,7 @@ static void rawParser(char *string) {
 
     if (string[0] != ':') return;
 
-    printf("\r");
+    printf("\r\x1b[0K");
 
     if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
