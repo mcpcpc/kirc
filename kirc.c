@@ -474,7 +474,7 @@ static void rawParser(char *string) {
     if (string[0] != ':') return;
 
     printf("\r");
-    
+
     if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
 
@@ -488,7 +488,6 @@ static void rawParser(char *string) {
     int   g = gutl;
     int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
     size_t offset = 0;
-
 
     if (!strncmp(command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
@@ -523,7 +522,7 @@ static void rawParser(char *string) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
         messageWrap((message ? message : " "), offset);
     }
-    puts("\x1b[0m\r");
+    printf("\x1b[0m\r\n");
 }
 
 static char   message_buffer[MSG_MAX + 1];
