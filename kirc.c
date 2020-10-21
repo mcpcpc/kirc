@@ -32,9 +32,9 @@ static char         * real = NULL;               /* real name */
 static char         * olog = NULL;               /* chat log path*/
 static char         * inic = NULL;               /* additional server command */
 
-static struct termios orig; /* In order to restore at exit.*/
-static int rawmode = 0; /* For atexit() function to check if restore is needed*/
-static int atexit_registered = 0; /* Register atexit just 1 time. */
+static struct         termios orig;              /* restore at exit. */
+static int            rawmode = 0;               /* check if restore is needed */
+static int            atexit_registered = 0;     /* register atexit() */
 
 struct State {
     char *buf;          /* Edited line buffer. */
@@ -109,10 +109,10 @@ static int getColumns(int ifd, int ofd) {
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
         start = getCursorPosition(ifd,ofd);
-        if (start == -1) goto failed;
-        if (write(ofd,"\x1b[999C",6) != 6) goto failed;
+        if (start == -1) return 80;
+        if (write(ofd,"\x1b[999C",6) != 6) return 80;
         cols = getCursorPosition(ifd,ofd);
-        if (cols == -1) goto failed;
+        if (cols == -1) return 80;
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD",cols-start);
@@ -122,9 +122,6 @@ static int getColumns(int ifd, int ofd) {
     } else {
         return ws.ws_col;
     }
-
-failed:
-    return 80;
 }
 
 static void abInit(struct abuf *ab) {
@@ -330,8 +327,7 @@ static int edit(struct State *l, const char *prompt) {
         case 27:    /* escape sequence */
             if (read(STDIN_FILENO, seq, 1) == -1) break;
             if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-            /* ESC [ sequences. */
-            if (seq[0] == '[') {
+            if (seq[0] == '[') { /* ESC [ sequences. */
                 if (seq[1] >= '0' && seq[1] <= '9') {
                     /* Extended escape, read additional byte. */
                     if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
@@ -347,8 +343,7 @@ static int edit(struct State *l, const char *prompt) {
                     }
                 }
             }
-            /* ESC O sequences. */
-            else if (seq[0] == 'O') {
+            else if (seq[0] == 'O') { /* ESC O sequences. */
                 switch(seq[1]) {
                     case 'H': editMoveHome(l); break; /* Home */
                     case 'F': editMoveEnd(l);  break; /* End*/
@@ -470,7 +465,7 @@ static void rawParser(char *string) {
 
     if (string[0] != ':') return;
 
-    printf("\r");
+    printf("\r\x1b[0K");
 
     if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
@@ -638,7 +633,6 @@ int main(int argc, char **argv) {
     }
     if (pass) raw("PASS %s\r\n", pass);
     if (inic) raw("%s\r\n", inic);
-    if (cdef[0] == '\0') strcpy(cdef, "?");
 
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
@@ -649,7 +643,7 @@ int main(int argc, char **argv) {
     char usrin[MSG_MAX], promptc[CHA_MAX];
 
     struct State l;
-    
+
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = promptc;
