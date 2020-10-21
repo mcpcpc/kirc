@@ -109,10 +109,10 @@ static int getColumns(int ifd, int ofd) {
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
         start = getCursorPosition(ifd,ofd);
-        if (start == -1) goto failed;
-        if (write(ofd,"\x1b[999C",6) != 6) goto failed;
+        if (start == -1) return 80;
+        if (write(ofd,"\x1b[999C",6) != 6) return 80;
         cols = getCursorPosition(ifd,ofd);
-        if (cols == -1) goto failed;
+        if (cols == -1) return 80;
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD",cols-start);
@@ -122,9 +122,6 @@ static int getColumns(int ifd, int ofd) {
     } else {
         return ws.ws_col;
     }
-
-failed:
-    return 80;
 }
 
 static void abInit(struct abuf *ab) {
