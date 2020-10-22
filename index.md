@@ -19,4 +19,4 @@ layout: default
 
 ## Getting Started
 
-Hop over to our [Getting Started](./install.html) page for installation and usage instructions.  When you are done, check out our [Support Documentation](./documentation.html) for additional protocol support and/or tips and tricks.
+Hop over to our [Getting Started](./install.html) page for installation and usage instructions.  When you are done, check out our [Support Documentation](./documentation.html) for additional protocol (i.e Tor netowrk, TLS/SSL, etc.) support and/or tips-and-tricks.
