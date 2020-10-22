@@ -20,3 +20,7 @@ layout: default
 ## Getting Started
 
 Hop over to our [Getting Started](./install.html) page for installation and usage instructions.  When you are done, check out our [Support Documentation](./documentation.html) for additional protocol (i.e Tor netowrk, TLS/SSL, etc.) support and/or tips-and-tricks.
+
+## New to IRC?
+
+Learning a new tool or protocol can be intimidating! Check out the [Beginner's Guide](./howto.html) to walk you through some of the basics and get you up and running.
