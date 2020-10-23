@@ -59,5 +59,7 @@ A number of key bindings have been supplied to make text editing and string mani
 | CTRL+U                | deletes the entire line.                           |
 | CTRL+K                | deletes the from current character to end of line. |
 | CTRL+C                | force quit kirc.                                   |
+| CTRL+D                | deletes the character to the right of cursor.      |
+| CTRL+T                | swap character at cursor with previous character.  |
 
 [back](./)
