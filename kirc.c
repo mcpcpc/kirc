@@ -564,19 +564,24 @@ static void handleUserInput(char *usrin) {
     }
 
     printf("\r\x1b[0K");
-    if (usrin[0] == '/' && usrin[1] == '#') {
-        strcpy(cdef, usrin + 2);
-        printf("\x1b[35mnew channel: #%s\x1b[0m", cdef);
-    } else if (usrin[0] == '/') {
-        raw("%s\r\n", usrin + 1);
-        printf("\x1b[35m%s\x1b[0m", usrin);
-    } else if (usrin[0] == '@') {
-        strtok_r(usrin, " ", &tok);
-        raw("privmsg %s :%s\r\n", usrin + 1, tok);
-        printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
-    } else {
-        raw("privmsg #%s :%s\r\n", cdef, usrin);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", cdef, usrin);
+    switch (usrin[0]) {
+        case '/' : 
+            if (usrin[1] == '#') {
+                strcpy(cdef, usrin + 2);
+                printf("\x1b[35mnew channel: #%s\x1b[0m", cdef);
+            } else {
+                raw("%s\r\n", usrin + 1);
+                printf("\x1b[35m%s\x1b[0m", usrin);
+            }
+            break;
+        case '@' : 
+            strtok_r(usrin, " ", &tok);
+            raw("privmsg %s :%s\r\n", usrin + 1, tok);
+            printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
+            break;
+        default  : 
+            raw("privmsg #%s :%s\r\n", cdef, usrin);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m", cdef, usrin);
     }
     printf("\r\n");
 }
@@ -607,7 +612,7 @@ int main(int argc, char **argv) {
             case 'x' : inic = optarg;         break;
             case 'w' : gutl = atoi(optarg);   break;
             case 'v' : puts("kirc-" VERSION); break;
-            case '?' : usage();               break;
+
         }
     }
 
