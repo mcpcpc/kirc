@@ -12,29 +12,29 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION             "0.1.8"              /* version */
-#define MSG_MAX              512                 /* max message length */
-#define CHA_MAX              200                 /* max channel length */
+#define VERSION     "0.1.8"              /* version */
+#define MSG_MAX      512                 /* max message length */
+#define CHA_MAX      200                 /* max channel length */
 
-static int            conn;                      /* connection socket */
-static char           cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
-static int            verb = 0;                  /* verbose output */
-static int            sasl = 0;                  /* SASL method */
-static size_t         gutl = 20;                 /* max printed nick chars */
-static char         * host = "irc.freenode.org"; /* host address */
-static char         * port = "6667";             /* port */
-static char         * chan = NULL;               /* channel(s) */
-static char         * nick = NULL;               /* nickname */
-static char         * pass = NULL;               /* password */
-static char         * user = NULL;               /* user name */
-static char         * auth = NULL;               /* PLAIN SASL token */
-static char         * real = NULL;               /* real name */
-static char         * olog = NULL;               /* chat log path*/
-static char         * inic = NULL;               /* additional server command */
+static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
+static int    conn;                      /* connection socket */
+static int    verb = 0;                  /* verbose output */
+static int    sasl = 0;                  /* SASL method */
+static size_t gutl = 20;                 /* max printed nick chars */
+static char * host = "irc.freenode.org"; /* host address */
+static char * port = "6667";             /* port */
+static char * chan = NULL;               /* channel(s) */
+static char * nick = NULL;               /* nickname */
+static char * pass = NULL;               /* password */
+static char * user = NULL;               /* user name */
+static char * auth = NULL;               /* PLAIN SASL token */
+static char * real = NULL;               /* real name */
+static char * olog = NULL;               /* chat log path*/
+static char * inic = NULL;               /* additional server command */
 
-static struct         termios orig;              /* restore at exit. */
-static int            rawmode = 0;               /* check if restore is needed */
-static int            atexit_registered = 0;     /* register atexit() */
+static struct termios orig;              /* restore at exit. */
+static int    rawmode = 0;               /* check if restore is needed */
+static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
     char *buf;          /* Edited line buffer. */
@@ -97,7 +97,6 @@ static int getCursorPosition(int ifd, int ofd) {
         i++;
     }
     buf[i] = '\0';
-    /* Parse it. */
     if (buf[0] != 27 || buf[1] != '[') return -1;
     if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2) return -1;
     return cols;
@@ -131,7 +130,6 @@ static void abInit(struct abuf *ab) {
 
 static void abAppend(struct abuf *ab, const char *s, int len) {
     char *new = realloc(ab->b,ab->len+len);
-
     if (new == NULL) return;
     memcpy(new+ab->len,s,len);
     ab->b = new;
