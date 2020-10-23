@@ -12,7 +12,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION             "0.1.7"              /* version */
+#define VERSION             "0.1.8"              /* version */
 #define MSG_MAX              512                 /* max message length */
 #define CHA_MAX              200                 /* max channel length */
 
