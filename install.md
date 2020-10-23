@@ -30,7 +30,7 @@ make install
 
 ## Usage
 
-Consult `man kirc` for a full list and explanation of available `kirc` arguments.
+Consult `man kirc` for a full list and explanation of available arguments.
 
 ```shell
 kirc [-s server] [-p port] [-n nick] [-c chan] ...
