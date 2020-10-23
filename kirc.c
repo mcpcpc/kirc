@@ -612,7 +612,7 @@ int main(int argc, char **argv) {
             case 'x' : inic = optarg;         break;
             case 'w' : gutl = atoi(optarg);   break;
             case 'v' : puts("kirc-" VERSION); break;
-
+            case '?' : usage();               break;
         }
     }
 
