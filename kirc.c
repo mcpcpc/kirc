@@ -88,9 +88,7 @@ static int getCursorPosition(int ifd, int ofd) {
     char buf[32];
     int cols, rows;
     unsigned int i = 0;
-    /* Report cursor location */
     if (write(ofd, "\x1b[6n", 4) != 4) return -1;
-    /* Read the response: ESC [ rows ; cols R */
     while (i < sizeof(buf)-1) {
         if (read(ifd,buf+i,1) != 1) break;
         if (buf[i] == 'R') break;
@@ -129,9 +127,9 @@ static void abInit(struct abuf *ab) {
 }
 
 static void abAppend(struct abuf *ab, const char *s, int len) {
-    char *new = realloc(ab->b,ab->len+len);
+    char *new = realloc(ab->b, ab->len + len);
     if (new == NULL) return;
-    memcpy(new+ab->len,s,len);
+    memcpy(new + ab->len, s, len);
     ab->b = new;
     ab->len += len;
 }
@@ -162,12 +160,12 @@ static void refreshLine(struct State *l) {
     size_t pos = l->pos;
     struct abuf ab;
 
-    while((plen+pos) >= l->cols) {
+    while (plen + pos >= l->cols) {
         buf++;
         len--;
         pos--;
     }
-    while (plen+len > l->cols) {
+    while (plen + len > l->cols) {
         len--;
     }
 
