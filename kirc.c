@@ -112,8 +112,8 @@ static int getColumns(int ifd, int ofd) {
         if (cols == -1) return 80;
         if (cols > start) {
             char seq[32];
-            snprintf(seq, sizeof(seq), "\x1b[%dD",cols-start);
-            if (write(ofd,seq,strlen(seq)) == -1) {} /* Can't recover from write error. */
+            snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
+            if (write(ofd,seq,strlen(seq)) == -1) {}
         }
         return cols;
     } else {
@@ -178,7 +178,7 @@ static void refreshLine(struct State *l) {
     abAppend(&ab, seq, strlen(seq));
     snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
     abAppend(&ab, seq, strlen(seq));
-    if (write(fd, ab.b, ab.len) == -1) {} /* Can't recover from write error. */
+    if (write(fd, ab.b, ab.len) == -1) {}
     abFree(&ab);
 }
 
