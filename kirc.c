@@ -505,6 +505,9 @@ static void rawParser(char *string) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
         } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        if (!strncmp(message, "\x01""ACTION", 7)) {
+            message += 7;
+        }
         messageWrap((message ? message : " "), offset);
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
