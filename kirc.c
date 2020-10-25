@@ -15,6 +15,7 @@
 #define VERSION     "0.1.8"              /* version */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
+#define CTCP_CMDS   "ACTION VERSION CLIENTINFO PING"
 
 static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int    conn;                      /* connection socket */
@@ -452,6 +453,20 @@ static void messageWrap(char *line, size_t offset) {
     }
 }
 
+static void handleCTCP(const char *nickname, char *message) {
+    if (message[0] != '\001' && strncmp(message, "ACTION", 6)) {
+        return;
+    }
+    message++;
+    if (!strncmp(message, "VERSION", 7)) {
+        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
+    } else if (!strncmp(message, "CLIENTINFO", 10)) {
+        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
+    } else if (!strncmp(message, "PING", 4)) {
+        raw("NOTICE %s :\001%s\r\n", nickname, message);
+    }
+}
+
 static void rawParser(char *string) {
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
@@ -499,6 +514,7 @@ static void rawParser(char *string) {
         printf("--> \x1b[35;1m%s\x1b[0m", message);
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (channel != NULL && strcmp(channel, nick) == 0) {
+            handleCTCP(nickname, message);
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
         } else if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
