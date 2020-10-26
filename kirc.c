@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 
 #define VERSION     "0.1.9"              /* version */
+#define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
 #define NIC_MAX      26                  /* max nickname length */
@@ -623,21 +624,20 @@ int main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc-" VERSION " © 2020 Michael Czigler"); 
-                       return EXIT_SUCCESS;
-            case 'V' : ++verb;                break;
-            case 'e' : ++sasl;                break;
-            case 's' : host = optarg;         break;
-            case 'p' : port = optarg;         break;
-            case 'r' : real = optarg;         break;
-            case 'u' : user = optarg;         break;
-            case 'a' : auth = optarg;         break;
-            case 'o' : olog = optarg;         break;
-            case 'n' : nick = optarg;         break;
-            case 'k' : pass = optarg;         break;
-            case 'c' : chan = optarg;         break;
-            case 'x' : inic = optarg;         break;
-            case '?' : usage();               break;
+            case 'v' : puts("kirc-" VERSION " © 2020 " AUTHORS); break;
+            case 'V' : ++verb;                                   break;
+            case 'e' : ++sasl;                                   break;
+            case 's' : host = optarg;                            break;
+            case 'p' : port = optarg;                            break;
+            case 'r' : real = optarg;                            break;
+            case 'u' : user = optarg;                            break;
+            case 'a' : auth = optarg;                            break;
+            case 'o' : olog = optarg;                            break;
+            case 'n' : nick = optarg;                            break;
+            case 'k' : pass = optarg;                            break;
+            case 'c' : chan = optarg;                            break;
+            case 'x' : inic = optarg;                            break;
+            case '?' : usage();                                  break;
         }
     }
 
