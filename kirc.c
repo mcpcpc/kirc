@@ -16,13 +16,13 @@
 #define VERSION     "0.1.9"              /* version */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
+#define NIC_MIN      10                  /* minimum nickname length */
 #define CTCP_CMDS   "ACTION VERSION TIME CLIENTINFO PING"
 
 static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int    conn;                      /* connection socket */
 static int    verb = 0;                  /* verbose output */
 static int    sasl = 0;                  /* SASL method */
-static size_t gutl = 20;                 /* max printed nick chars */
 static char * host = "irc.freenode.org"; /* host address */
 static char * port = "6667";             /* port */
 static char * chan = NULL;               /* channel(s) */
@@ -437,16 +437,15 @@ static int connectionInit(void) {
     return 0;
 }
 
-static void messageWrap(char *line, size_t offset) {
+static void messageWrap(char *line, size_t offset, size_t maxcols, size_t nicklen) {
     char   *tok;
-    size_t cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    size_t wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
+    size_t wordwidth, spacewidth = 1, spaceleft = maxcols - nicklen - offset;
 
     for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ", (int) gutl + 1, " ", tok);
-            spaceleft = cmax - (gutl + 1);
+            printf("\r\n%*.s%s ", (int) nicklen + 1, " ", tok);
+            spaceleft = maxcols - (nicklen + 1);
         } else {
             printf("%s ", tok);
         }
@@ -495,8 +494,9 @@ static void rawParser(char *string) {
     char *nickname = strtok(prefix, "!");
     char *command =  strtok(suffix, "#& ");
     char *channel =  strtok(NULL, " \r");
-    int   g = gutl;
-    int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
+    size_t maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    int   nicklen = (maxcols / 3 > NIC_MIN ? maxcols / 3 : NIC_MIN);
+    int   s = nicklen - (strlen(nickname) <= nicklen ? strlen(nickname) : nicklen);
     size_t offset = 0;
 
     if (!strncmp(command, "001", 3) && chan != NULL) {
@@ -505,36 +505,36 @@ static void rawParser(char *string) {
             raw("JOIN #%s\r\n", tok);
         } return;
     } else if (!strncmp(command, "QUIT", 4)) {
-        printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s<<< \x1b[34;1m%s\x1b[0m", nicklen - 3, "", nickname);
     } else if (!strncmp(command, "PART", 4)) {
-        printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s<-- \x1b[34;1m%s\x1b[0m", nicklen - 3, "", nickname);
         if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "JOIN", 4)) {
-        printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
+        printf("%*s--> \x1b[32;1m%s\x1b[0m", nicklen - 3, "", nickname);
         if (channel != NULL && strstr(channel, cdef) == NULL) {
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
         }
     } else if (!strncmp(command, "NICK", 4)) {
-        printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
+        printf("\x1b[35;1m%*s\x1b[0m ", nicklen - 4, nickname);
         printf("--> \x1b[35;1m%s\x1b[0m", message);
     } else if (!strncmp(command, "PRIVMSG", 7)) {
         if (channel != NULL && strcmp(channel, nick) == 0) {
             handleCTCP(nickname, message);
-            printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
+            printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", nicklen, nickname);
         } else if (channel != NULL && strstr(channel, cdef) == NULL) {
-            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
+            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", nicklen, nickname);
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
-        } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
+        } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", nicklen, nickname);
         if (!strncmp(message, "\x01""ACTION", 7)) {
             message += 7;
         }
-        messageWrap((message ? message : " "), offset);
+        messageWrap((message ? message : " "), offset, maxcols, nicklen);
     } else {
-        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-        messageWrap((message ? message : " "), offset);
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", nicklen, nickname);
+        messageWrap((message ? message : " "), offset, maxcols, nicklen);
     }
     printf("\x1b[0m\r\n");
 }
@@ -614,8 +614,7 @@ static void handleUserInput(char *usrin) {
 
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
-[-u username] [-k password] [-a token] [-x command] [-w nickwidth] [-o path] \
-[-e|v|V]\n", stderr);
+[-u username] [-k password] [-a token] [-x command] [-o path] [-e|v|V]\n", stderr);
     exit(EXIT_FAILURE);
 }
 
