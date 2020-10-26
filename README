@@ -6,7 +6,7 @@
 -->
 
 <h3 align="center">
-  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="kirc" height="170px">
+  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/gh-pages/kirc.png" alt="kirc" height="170px">
 </h3>
 
 <p align="center">KISS for IRC, a tiny IRC client written in POSIX C99.</p>
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src=".github/tty.gif" width="550">
+  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/gh-pages/tty.gif" width="550">
 </p>
 
 ## Features
