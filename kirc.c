@@ -622,7 +622,7 @@ static void usage(void) {
 int main(int argc, char **argv) {
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:a:evV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
             case 'V' : ++verb;                break;
             case 'e' : ++sasl;                break;
@@ -636,7 +636,6 @@ int main(int argc, char **argv) {
             case 'k' : pass = optarg;         break;
             case 'c' : chan = optarg;         break;
             case 'x' : inic = optarg;         break;
-            case 'w' : gutl = atoi(optarg);   break;
             case 'v' : puts("kirc-" VERSION); break;
             case '?' : usage();               break;
         }
