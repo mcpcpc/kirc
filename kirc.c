@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -15,7 +16,7 @@
 #define VERSION     "0.1.8"              /* version */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
-#define CTCP_CMDS   "ACTION VERSION CLIENTINFO PING"
+#define CTCP_CMDS   "ACTION VERSION TIME CLIENTINFO PING"
 
 static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int    conn;                      /* connection socket */
@@ -460,6 +461,12 @@ static void handleCTCP(const char *nickname, char *message) {
     message++;
     if (!strncmp(message, "VERSION", 7)) {
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
+    } else if (!strncmp(message, "TIME", 7)) {
+        char buf[256] = {0};
+        time_t rawtime = time(NULL);
+        struct tm *ptm = localtime(&rawtime);
+        strftime(buf, 256, "%c", ptm);
+        if (ptm) raw("NOTICE %s :\001%s\001\r\n", nickname, buf);
     } else if (!strncmp(message, "CLIENTINFO", 10)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
     } else if (!strncmp(message, "PING", 4)) {
