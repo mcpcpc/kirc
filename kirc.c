@@ -16,7 +16,7 @@
 #define VERSION     "0.1.9"              /* version */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
-#define NIC_MIN      10                  /* minimum nickname length */
+#define NIC_MAX      26                  /* max nickname length */
 #define CTCP_CMDS   "ACTION VERSION TIME CLIENTINFO PING"
 
 static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
@@ -495,7 +495,7 @@ static void rawParser(char *string) {
     char *command =  strtok(suffix, "#& ");
     char *channel =  strtok(NULL, " \r");
     size_t maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    int   nicklen = (maxcols / 3 > NIC_MIN ? maxcols / 3 : NIC_MIN);
+    int   nicklen = (maxcols / 3 > NIC_MAX ? NIC_MAX : maxcols / 3);
     int   s = nicklen - (strlen(nickname) <= nicklen ? strlen(nickname) : nicklen);
     size_t offset = 0;
 
