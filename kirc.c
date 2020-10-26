@@ -595,22 +595,21 @@ static void handleUserInput(char *usrin) {
         case '/' : /* send system command */
             if (usrin[1] == '#') {
                 strcpy(cdef, usrin + 2);
-                printf("\x1b[35mnew channel: #%s\x1b[0m", cdef);
+                printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
             } else {
                 raw("%s\r\n", usrin + 1);
-                printf("\x1b[35m%s\x1b[0m", usrin);
+                printf("\x1b[35m%s\x1b[0m\r\n", usrin);
             }
             break;
         case '@' : /* send private message to target channel or user */
             strtok_r(usrin, " ", &tok);
             raw("privmsg %s :%s\r\n", usrin + 1, tok);
-            printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
+            printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", usrin + 1, tok);
             break;
         default  : /*  send private message to default channel */
             raw("privmsg #%s :%s\r\n", cdef, usrin);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m", cdef, usrin);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, usrin);
     }
-    printf("\r\n");
 }
 
 static void usage(void) {
