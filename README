@@ -29,7 +29,7 @@
 *   No dependencies other than a C99 compiler.
 *   Simple Authentication and Security Layer (SASL) procotol support.
 *   Client-to-client protocol (CTCP) support.
-*   TLS/SSL protocol capable (via external utilities).
+*   Transport Layer Security (TLS) protocol support (via external utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
 *   Simple command aliases and full support for all RFC 2812 commands.
