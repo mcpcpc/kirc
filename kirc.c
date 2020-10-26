@@ -623,6 +623,8 @@ int main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
+            case 'v' : puts("kirc-" VERSION " © 2020 Michael Czigler"); 
+                       return EXIT_SUCCESS;
             case 'V' : ++verb;                break;
             case 'e' : ++sasl;                break;
             case 's' : host = optarg;         break;
@@ -635,7 +637,6 @@ int main(int argc, char **argv) {
             case 'k' : pass = optarg;         break;
             case 'c' : chan = optarg;         break;
             case 'x' : inic = optarg;         break;
-            case 'v' : puts("kirc-" VERSION); break;
             case '?' : usage();               break;
         }
     }
