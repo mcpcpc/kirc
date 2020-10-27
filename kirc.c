@@ -647,9 +647,9 @@ static void handleUserInput(char *usrin) {
             break;
         case '@' : /* send private message to target channel or user */
             if (usrin[1] == '@') {
-			    raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, usrin + 3);
-			} else {
-			    strtok_r(usrin, " ", &tok);
+                raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, usrin + 3);
+            } else {
+                strtok_r(usrin, " ", &tok);
                 raw("privmsg %s :%s\r\n", usrin + 1, tok);
                 printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", usrin + 1, tok);
             } break;
