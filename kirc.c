@@ -524,7 +524,7 @@ static void rawParser(char *string) {
         if (channel != NULL && strcmp(channel, nick) == 0) {
             handleCTCP(nickname, message);
             printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", nicklen, nickname);
-        } else if (channel != NULL && strstr(channel, cdef) == NULL) {
+        } else if (channel != NULL && strcmp(channel+1, cdef)) {
             printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", nicklen, nickname);
             printf(" [\x1b[33m%s\x1b[0m] ", channel);
             offset += 12 + strlen(channel);
