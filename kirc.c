@@ -466,7 +466,7 @@ static void handleCTCP(const char *nickname, char *message) {
         time_t rawtime = time(NULL);
         struct tm *ptm = localtime(&rawtime);
         strftime(buf, 256, "%c", ptm);
-        if (ptm) raw("NOTICE %s :\001%s\001\r\n", nickname, buf);
+        if (ptm) raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
     } else if (!strncmp(message, "CLIENTINFO", 10)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
     } else if (!strncmp(message, "PING", 4)) {
