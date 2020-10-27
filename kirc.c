@@ -35,6 +35,18 @@ static char * real = NULL;               /* real name */
 static char * olog = NULL;               /* chat log path*/
 static char * inic = NULL;               /* additional server command */
 
+struct Param {
+    char * prefix;
+    char * suffix;
+    char * message;
+    char * nickname;
+    char * command;
+    char * channel;
+    size_t offset;
+    size_t maxcols;
+    int    nicklen;
+};
+
 static struct termios orig;              /* restore at exit. */
 static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
@@ -398,7 +410,7 @@ static void raw(char *fmt, ...) {
     free(cmd_str);
 }
 
-static int connectionInit(void) {
+static int initConnection(void) {
     int    gai_status;
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
@@ -438,15 +450,18 @@ static int connectionInit(void) {
     return 0;
 }
 
-static void messageWrap(char *line, size_t offset, size_t maxcols, size_t nicklen) {
-    char   *tok;
-    size_t wordwidth, spacewidth = 1, spaceleft = maxcols - nicklen - offset;
+static void messageWrap(struct Param *p) {
+    if (!p->message) return;
 
-    for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
+    char * tok;
+    size_t wordwidth, spacewidth = 1;
+    size_t spaceleft = p->maxcols - p->nicklen - p->offset;
+
+    for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strlen(tok);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ", (int) nicklen + 1, " ", tok);
-            spaceleft = maxcols - (nicklen + 1);
+            printf("\r\n%*.s%s ", (int) p->nicklen + 1, " ", tok);
+            spaceleft = p->maxcols - (p->nicklen + 1);
         } else {
             printf("%s ", tok);
         }
@@ -474,6 +489,52 @@ static void handleCTCP(const char *nickname, char *message) {
     }
 }
 
+static void paramPrintNick(struct Param *p) {
+    printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
+    printf("--> \x1b[35;1m%s\x1b[0m", p->message);
+}
+
+static void paramPrintPart(struct Param *p) {
+    printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
+    if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
+        printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
+}
+
+static void paramPrintQuit(struct Param *p) {
+    printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
+}
+
+static void paramPrintJoin(struct Param *p) {
+    printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
+    if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
+        printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
+}
+
+static void paramPrintPriv(struct Param *p) {
+    int s = 0;
+    if (strlen(p->nickname) <= p->nicklen)
+        s = p->nicklen - strlen(p->nickname);
+    if (p->channel != NULL && strcmp(p->channel, nick) == 0) {
+        handleCTCP(p->nickname, p->message);
+        printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
+    } else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
+        printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
+        p->offset += 12 + strlen(p->channel);
+    } else {
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
+    }
+    if (!strncmp(p->message, "\x01""ACTION", 7))
+        p->message += 7;
+}
+
+static void paramPrintChan(struct Param *p) {
+    int s = 0;
+    if (strlen(p->nickname) <= p->nicklen)
+        s = p->nicklen - strlen(p->nickname);
+    printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
+}
+
 static void rawParser(char *string) {
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
@@ -488,54 +549,38 @@ static void rawParser(char *string) {
     if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
 
-    char *tok;
-    char *prefix =   strtok(string, " ") + 1;
-    char *suffix =   strtok(NULL, ":");
-    char *message =  strtok(NULL, "\r");
-    char *nickname = strtok(prefix, "!");
-    char *command =  strtok(suffix, "#& ");
-    char *channel =  strtok(NULL, " \r");
-    size_t maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    int   nicklen = (maxcols / 3 > NIC_MAX ? NIC_MAX : maxcols / 3);
-    int   s = nicklen - (strlen(nickname) <= nicklen ? strlen(nickname) : nicklen);
-    size_t offset = 0;
+    char * tok;
+    struct Param p;
+    p.prefix =   strtok(string, " ") + 1;
+    p.suffix =   strtok(NULL, ":");
+    p.message =  strtok(NULL, "\r");
+    p.nickname = strtok(p.prefix, "!");
+    p.command =  strtok(p.suffix, "#& ");
+    p.channel =  strtok(NULL, " \r");
+    p.maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
+    p.offset = 0;
 
-    if (!strncmp(command, "001", 3) && chan != NULL) {
+    if (!strncmp(p.command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(cdef, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
-    } else if (!strncmp(command, "QUIT", 4)) {
-        printf("%*s<<< \x1b[34;1m%s\x1b[0m", nicklen - 3, "", nickname);
-    } else if (!strncmp(command, "PART", 4)) {
-        printf("%*s<-- \x1b[34;1m%s\x1b[0m", nicklen - 3, "", nickname);
-        if (channel != NULL && strstr(channel, cdef) == NULL) {
-            printf(" [\x1b[33m%s\x1b[0m] ", channel);
-        }
-    } else if (!strncmp(command, "JOIN", 4)) {
-        printf("%*s--> \x1b[32;1m%s\x1b[0m", nicklen - 3, "", nickname);
-        if (channel != NULL && strstr(channel, cdef) == NULL) {
-            printf(" [\x1b[33m%s\x1b[0m] ", channel);
-        }
-    } else if (!strncmp(command, "NICK", 4)) {
-        printf("\x1b[35;1m%*s\x1b[0m ", nicklen - 4, nickname);
-        printf("--> \x1b[35;1m%s\x1b[0m", message);
-    } else if (!strncmp(command, "PRIVMSG", 7)) {
-        if (channel != NULL && strcmp(channel, nick) == 0) {
-            handleCTCP(nickname, message);
-            printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", nicklen, nickname);
-        } else if (channel != NULL && strcmp(channel+1, cdef)) {
-            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", nicklen, nickname);
-            printf(" [\x1b[33m%s\x1b[0m] ", channel);
-            offset += 12 + strlen(channel);
-        } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", nicklen, nickname);
-        if (!strncmp(message, "\x01""ACTION", 7)) {
-            message += 7;
-        }
-        messageWrap((message ? message : " "), offset, maxcols, nicklen);
+    } else if (!strncmp(p.command, "QUIT", 4)) {
+        paramPrintQuit(&p);
+    } else if (!strncmp(p.command, "PART", 4)) {
+        paramPrintPart(&p);
+    } else if (!strncmp(p.command, "JOIN", 4)) {
+        paramPrintJoin(&p);
+    } else if (!strncmp(p.command, "NICK", 4)) {
+        paramPrintNick(&p);
+    } else if (!strncmp(p.command, "PRIVMSG", 7)) {
+        paramPrintPriv(&p);
+        messageWrap(&p);
     } else {
-        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", nicklen, nickname);
-        messageWrap((message ? message : " "), offset, maxcols, nicklen);
+        paramPrintChan(&p);
+        messageWrap(&p);
+		//messageWrap((p->message ? p->message : " "), p->offset, p->maxcols, p->nicklen);
     }
     printf("\x1b[0m\r\n");
 }
@@ -645,7 +690,7 @@ int main(int argc, char **argv) {
         usage();
     }
 
-    if (connectionInit() != 0) {
+    if (initConnection() != 0) {
         return EXIT_FAILURE;
     }
 
