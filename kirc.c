@@ -120,15 +120,15 @@ static int getColumns(int ifd, int ofd) {
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
-        start = getCursorPosition(ifd,ofd);
+        start = getCursorPosition(ifd, ofd);
         if (start == -1) return 80;
         if (write(ofd,"\x1b[999C",6) != 6) return 80;
-        cols = getCursorPosition(ifd,ofd);
+        cols = getCursorPosition(ifd, ofd);
         if (cols == -1) return 80;
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
-            if (write(ofd,seq,strlen(seq)) == -1) {}
+            if (write(ofd, seq, strlen(seq)) == -1) {}
         }
         return cols;
     } else {
@@ -402,7 +402,7 @@ static void raw(char *fmt, ...) {
 
     if (verb) printf("<< %s", cmd_str);
     if (olog) logAppend(cmd_str, olog);
-    if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
+    if (write(conn, cmd_str, strnlen(cmd_str, MSG_MAX)) < 0) {
         perror("write");
         exit(EXIT_FAILURE);
     }
