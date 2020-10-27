@@ -458,7 +458,7 @@ static void messageWrap(struct Param *p) {
     size_t spaceleft = p->maxcols - p->nicklen - p->offset;
 
     for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
-        wordwidth = strlen(tok);
+        wordwidth = strnlen(tok, MSG_MAX);
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\r\n%*.s%s ", (int) p->nicklen + 1, " ", tok);
             spaceleft = p->maxcols - (p->nicklen + 1);
