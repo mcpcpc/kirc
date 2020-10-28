@@ -52,7 +52,7 @@ static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
-    char *buf;          /* Edited line buffer. */
+    char * buf;         /* Edited line buffer. */
     size_t buflen;      /* Edited line buffer size. */
     const char *prompt; /* Prompt to display. */
     size_t plen;        /* Prompt length. */
@@ -451,12 +451,11 @@ static int initConnection(void) {
 }
 
 static void messageWrap(struct Param *p) {
-    if (!p->message) return;
-
+    if (!p->message)
+        return;
     char * tok;
     size_t wordwidth, spacewidth = 1;
     size_t spaceleft = p->maxcols - p->nicklen - p->offset;
-
     for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strnlen(tok, MSG_MAX);
         if ((wordwidth + spacewidth) > spaceleft) {
@@ -466,26 +465,6 @@ static void messageWrap(struct Param *p) {
             printf("%s ", tok);
         }
         spaceleft -= (wordwidth + spacewidth);
-    }
-}
-
-static void handleCTCP(const char *nickname, char *message) {
-    if (message[0] != '\001' && strncmp(message, "ACTION", 6)) {
-        return;
-    }
-    message++;
-    if (!strncmp(message, "VERSION", 7)) {
-        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
-    } else if (!strncmp(message, "TIME", 7)) {
-        char buf[256] = {0};
-        time_t rawtime = time(NULL);
-        struct tm *ptm = localtime(&rawtime);
-        strftime(buf, 256, "%c", ptm);
-        if (ptm) raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
-    } else if (!strncmp(message, "CLIENTINFO", 10)) {
-        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
-    } else if (!strncmp(message, "PING", 4)) {
-        raw("NOTICE %s :\001%s\r\n", nickname, message);
     }
 }
 
@@ -510,28 +489,48 @@ static void paramPrintJoin(struct Param *p) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
+static void handleCTCP(const char *nickname, char *message) {
+    if (message[0] != '\001' && strncmp(message, "ACTION", 6))
+        return;
+    message++;
+    if (!strncmp(message, "VERSION", 7)) {
+        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
+    } else if (!strncmp(message, "TIME", 7)) {
+        char buf[256] = {0};
+        time_t rawtime = time(NULL);
+        struct tm *ptm = localtime(&rawtime);
+        strftime(buf, 256, "%c", ptm);
+        if (ptm) raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
+    } else if (!strncmp(message, "CLIENTINFO", 10)) {
+        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
+    } else if (!strncmp(message, "PING", 4)) {
+        raw("NOTICE %s :\001%s\r\n", nickname, message);
+    }
+}
+
 static void paramPrintPriv(struct Param *p) {
     int s = 0;
-    if (strlen(p->nickname) <= p->nicklen)
-        s = p->nicklen - strlen(p->nickname);
+    if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
+        s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     if (p->channel != NULL && strcmp(p->channel, nick) == 0) {
         handleCTCP(p->nickname, p->message);
         printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
     } else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
-        p->offset += 12 + strlen(p->channel);
+        p->offset += 12 + strnlen(p->channel, CHA_MAX);
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
     }
     if (!strncmp(p->message, "\x01""ACTION", 7))
         p->message += 7;
+        printf("\x1b[36m");
 }
 
 static void paramPrintChan(struct Param *p) {
     int s = 0;
-    if (strlen(p->nickname) <= p->nicklen)
-        s = p->nicklen - strlen(p->nickname);
+    if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
+        s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
 }
 
