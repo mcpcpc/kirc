@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -12,32 +13,46 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION             "0.1.8"              /* version */
-#define MSG_MAX              512                 /* max message length */
-#define CHA_MAX              200                 /* max channel length */
+#define VERSION     "0.1.9"              /* version */
+#define AUTHORS     "Michael Czigler"    /* authors */
+#define MSG_MAX      512                 /* max message length */
+#define CHA_MAX      200                 /* max channel length */
+#define NIC_MAX      26                  /* max nickname length */
+#define CTCP_CMDS   "ACTION VERSION TIME CLIENTINFO PING"
 
-static int            conn;                      /* connection socket */
-static char           cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
-static int            verb = 0;                  /* verbose output */
-static int            sasl = 0;                  /* SASL method */
-static size_t         gutl = 20;                 /* max printed nick chars */
-static char         * host = "irc.freenode.org"; /* host address */
-static char         * port = "6667";             /* port */
-static char         * chan = NULL;               /* channel(s) */
-static char         * nick = NULL;               /* nickname */
-static char         * pass = NULL;               /* password */
-static char         * user = NULL;               /* user name */
-static char         * auth = NULL;               /* PLAIN SASL token */
-static char         * real = NULL;               /* real name */
-static char         * olog = NULL;               /* chat log path*/
-static char         * inic = NULL;               /* additional server command */
+static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
+static int    conn;                      /* connection socket */
+static int    verb = 0;                  /* verbose output */
+static int    sasl = 0;                  /* SASL method */
+static char * host = "irc.freenode.org"; /* host address */
+static char * port = "6667";             /* port */
+static char * chan = NULL;               /* channel(s) */
+static char * nick = NULL;               /* nickname */
+static char * pass = NULL;               /* password */
+static char * user = NULL;               /* user name */
+static char * auth = NULL;               /* PLAIN SASL token */
+static char * real = NULL;               /* real name */
+static char * olog = NULL;               /* chat log path*/
+static char * inic = NULL;               /* additional server command */
 
-static struct         termios orig;              /* restore at exit. */
-static int            rawmode = 0;               /* check if restore is needed */
-static int            atexit_registered = 0;     /* register atexit() */
+struct Param {
+    char * prefix;
+    char * suffix;
+    char * message;
+    char * nickname;
+    char * command;
+    char * channel;
+    size_t offset;
+    size_t maxcols;
+    int    nicklen;
+};
+
+static struct termios orig;              /* restore at exit. */
+static int    rawmode = 0;               /* check if restore is needed */
+static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
-    char *buf;          /* Edited line buffer. */
+    char * buf;         /* Edited line buffer. */
     size_t buflen;      /* Edited line buffer size. */
     const char *prompt; /* Prompt to display. */
     size_t plen;        /* Prompt length. */
@@ -88,16 +103,13 @@ static int getCursorPosition(int ifd, int ofd) {
     char buf[32];
     int cols, rows;
     unsigned int i = 0;
-    /* Report cursor location */
     if (write(ofd, "\x1b[6n", 4) != 4) return -1;
-    /* Read the response: ESC [ rows ; cols R */
     while (i < sizeof(buf)-1) {
         if (read(ifd,buf+i,1) != 1) break;
         if (buf[i] == 'R') break;
         i++;
     }
     buf[i] = '\0';
-    /* Parse it. */
     if (buf[0] != 27 || buf[1] != '[') return -1;
     if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2) return -1;
     return cols;
@@ -108,15 +120,15 @@ static int getColumns(int ifd, int ofd) {
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
-        start = getCursorPosition(ifd,ofd);
+        start = getCursorPosition(ifd, ofd);
         if (start == -1) return 80;
         if (write(ofd,"\x1b[999C",6) != 6) return 80;
-        cols = getCursorPosition(ifd,ofd);
+        cols = getCursorPosition(ifd, ofd);
         if (cols == -1) return 80;
         if (cols > start) {
             char seq[32];
-            snprintf(seq, sizeof(seq), "\x1b[%dD",cols-start);
-            if (write(ofd,seq,strlen(seq)) == -1) {} /* Can't recover from write error. */
+            snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
+            if (write(ofd, seq, strlen(seq)) == -1) {}
         }
         return cols;
     } else {
@@ -130,10 +142,9 @@ static void abInit(struct abuf *ab) {
 }
 
 static void abAppend(struct abuf *ab, const char *s, int len) {
-    char *new = realloc(ab->b,ab->len+len);
-
+    char *new = realloc(ab->b, ab->len + len);
     if (new == NULL) return;
-    memcpy(new+ab->len,s,len);
+    memcpy(new + ab->len, s, len);
     ab->b = new;
     ab->len += len;
 }
@@ -164,12 +175,12 @@ static void refreshLine(struct State *l) {
     size_t pos = l->pos;
     struct abuf ab;
 
-    while((plen+pos) >= l->cols) {
+    while (plen + pos >= l->cols) {
         buf++;
         len--;
         pos--;
     }
-    while (plen+len > l->cols) {
+    while (plen + len > l->cols) {
         len--;
     }
 
@@ -182,7 +193,7 @@ static void refreshLine(struct State *l) {
     abAppend(&ab, seq, strlen(seq));
     snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
     abAppend(&ab, seq, strlen(seq));
-    if (write(fd, ab.b, ab.len) == -1) {} /* Can't recover from write error. */
+    if (write(fd, ab.b, ab.len) == -1) {}
     abFree(&ab);
 }
 
@@ -391,7 +402,7 @@ static void raw(char *fmt, ...) {
 
     if (verb) printf("<< %s", cmd_str);
     if (olog) logAppend(cmd_str, olog);
-    if (write(conn, cmd_str, strlen(cmd_str)) < 0) {
+    if (write(conn, cmd_str, strnlen(cmd_str, MSG_MAX)) < 0) {
         perror("write");
         exit(EXIT_FAILURE);
     }
@@ -399,7 +410,7 @@ static void raw(char *fmt, ...) {
     free(cmd_str);
 }
 
-static int connectionInit(void) {
+static int initConnection(void) {
     int    gai_status;
     struct addrinfo *res, hints = {
         .ai_family = AF_UNSPEC,
@@ -439,21 +450,90 @@ static int connectionInit(void) {
     return 0;
 }
 
-static void messageWrap(char *line, size_t offset) {
-    char   *tok;
-    size_t cmax = getColumns(STDIN_FILENO, STDOUT_FILENO);
-    size_t wordwidth, spaceleft = cmax - gutl - offset, spacewidth = 1;
-
-    for (tok = strtok(line, " "); tok != NULL; tok = strtok(NULL, " ")) {
-        wordwidth = strlen(tok);
+static void messageWrap(struct Param *p) {
+    if (!p->message)
+        return;
+    char * tok;
+    size_t wordwidth, spacewidth = 1;
+    size_t spaceleft = p->maxcols - p->nicklen - p->offset;
+    for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
+        wordwidth = strnlen(tok, MSG_MAX);
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ", (int) gutl + 1, " ", tok);
-            spaceleft = cmax - (gutl + 1);
+            printf("\r\n%*.s%s ", (int) p->nicklen + 1, " ", tok);
+            spaceleft = p->maxcols - (p->nicklen + 1);
         } else {
             printf("%s ", tok);
         }
         spaceleft -= (wordwidth + spacewidth);
     }
+}
+
+static void paramPrintNick(struct Param *p) {
+    printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
+    printf("--> \x1b[35;1m%s\x1b[0m", p->message);
+}
+
+static void paramPrintPart(struct Param *p) {
+    printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
+    if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
+        printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
+}
+
+static void paramPrintQuit(struct Param *p) {
+    printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
+}
+
+static void paramPrintJoin(struct Param *p) {
+    printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
+    if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
+        printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
+}
+
+static void handleCTCP(const char *nickname, char *message) {
+    if (message[0] != '\001' && strncmp(message, "ACTION", 6))
+        return;
+    message++;
+    if (!strncmp(message, "VERSION", 7)) {
+        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
+    } else if (!strncmp(message, "TIME", 7)) {
+        char buf[256] = {0};
+        time_t rawtime = time(NULL);
+        struct tm *ptm = localtime(&rawtime);
+        strftime(buf, 256, "%c", ptm);
+        if (ptm) raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
+    } else if (!strncmp(message, "CLIENTINFO", 10)) {
+        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
+    } else if (!strncmp(message, "PING", 4)) {
+        raw("NOTICE %s :\001%s\r\n", nickname, message);
+    }
+}
+
+static void paramPrintPriv(struct Param *p) {
+    int s = 0;
+    if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
+        s = p->nicklen - strnlen(p->nickname, MSG_MAX);
+    if (p->channel != NULL && strcmp(p->channel, nick) == 0) {
+        handleCTCP(p->nickname, p->message);
+        printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
+    } else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
+        printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
+        p->offset += 12 + strnlen(p->channel, CHA_MAX);
+    } else {
+        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
+    }
+    if (!strncmp(p->message, "\x01""ACTION", 7)) {
+        p->message += 7;
+        p->offset += 10;
+        printf("[ACTION] ");
+    }
+}
+
+static void paramPrintChan(struct Param *p) {
+    int s = 0;
+    if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
+        s = p->nicklen - strnlen(p->nickname, MSG_MAX);
+    printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
 }
 
 static void rawParser(char *string) {
@@ -470,49 +550,37 @@ static void rawParser(char *string) {
     if (verb) printf(">> %s", string);
     if (olog) logAppend(string, olog);
 
-    char *tok;
-    char *prefix =   strtok(string, " ") + 1;
-    char *suffix =   strtok(NULL, ":");
-    char *message =  strtok(NULL, "\r");
-    char *nickname = strtok(prefix, "!");
-    char *command =  strtok(suffix, "#& ");
-    char *channel =  strtok(NULL, " \r");
-    int   g = gutl;
-    int   s = gutl - (strlen(nickname) <= gutl ? strlen(nickname) : gutl);
-    size_t offset = 0;
+    char * tok;
+    struct Param p;
+    p.prefix =   strtok(string, " ") + 1;
+    p.suffix =   strtok(NULL, ":");
+    p.message =  strtok(NULL, "\r");
+    p.nickname = strtok(p.prefix, "!");
+    p.command =  strtok(p.suffix, "#& ");
+    p.channel =  strtok(NULL, " \r");
+    p.maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+    p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
+    p.offset = 0;
 
-    if (!strncmp(command, "001", 3) && chan != NULL) {
+    if (!strncmp(p.command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(cdef, tok);
             raw("JOIN #%s\r\n", tok);
         } return;
-    } else if (!strncmp(command, "QUIT", 4)) {
-        printf("%*s<<< \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-    } else if (!strncmp(command, "PART", 4)) {
-        printf("%*s<-- \x1b[34;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && strstr(channel, cdef) == NULL) {
-            printf(" [\x1b[33m%s\x1b[0m] ", channel);
-        }
-    } else if (!strncmp(command, "JOIN", 4)) {
-        printf("%*s--> \x1b[32;1m%s\x1b[0m", g - 3, "", nickname);
-        if (channel != NULL && strstr(channel, cdef) == NULL) {
-            printf(" [\x1b[33m%s\x1b[0m] ", channel);
-        }
-    } else if (!strncmp(command, "NICK", 4)) {
-        printf("\x1b[35;1m%*s\x1b[0m ", g - 4, nickname);
-        printf("--> \x1b[35;1m%s\x1b[0m", message);
-    } else if (!strncmp(command, "PRIVMSG", 7)) {
-        if (channel != NULL && strcmp(channel, nick) == 0) {
-            printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", g, nickname);
-        } else if (channel != NULL && strstr(channel, cdef) == NULL) {
-            printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", g, nickname);
-            printf(" [\x1b[33m%s\x1b[0m] ", channel);
-            offset += 12 + strlen(channel);
-        } else printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-        messageWrap((message ? message : " "), offset);
+    } else if (!strncmp(p.command, "QUIT", 4)) {
+        paramPrintQuit(&p);
+    } else if (!strncmp(p.command, "PART", 4)) {
+        paramPrintPart(&p);
+    } else if (!strncmp(p.command, "JOIN", 4)) {
+        paramPrintJoin(&p);
+    } else if (!strncmp(p.command, "NICK", 4)) {
+        paramPrintNick(&p);
+    } else if (!strncmp(p.command, "PRIVMSG", 7)) {
+        paramPrintPriv(&p);
+        messageWrap(&p);
     } else {
-        printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", g, nickname);
-        messageWrap((message ? message : " "), offset);
+        paramPrintChan(&p);
+        messageWrap(&p);
     }
     printf("\x1b[0m\r\n");
 }
@@ -568,50 +636,56 @@ static void handleUserInput(char *usrin) {
     }
 
     printf("\r\x1b[0K");
-    if (usrin[0] == '/' && usrin[1] == '#') {
-        strcpy(cdef, usrin + 2);
-        printf("\x1b[35mnew channel: #%s\x1b[0m", cdef);
-    } else if (usrin[0] == '/') {
-        raw("%s\r\n", usrin + 1);
-        printf("\x1b[35m%s\x1b[0m", usrin);
-    } else if (usrin[0] == '@') {
-        strtok_r(usrin, " ", &tok);
-        raw("privmsg %s :%s\r\n", usrin + 1, tok);
-        printf("\x1b[35mprivmsg %s :%s\x1b[0m", usrin + 1, tok);
-    } else {
-        raw("privmsg #%s :%s\r\n", cdef, usrin);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m", cdef, usrin);
+    switch (usrin[0]) {
+        case '/' : /* send system command */
+            if (usrin[1] == '#') {
+                strcpy(cdef, usrin + 2);
+                printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
+            } else {
+                raw("%s\r\n", usrin + 1);
+                printf("\x1b[35m%s\x1b[0m\r\n", usrin);
+            }
+            break;
+        case '@' : /* send private message to target channel or user */
+            strtok_r(usrin, " ", &tok);
+            if (usrin[1] == '@') {
+                raw("privmsg %s :\001ACTION %s\001\r\n", usrin + 2, tok);
+                printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", usrin + 2, tok);
+            } else {
+                raw("privmsg %s :%s\r\n", usrin + 1, tok);
+                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", usrin + 1, tok);
+            } break;
+        default  : /*  send private message to default channel */
+            raw("privmsg #%s :%s\r\n", cdef, usrin);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, usrin);
     }
-    printf("\r\n");
 }
 
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
-[-u username] [-k password] [-a token] [-x command] [-w nickwidth] [-o path] \
-[-e|v|V]\n", stderr);
+[-u username] [-k password] [-a token] [-x command] [-o path] [-e|v|V]\n", stderr);
     exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv) {
     int cval;
 
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:w:a:evV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
-            case 'V' : ++verb;                break;
-            case 'e' : ++sasl;                break;
-            case 's' : host = optarg;         break;
-            case 'p' : port = optarg;         break;
-            case 'r' : real = optarg;         break;
-            case 'u' : user = optarg;         break;
-            case 'a' : auth = optarg;         break;
-            case 'o' : olog = optarg;         break;
-            case 'n' : nick = optarg;         break;
-            case 'k' : pass = optarg;         break;
-            case 'c' : chan = optarg;         break;
-            case 'x' : inic = optarg;         break;
-            case 'w' : gutl = atoi(optarg);   break;
-            case 'v' : puts("kirc-" VERSION); break;
-            case '?' : usage();               break;
+            case 'v' : puts("kirc-" VERSION " © 2020 " AUTHORS); break;
+            case 'V' : ++verb;                                   break;
+            case 'e' : ++sasl;                                   break;
+            case 's' : host = optarg;                            break;
+            case 'p' : port = optarg;                            break;
+            case 'r' : real = optarg;                            break;
+            case 'u' : user = optarg;                            break;
+            case 'a' : auth = optarg;                            break;
+            case 'o' : olog = optarg;                            break;
+            case 'n' : nick = optarg;                            break;
+            case 'k' : pass = optarg;                            break;
+            case 'c' : chan = optarg;                            break;
+            case 'x' : inic = optarg;                            break;
+            case '?' : usage();                                  break;
         }
     }
 
@@ -620,7 +694,7 @@ int main(int argc, char **argv) {
         usage();
     }
 
-    if (connectionInit() != 0) {
+    if (initConnection() != 0) {
         return EXIT_FAILURE;
     }
 

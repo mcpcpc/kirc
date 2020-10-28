@@ -6,7 +6,7 @@
 -->
 
 <h3 align="center">
-  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/master/.github/kirc.png" alt="kirc" height="170px">
+  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/gh-pages/kirc.png" alt="kirc" height="170px">
 </h3>
 
 <p align="center">KISS for IRC, a tiny IRC client written in POSIX C99.</p>
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src=".github/tty.gif" width="550">
+  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/gh-pages/tty.gif" width="550">
 </p>
 
 ## Features
@@ -27,8 +27,9 @@
 *   Excellent cross-platform compatibility.
 *   Asynchronous user input and server messager handling.
 *   No dependencies other than a C99 compiler.
-*   Native SASL PLAIN and EXTERNAL authentication support.
-*   TLS/SSL protocol capable (via external TLS utilities).
+*   Simple Authentication and Security Layer (SASL) procotol support.
+*   Client-to-client protocol (CTCP) support.
+*   Transport Layer Security (TLS) protocol support (via external utilities).
 *   Full chat history logging.
 *   Multi-channel joining at server connection.
 *   Simple command aliases and full support for all RFC 2812 commands.
@@ -65,16 +66,17 @@ make install
 Consult `man kirc` for a full list and explanation of available `kirc` arguments.
 
 ```shell
-kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-w nick_width] [-o logfile] [-e|v|V]
+kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-o logfile] [-e|v|V]
 ```
 
 ### Command Aliases
 
 ```shell
-<message>                 Send a PRIVMSG to the current channel.
-@<channel|nick> <message> Send a message to a specified channel or nick 
-/<command>                Send command to IRC server (see RFC 2812 for full list).
-/#<channel>               Assign new default message channel.
+<message>                  Send a PRIVMSG to the current channel.
+@<channel|nick> <message>  Send a message to a specified channel or nick 
+@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick 
+/<command>                 Send command to IRC server (see RFC 2812 for full list).
+/#<channel>                Assign new default message channel.
 ```
 
 ### User Input Key Bindings
@@ -86,7 +88,10 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 *   **CTRL+W** deletes the previous word.
 *   **CTRL+U** deletes the entire line.
 *   **CTRL+K** deletes the from current character to end of line.
-*   **CTRL+C** Force quit kirc
+*   **CTRL+C** Force quit kirc.
+*   **CTRL+D** deletes the character to the right of cursor.
+*   **CTRL+T** swap character at cursor with previous character.
+*   **CTRL+H** equivalent to backspace.
 
 ## Support Documentation
 
