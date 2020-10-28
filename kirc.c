@@ -522,9 +522,11 @@ static void paramPrintPriv(struct Param *p) {
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
     }
-    if (!strncmp(p->message, "\x01""ACTION", 7))
+    if (!strncmp(p->message, "\x01""ACTION", 7)) {
         p->message += 7;
-        printf("\x1b[36m");
+        p->offset += 10;
+        printf("[ACTION] ");
+    }
 }
 
 static void paramPrintChan(struct Param *p) {
@@ -645,10 +647,11 @@ static void handleUserInput(char *usrin) {
             }
             break;
         case '@' : /* send private message to target channel or user */
+            strtok_r(usrin, " ", &tok);
             if (usrin[1] == '@') {
-                raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, usrin + 3);
+                raw("privmsg %s :\001ACTION %s\001\r\n", usrin + 2, tok);
+                printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", usrin + 2, tok);
             } else {
-                strtok_r(usrin, " ", &tok);
                 raw("privmsg %s :%s\r\n", usrin + 1, tok);
                 printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", usrin + 1, tok);
             } break;
