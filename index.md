@@ -9,8 +9,9 @@ layout: default
 ## Features
 
 *   No dependencies other than a C99 compiler.
-*   SASL PLAIN and EXTERNAL authentication support.
-*   TLS/SSL protocol support (via external TLS utilities).
+*   Simple Authentication and Security Layer (SASL) procotol support.
+*   Client-to-client protocol (CTCP) support.
+*   Transport Layer Security (TLS) protocol support (via external utilities).
 *   Simple chat history logging.
 *   Asynchronous message handling.
 *   Multi-channel joining at server connection.
