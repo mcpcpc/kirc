@@ -39,10 +39,11 @@ kirc [-s server] [-p port] [-n nick] [-c chan] ...
 ### Command Aliases
 
 ```shell
-<message>                 Send a PRIVMSG to the current channel.
-@<channel|nick> <message> Send a message to a specified channel or nick 
-/<command>                Send command to IRC server (see RFC 2812 for full list).
-/#<channel>               Assign new default message channel.
+<message>                  Send a PRIVMSG to the current channel.
+@<channel|nick> <message>  Send a message to a specified channel or nick.
+@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick.
+/<command>                 Send command to IRC server (see RFC 2812 for full list).
+/#<channel>                Assign new default message channel.
 ```
 
 ### User Input Key Bindings
