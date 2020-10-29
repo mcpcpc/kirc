@@ -366,11 +366,10 @@ static int edit(struct State *l, const char *prompt) {
     return 0;
 }
 
-static void stateSet(struct State *l, char *buf, char *prompt) {
+static void stateInit(struct State *l, char *buf, char *prompt) {
     l->plen = pstrlen(prompt);
     l->oldpos = l->pos = 0;
     l->len = 0;
-    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
     l->buf[0] = '\0';
     l->buflen--; 
 }
@@ -721,7 +720,7 @@ int main(int argc, char **argv) {
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = promptc;
-    stateSet(&l, usrin, promptc);
+    stateInit(&l, usrin, promptc);
 
     int editReturnFlag = 0;
 
@@ -730,11 +729,12 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
+                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 editReturnFlag = edit(&l, promptc);
                 if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
                     snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
-                    stateSet(&l, usrin, promptc);
+                    stateInit(&l, usrin, promptc);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
                    return EXIT_SUCCESS;
@@ -742,6 +742,7 @@ int main(int argc, char **argv) {
                 refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
+                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2) return EXIT_FAILURE;
