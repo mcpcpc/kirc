@@ -52,14 +52,14 @@ static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
-    char * buf;         /* Edited line buffer. */
-    size_t buflen;      /* Edited line buffer size. */
-    const char *prompt; /* Prompt to display. */
-    size_t plen;        /* Prompt length. */
-    size_t pos;         /* Current cursor position. */
-    size_t oldpos;      /* Previous refresh cursor position. */
-    size_t len;         /* Current edited line length. */
-    size_t cols;        /* Number of columns in terminal. */
+    char * buf;    /* Edited line buffer. */
+    size_t buflen; /* Edited line buffer size. */
+    char * prompt; /* Prompt to display. */
+    size_t plen;   /* Prompt length. */
+    size_t pos;    /* Current cursor position. */
+    size_t oldpos; /* Previous refresh cursor position. */
+    size_t len;    /* Current edited line length. */
+    size_t cols;   /* Number of columns in terminal. */
 };
 
 struct abuf {
@@ -306,7 +306,7 @@ static void editSwapCharWithPrev(struct State *l, char *buf) {
     }
 }
 
-static int edit(struct State *l, const char *prompt) {
+static int edit(struct State * l) {
     char c;
     int nread;
     char seq[3];
@@ -730,7 +730,7 @@ int main(int argc, char **argv) {
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
                 l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-                editReturnFlag = edit(&l, promptc);
+                editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
                     snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
