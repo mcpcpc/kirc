@@ -186,11 +186,11 @@ static void refreshLine(struct State *l) {
 
     abInit(&ab);
     snprintf(seq, sizeof(seq), "\r");
-    abAppend(&ab, seq, strlen(seq));
-    abAppend(&ab,l->prompt, strlen(l->prompt));
+    abAppend(&ab, seq, strnlen(seq, MSG_MAX));
+    abAppend(&ab,l->prompt, strnlen(l->prompt, MSG_MAX));
     abAppend(&ab, buf, len);
     snprintf(seq, sizeof(seq), "\x1b[0K");
-    abAppend(&ab, seq, strlen(seq));
+    abAppend(&ab, seq, strnlen(seq, MSG_MAX));
     snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
     abAppend(&ab, seq, strlen(seq));
     if (write(fd, ab.b, ab.len) == -1) {}
@@ -629,7 +629,7 @@ static void handleUserInput(char *usrin) {
     if (usrin == NULL) return;
 
     char *tok;
-    size_t msg_len = strlen(usrin);
+    size_t msg_len = strnlen(usrin, MSG_MAX);
 
     if (msg_len > 0 && usrin[msg_len - 1] == '\n') {
         usrin[msg_len - 1] = '\0';
