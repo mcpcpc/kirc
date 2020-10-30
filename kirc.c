@@ -52,9 +52,9 @@ static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
+    char * prompt; /* Prompt to display. */
     char * buf;    /* Edited line buffer. */
     size_t buflen; /* Edited line buffer size. */
-    char * prompt; /* Prompt to display. */
     size_t plen;   /* Prompt length. */
     size_t pos;    /* Current cursor position. */
     size_t oldpos; /* Previous refresh cursor position. */
@@ -63,7 +63,7 @@ struct State {
 };
 
 struct abuf {
-    char *b;
+    char * b;
     int len;
 };
 
@@ -136,12 +136,12 @@ static int getColumns(int ifd, int ofd) {
     }
 }
 
-static void abInit(struct abuf *ab) {
+static void abInit(struct abuf * ab) {
     ab->b = NULL;
     ab->len = 0;
 }
 
-static void abAppend(struct abuf *ab, const char *s, int len) {
+static void abAppend(struct abuf * ab, const char * s, int len) {
     char *new = realloc(ab->b, ab->len + len);
     if (new == NULL) return;
     memcpy(new + ab->len, s, len);
@@ -149,11 +149,11 @@ static void abAppend(struct abuf *ab, const char *s, int len) {
     ab->len += len;
 }
 
-static void abFree(struct abuf *ab) {
+static void abFree(struct abuf * ab) {
     free(ab->b);
 }
 
-static size_t pstrlen(const char *s) {
+static size_t pstrlen(const char * s) {
     size_t len = 0, i = 0;
     while (s[i] != '\0') {
         if (s[i] == '\033') {
@@ -166,11 +166,11 @@ static size_t pstrlen(const char *s) {
     return len;
 }
 
-static void refreshLine(struct State *l) {
-    char seq[64];
+static void refreshLine(struct State * l) {
+    char   seq[64];
     size_t plen = pstrlen(l->prompt) + 2;
-    int fd = STDOUT_FILENO;
-    char *buf = l->buf;
+    int    fd = STDOUT_FILENO;
+    char * buf = l->buf;
     size_t len = l->len;
     size_t pos = l->pos;
     struct abuf ab;
@@ -198,7 +198,7 @@ static void refreshLine(struct State *l) {
     abFree(&ab);
 }
 
-static int editInsert(struct State *l, char c) {
+static int editInsert(struct State * l, char c) {
     if (l->len < l->buflen) {
         if (l->len == l->pos) {
             l->buf[l->pos] = c;
@@ -223,44 +223,44 @@ static int editInsert(struct State *l, char c) {
     return 0;
 }
 
-static void editMoveLeft(struct State *l) {
+static void editMoveLeft(struct State * l) {
     if (l->pos > 0) {
         l->pos--;
         refreshLine(l);
     }
 }
 
-static void editMoveRight(struct State *l) {
+static void editMoveRight(struct State * l) {
     if (l->pos != l->len) {
         l->pos++;
         refreshLine(l);
     }
 }
 
-static void editMoveHome(struct State *l) {
+static void editMoveHome(struct State * l) {
     if (l->pos != 0) {
         l->pos = 0;
         refreshLine(l);
     }
 }
 
-static void editMoveEnd(struct State *l) {
+static void editMoveEnd(struct State * l) {
     if (l->pos != l->len) {
         l->pos = l->len;
         refreshLine(l);
     }
 }
 
-static void editDelete(struct State *l) {
+static void editDelete(struct State * l) {
     if (l->len > 0 && l->pos < l->len) {
-        memmove(l->buf+l->pos,l->buf+l->pos+1,l->len-l->pos-1);
+        memmove(l->buf + l->pos, l->buf + l->pos + 1, l->len - l->pos - 1);
         l->len--;
         l->buf[l->len] = '\0';
         refreshLine(l);
     }
 }
 
-static void editBackspace(struct State *l) {
+static void editBackspace(struct State * l) {
     if (l->pos > 0 && l->len > 0) {
         memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
         l->pos--;
@@ -270,12 +270,12 @@ static void editBackspace(struct State *l) {
     }
 }
 
-static void editDeletePrevWord(struct State *l) {
+static void editDeletePrevWord(struct State * l) {
     size_t old_pos = l->pos;
     size_t diff;
 
-    while (l->pos > 0 && l->buf[l->pos-1] == ' ') l->pos--;
-    while (l->pos > 0 && l->buf[l->pos-1] != ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] == ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] != ' ') l->pos--;
 
     diff = old_pos - l->pos;
     memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
@@ -283,19 +283,19 @@ static void editDeletePrevWord(struct State *l) {
     refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State *l, char *buf) {
+static void editDeleteWholeLine(struct State * l, char * buf) {
     buf[0] = '\0';
     l->pos = l->len = 0;
     refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State *l, char *buf) {
+static void editDeleteLineToEnd(struct State * l, char * buf) {
     buf[l->pos] = '\0';
     l->len = l->pos;
     refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State *l, char *buf) {
+static void editSwapCharWithPrev(struct State * l, char * buf) {
     if (l->pos > 0 && l->pos < l->len) {
         int aux = buf[l->pos - 1];
         buf[l->pos - 1] = buf[l->pos];
@@ -316,18 +316,18 @@ static int edit(struct State * l) {
     if (nread <= 0) return 1;
 
     switch(c) {
-        case 13:                             return 1;  /* enter */
-        case 3: errno = EAGAIN;              return -1; /* ctrl-c */
-        case 127:                                       /* backspace */
-        case 8:  editBackspace(l);               break; /* ctrl-h */
-        case 2:  editMoveLeft(l);                break; /* ctrl-b */
-        case 6:  editMoveRight(l);               break; /* ctrl-f */
-        case 1:  editMoveHome(l);                break; /* Ctrl+a */
-        case 5:  editMoveEnd(l);                 break; /* ctrl+e */
-        case 23: editDeletePrevWord(l);          break; /* ctrl+w */
-        case 21: editDeleteWholeLine(l, l->buf); break; /* Ctrl+u */
-        case 11: editDeleteLineToEnd(l, l->buf); break; /* Ctrl+k */
-        case 20: editSwapCharWithPrev(l,l->buf); break; /* ctrl-t */
+        case 13:                              return 1;  /* enter */
+        case 3: errno = EAGAIN;               return -1; /* ctrl-c */
+        case 127:                                        /* backspace */
+        case 8:  editBackspace(l);                break; /* ctrl-h */
+        case 2:  editMoveLeft(l);                 break; /* ctrl-b */
+        case 6:  editMoveRight(l);                break; /* ctrl-f */
+        case 1:  editMoveHome(l);                 break; /* Ctrl+a */
+        case 5:  editMoveEnd(l);                  break; /* ctrl+e */
+        case 23: editDeletePrevWord(l);           break; /* ctrl+w */
+        case 21: editDeleteWholeLine(l, l->buf);  break; /* Ctrl+u */
+        case 11: editDeleteLineToEnd(l, l->buf);  break; /* Ctrl+k */
+        case 20: editSwapCharWithPrev(l, l->buf); break; /* ctrl-t */
         case 4:     /* ctrl-d, remove char at right of cursor, or if the
                             line is empty, act as end-of-file. */
             if (l->len > 0) {
@@ -367,7 +367,7 @@ static int edit(struct State * l) {
     return 0;
 }
 
-static void stateReset(struct State *l) {
+static void stateReset(struct State * l) {
     l->plen = pstrlen(l->prompt);
     l->oldpos = l->pos = 0;
     l->len = 0;
@@ -375,8 +375,8 @@ static void stateReset(struct State *l) {
     l->buflen--; 
 }
 
-static void logAppend(char *str, char *path) {
-    FILE *out;
+static void logAppend(char * str, char * path) {
+    FILE * out;
 
     if ((out = fopen(path, "a")) == NULL) {
         perror("fopen");
@@ -387,7 +387,7 @@ static void logAppend(char *str, char *path) {
     fclose(out);
 }
 
-static void raw(char *fmt, ...) {
+static void raw(char * fmt, ...) {
     va_list ap;
     char *cmd_str = malloc(MSG_MAX);
 
@@ -400,8 +400,10 @@ static void raw(char *fmt, ...) {
     vsnprintf(cmd_str, MSG_MAX, fmt, ap);
     va_end(ap);
 
-    if (verb) printf("<< %s", cmd_str);
-    if (olog) logAppend(cmd_str, olog);
+    if (verb)
+        printf("<< %s", cmd_str);
+    if (olog)
+        logAppend(cmd_str, olog);
     if (write(conn, cmd_str, strnlen(cmd_str, MSG_MAX)) < 0) {
         perror("write");
         exit(EXIT_FAILURE);
@@ -450,7 +452,7 @@ static int initConnection(void) {
     return 0;
 }
 
-static void messageWrap(struct Param *p) {
+static void messageWrap(struct Param * p) {
     if (!p->message)
         return;
     char * tok;
@@ -468,28 +470,28 @@ static void messageWrap(struct Param *p) {
     }
 }
 
-static void paramPrintNick(struct Param *p) {
+static void paramPrintNick(struct Param * p) {
     printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
     printf("--> \x1b[35;1m%s\x1b[0m", p->message);
 }
 
-static void paramPrintPart(struct Param *p) {
+static void paramPrintPart(struct Param * p) {
     printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static void paramPrintQuit(struct Param *p) {
+static void paramPrintQuit(struct Param * p) {
     printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
 
-static void paramPrintJoin(struct Param *p) {
+static void paramPrintJoin(struct Param * p) {
     printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static void handleCTCP(const char *nickname, char *message) {
+static void handleCTCP(const char * nickname, char * message) {
     if (message[0] != '\001' && strncmp(message, "ACTION", 6))
         return;
     message++;
@@ -508,7 +510,7 @@ static void handleCTCP(const char *nickname, char *message) {
     }
 }
 
-static void paramPrintPriv(struct Param *p) {
+static void paramPrintPriv(struct Param * p) {
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
@@ -529,14 +531,14 @@ static void paramPrintPriv(struct Param *p) {
     }
 }
 
-static void paramPrintChan(struct Param *p) {
+static void paramPrintChan(struct Param * p) {
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
 }
 
-static void rawParser(char *string) {
+static void rawParser(char * string) {
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
         raw("%s\r\n", string);
@@ -625,10 +627,10 @@ static int handleServerMessage(void) {
     }
 }
 
-static void handleUserInput(char *usrin) {
+static void handleUserInput(char * usrin) {
     if (usrin == NULL) return;
 
-    char *tok;
+    char * tok;
     size_t msg_len = strnlen(usrin, MSG_MAX);
 
     if (msg_len > 0 && usrin[msg_len - 1] == '\n') {
