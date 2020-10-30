@@ -492,6 +492,15 @@ static void paramPrintJoin(struct Param * p) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
+static char * ctime_now (char buf[26]) {
+    struct tm tm_;
+    time_t now = time (NULL);
+    if (!asctime_r (localtime_r (&now, &tm_), buf))
+        return NULL;
+    *strchr(buf, '\n') = '\0';
+    return buf;
+}
+
 static void handleCTCP(const char * nickname, char * message) {
     if (message[0] != '\001' && strncmp(message, "ACTION", 6))
         return;
@@ -499,11 +508,9 @@ static void handleCTCP(const char * nickname, char * message) {
     if (!strncmp(message, "VERSION", 7)) {
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
     } else if (!strncmp(message, "TIME", 7)) {
-        char buf[256] = {0};
-        time_t rawtime = time(NULL);
-        struct tm *ptm = localtime(&rawtime);
-        strftime(buf, 256, "%c", ptm);
-        if (ptm) raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
+        char buf[26];
+        if (!ctime_now(buf))
+            raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
     } else if (!strncmp(message, "CLIENTINFO", 10)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
     } else if (!strncmp(message, "PING", 4)) {
