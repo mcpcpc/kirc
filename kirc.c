@@ -369,7 +369,8 @@ static int edit(struct State * l) {
 
 static void stateReset(struct State * l) {
     l->plen = pstrlen(l->prompt);
-    l->oldpos = l->pos = 0;
+    l->oldpos = 0;
+    l->pos = 0;
     l->len = 0;
     l->buf[0] = '\0';
     l->buflen--; 
@@ -544,13 +545,13 @@ static void rawParser(char * string) {
         raw("%s\r\n", string);
         return;
     }
-
-    if (string[0] != ':') return;
-
+    if (string[0] != ':')
+        return;
     printf("\r\x1b[0K");
-
-    if (verb) printf(">> %s", string);
-    if (olog) logAppend(string, olog);
+    if (verb)
+        printf(">> %s", string);
+    if (olog)
+        logAppend(string, olog);
 
     char * tok;
     struct Param p;
@@ -621,22 +622,20 @@ static int handleServerMessage(void) {
                 i = 0;
             }
         }
-        if (message_end == MSG_MAX) {
+        if (message_end == MSG_MAX)
             message_end = 0;
-        }
     }
 }
 
 static void handleUserInput(char * usrin) {
-    if (usrin == NULL) return;
+    if (usrin == NULL)
+        return;
 
     char * tok;
     size_t msg_len = strnlen(usrin, MSG_MAX);
 
-    if (msg_len > 0 && usrin[msg_len - 1] == '\n') {
+    if (msg_len > 0 && usrin[msg_len - 1] == '\n')
         usrin[msg_len - 1] = '\0';
-    }
-
     printf("\r\x1b[0K");
     switch (usrin[0]) {
         case '/' : /* send system command */
@@ -696,19 +695,21 @@ int main(int argc, char **argv) {
         usage();
     }
 
-    if (initConnection() != 0) {
+    if (initConnection() != 0)
         return EXIT_FAILURE;
-    }
 
-    if (auth || sasl) raw("CAP REQ :sasl\r\n");
+    if (auth || sasl)
+        raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
     if (auth || sasl) {
         raw("AUTHENTICATE %s\r\n", (sasl ? "EXTERNAL" : "PLAIN"));
         raw("AUTHENTICATE %s\r\nCAP END\r\n", (sasl ? "+" : auth));
     }
-    if (pass) raw("PASS %s\r\n", pass);
-    if (inic) raw("%s\r\n", inic);
+    if (pass)
+        raw("PASS %s\r\n", pass);
+    if (inic)
+        raw("%s\r\n", inic);
 
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
@@ -747,13 +748,15 @@ int main(int argc, char **argv) {
                 l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 int rc = handleServerMessage();
                 if (rc != 0) {
-                    if (rc == -2) return EXIT_FAILURE;
+                    if (rc == -2)
+                        return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 }
                 refreshLine(&l);
             }
         } else {
-            if (errno == EAGAIN) continue;
+            if (errno == EAGAIN)
+                continue;
             perror("poll");
             return EXIT_FAILURE;
         }
