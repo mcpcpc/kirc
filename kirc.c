@@ -676,7 +676,7 @@ static void usage(void) {
 }
 
 static void version(void) {
-    fputs("kirc-" VERSION " © 2020 " AUTHORS "\n", stderr);
+    fputs("kirc-" VERSION " © 2020 " AUTHORS "\n", stdout);
     exit(0);
 }
 
