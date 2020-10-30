@@ -394,7 +394,7 @@ static void raw(char * fmt, ...) {
 
     if (!cmd_str) {
         perror("malloc");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     va_start(ap, fmt);
@@ -407,7 +407,7 @@ static void raw(char * fmt, ...) {
         logAppend(cmd_str, olog);
     if (write(conn, cmd_str, strnlen(cmd_str, MSG_MAX)) < 0) {
         perror("write");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     free(cmd_str);
@@ -672,7 +672,12 @@ static void handleUserInput(char * usrin) {
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-x command] [-o path] [-e|v|V]\n", stderr);
-    exit(EXIT_FAILURE);
+    exit(2);
+}
+
+static void version(void) {
+    fputs("kirc-" VERSION " © 2020 " AUTHORS "\n", stderr);
+    exit(0);
 }
 
 int main(int argc, char **argv) {
@@ -680,20 +685,20 @@ int main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc-" VERSION " © 2020 " AUTHORS); break;
-            case 'V' : ++verb;                                   break;
-            case 'e' : ++sasl;                                   break;
-            case 's' : host = optarg;                            break;
-            case 'p' : port = optarg;                            break;
-            case 'r' : real = optarg;                            break;
-            case 'u' : user = optarg;                            break;
-            case 'a' : auth = optarg;                            break;
-            case 'o' : olog = optarg;                            break;
-            case 'n' : nick = optarg;                            break;
-            case 'k' : pass = optarg;                            break;
-            case 'c' : chan = optarg;                            break;
-            case 'x' : inic = optarg;                            break;
-            case '?' : usage();                                  break;
+            case 'v' : version();     break;
+            case 'V' : ++verb;        break;
+            case 'e' : ++sasl;        break;
+            case 's' : host = optarg; break;
+            case 'p' : port = optarg; break;
+            case 'r' : real = optarg; break;
+            case 'u' : user = optarg; break;
+            case 'a' : auth = optarg; break;
+            case 'o' : olog = optarg; break;
+            case 'n' : nick = optarg; break;
+            case 'k' : pass = optarg; break;
+            case 'c' : chan = optarg; break;
+            case 'x' : inic = optarg; break;
+            case '?' : usage();       break;
         }
     }
 
@@ -703,7 +708,7 @@ int main(int argc, char **argv) {
     }
 
     if (initConnection() != 0)
-        return EXIT_FAILURE;
+        return 1;
 
     if (auth || sasl)
         raw("CAP REQ :sasl\r\n");
@@ -747,7 +752,7 @@ int main(int argc, char **argv) {
                     stateReset(&l);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
-                   return EXIT_SUCCESS;
+                   return 0;
                 }
                 refreshLine(&l);
             }
@@ -756,8 +761,8 @@ int main(int argc, char **argv) {
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2)
-                        return EXIT_FAILURE;
-                    return EXIT_SUCCESS;
+                        return 1;
+                    return 0;
                 }
                 refreshLine(&l);
             }
@@ -765,7 +770,7 @@ int main(int argc, char **argv) {
             if (errno == EAGAIN)
                 continue;
             perror("poll");
-            return EXIT_FAILURE;
+            return 1;
         }
     }
 }
