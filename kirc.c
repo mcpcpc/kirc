@@ -13,7 +13,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION     "0.1.9"              /* version */
+#define VERSION     "0.2.0"              /* version */
 #define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
@@ -52,18 +52,18 @@ static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
-    char * buf;         /* Edited line buffer. */
-    size_t buflen;      /* Edited line buffer size. */
-    const char *prompt; /* Prompt to display. */
-    size_t plen;        /* Prompt length. */
-    size_t pos;         /* Current cursor position. */
-    size_t oldpos;      /* Previous refresh cursor position. */
-    size_t len;         /* Current edited line length. */
-    size_t cols;        /* Number of columns in terminal. */
+    char * prompt; /* Prompt to display. */
+    char * buf;    /* Edited line buffer. */
+    size_t buflen; /* Edited line buffer size. */
+    size_t plen;   /* Prompt length. */
+    size_t pos;    /* Current cursor position. */
+    size_t oldpos; /* Previous refresh cursor position. */
+    size_t len;    /* Current edited line length. */
+    size_t cols;   /* Number of columns in terminal. */
 };
 
 struct abuf {
-    char *b;
+    char * b;
     int len;
 };
 
@@ -136,12 +136,12 @@ static int getColumns(int ifd, int ofd) {
     }
 }
 
-static void abInit(struct abuf *ab) {
+static void abInit(struct abuf * ab) {
     ab->b = NULL;
     ab->len = 0;
 }
 
-static void abAppend(struct abuf *ab, const char *s, int len) {
+static void abAppend(struct abuf * ab, const char * s, int len) {
     char *new = realloc(ab->b, ab->len + len);
     if (new == NULL) return;
     memcpy(new + ab->len, s, len);
@@ -149,11 +149,11 @@ static void abAppend(struct abuf *ab, const char *s, int len) {
     ab->len += len;
 }
 
-static void abFree(struct abuf *ab) {
+static void abFree(struct abuf * ab) {
     free(ab->b);
 }
 
-static size_t pstrlen(const char *s) {
+static size_t pstrlen(const char * s) {
     size_t len = 0, i = 0;
     while (s[i] != '\0') {
         if (s[i] == '\033') {
@@ -166,11 +166,11 @@ static size_t pstrlen(const char *s) {
     return len;
 }
 
-static void refreshLine(struct State *l) {
-    char seq[64];
-    size_t plen = pstrlen(l->prompt);
-    int fd = STDOUT_FILENO;
-    char *buf = l->buf;
+static void refreshLine(struct State * l) {
+    char   seq[64];
+    size_t plen = pstrlen(l->prompt) + 2;
+    int    fd = STDOUT_FILENO;
+    char * buf = l->buf;
     size_t len = l->len;
     size_t pos = l->pos;
     struct abuf ab;
@@ -186,18 +186,19 @@ static void refreshLine(struct State *l) {
 
     abInit(&ab);
     snprintf(seq, sizeof(seq), "\r");
-    abAppend(&ab, seq, strlen(seq));
-    abAppend(&ab,l->prompt, strlen(l->prompt));
+    abAppend(&ab, seq, strnlen(seq, MSG_MAX));
+    abAppend(&ab,l->prompt, strnlen(l->prompt, MSG_MAX));
+    abAppend(&ab, "> ", 2);
     abAppend(&ab, buf, len);
     snprintf(seq, sizeof(seq), "\x1b[0K");
-    abAppend(&ab, seq, strlen(seq));
+    abAppend(&ab, seq, strnlen(seq, MSG_MAX));
     snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
     abAppend(&ab, seq, strlen(seq));
     if (write(fd, ab.b, ab.len) == -1) {}
     abFree(&ab);
 }
 
-static int editInsert(struct State *l, char c) {
+static int editInsert(struct State * l, char c) {
     if (l->len < l->buflen) {
         if (l->len == l->pos) {
             l->buf[l->pos] = c;
@@ -222,44 +223,44 @@ static int editInsert(struct State *l, char c) {
     return 0;
 }
 
-static void editMoveLeft(struct State *l) {
+static void editMoveLeft(struct State * l) {
     if (l->pos > 0) {
         l->pos--;
         refreshLine(l);
     }
 }
 
-static void editMoveRight(struct State *l) {
+static void editMoveRight(struct State * l) {
     if (l->pos != l->len) {
         l->pos++;
         refreshLine(l);
     }
 }
 
-static void editMoveHome(struct State *l) {
+static void editMoveHome(struct State * l) {
     if (l->pos != 0) {
         l->pos = 0;
         refreshLine(l);
     }
 }
 
-static void editMoveEnd(struct State *l) {
+static void editMoveEnd(struct State * l) {
     if (l->pos != l->len) {
         l->pos = l->len;
         refreshLine(l);
     }
 }
 
-static void editDelete(struct State *l) {
+static void editDelete(struct State * l) {
     if (l->len > 0 && l->pos < l->len) {
-        memmove(l->buf+l->pos,l->buf+l->pos+1,l->len-l->pos-1);
+        memmove(l->buf + l->pos, l->buf + l->pos + 1, l->len - l->pos - 1);
         l->len--;
         l->buf[l->len] = '\0';
         refreshLine(l);
     }
 }
 
-static void editBackspace(struct State *l) {
+static void editBackspace(struct State * l) {
     if (l->pos > 0 && l->len > 0) {
         memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
         l->pos--;
@@ -269,12 +270,12 @@ static void editBackspace(struct State *l) {
     }
 }
 
-static void editDeletePrevWord(struct State *l) {
+static void editDeletePrevWord(struct State * l) {
     size_t old_pos = l->pos;
     size_t diff;
 
-    while (l->pos > 0 && l->buf[l->pos-1] == ' ') l->pos--;
-    while (l->pos > 0 && l->buf[l->pos-1] != ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] == ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] != ' ') l->pos--;
 
     diff = old_pos - l->pos;
     memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
@@ -282,19 +283,19 @@ static void editDeletePrevWord(struct State *l) {
     refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State *l, char *buf) {
+static void editDeleteWholeLine(struct State * l, char * buf) {
     buf[0] = '\0';
     l->pos = l->len = 0;
     refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State *l, char *buf) {
+static void editDeleteLineToEnd(struct State * l, char * buf) {
     buf[l->pos] = '\0';
     l->len = l->pos;
     refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State *l, char *buf) {
+static void editSwapCharWithPrev(struct State * l, char * buf) {
     if (l->pos > 0 && l->pos < l->len) {
         int aux = buf[l->pos - 1];
         buf[l->pos - 1] = buf[l->pos];
@@ -306,7 +307,7 @@ static void editSwapCharWithPrev(struct State *l, char *buf) {
     }
 }
 
-static int edit(struct State *l, const char *prompt) {
+static int edit(struct State * l) {
     char c;
     int nread;
     char seq[3];
@@ -315,18 +316,18 @@ static int edit(struct State *l, const char *prompt) {
     if (nread <= 0) return 1;
 
     switch(c) {
-        case 13:                             return 1;  /* enter */
-        case 3: errno = EAGAIN;              return -1; /* ctrl-c */
-        case 127:                                       /* backspace */
-        case 8:  editBackspace(l);               break; /* ctrl-h */
-        case 2:  editMoveLeft(l);                break; /* ctrl-b */
-        case 6:  editMoveRight(l);               break; /* ctrl-f */
-        case 1:  editMoveHome(l);                break; /* Ctrl+a */
-        case 5:  editMoveEnd(l);                 break; /* ctrl+e */
-        case 23: editDeletePrevWord(l);          break; /* ctrl+w */
-        case 21: editDeleteWholeLine(l, l->buf); break; /* Ctrl+u */
-        case 11: editDeleteLineToEnd(l, l->buf); break; /* Ctrl+k */
-        case 20: editSwapCharWithPrev(l,l->buf); break; /* ctrl-t */
+        case 13:                              return 1;  /* enter */
+        case 3: errno = EAGAIN;               return -1; /* ctrl-c */
+        case 127:                                        /* backspace */
+        case 8:  editBackspace(l);                break; /* ctrl-h */
+        case 2:  editMoveLeft(l);                 break; /* ctrl-b */
+        case 6:  editMoveRight(l);                break; /* ctrl-f */
+        case 1:  editMoveHome(l);                 break; /* Ctrl+a */
+        case 5:  editMoveEnd(l);                  break; /* ctrl+e */
+        case 23: editDeletePrevWord(l);           break; /* ctrl+w */
+        case 21: editDeleteWholeLine(l, l->buf);  break; /* Ctrl+u */
+        case 11: editDeleteLineToEnd(l, l->buf);  break; /* Ctrl+k */
+        case 20: editSwapCharWithPrev(l, l->buf); break; /* ctrl-t */
         case 4:     /* ctrl-d, remove char at right of cursor, or if the
                             line is empty, act as end-of-file. */
             if (l->len > 0) {
@@ -366,17 +367,17 @@ static int edit(struct State *l, const char *prompt) {
     return 0;
 }
 
-static void stateSet(struct State *l, char *buf, char *prompt) {
-    l->plen = pstrlen(prompt);
-    l->oldpos = l->pos = 0;
+static void stateReset(struct State * l) {
+    l->plen = pstrlen(l->prompt);
+    l->oldpos = 0;
+    l->pos = 0;
     l->len = 0;
-    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
     l->buf[0] = '\0';
     l->buflen--; 
 }
 
-static void logAppend(char *str, char *path) {
-    FILE *out;
+static void logAppend(char * str, char * path) {
+    FILE * out;
 
     if ((out = fopen(path, "a")) == NULL) {
         perror("fopen");
@@ -387,24 +388,26 @@ static void logAppend(char *str, char *path) {
     fclose(out);
 }
 
-static void raw(char *fmt, ...) {
+static void raw(char * fmt, ...) {
     va_list ap;
     char *cmd_str = malloc(MSG_MAX);
 
     if (!cmd_str) {
         perror("malloc");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     va_start(ap, fmt);
     vsnprintf(cmd_str, MSG_MAX, fmt, ap);
     va_end(ap);
 
-    if (verb) printf("<< %s", cmd_str);
-    if (olog) logAppend(cmd_str, olog);
+    if (verb)
+        printf("<< %s", cmd_str);
+    if (olog)
+        logAppend(cmd_str, olog);
     if (write(conn, cmd_str, strnlen(cmd_str, MSG_MAX)) < 0) {
         perror("write");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     free(cmd_str);
@@ -450,7 +453,7 @@ static int initConnection(void) {
     return 0;
 }
 
-static void messageWrap(struct Param *p) {
+static void messageWrap(struct Param * p) {
     if (!p->message)
         return;
     char * tok;
@@ -468,39 +471,46 @@ static void messageWrap(struct Param *p) {
     }
 }
 
-static void paramPrintNick(struct Param *p) {
+static void paramPrintNick(struct Param * p) {
     printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
     printf("--> \x1b[35;1m%s\x1b[0m", p->message);
 }
 
-static void paramPrintPart(struct Param *p) {
+static void paramPrintPart(struct Param * p) {
     printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static void paramPrintQuit(struct Param *p) {
+static void paramPrintQuit(struct Param * p) {
     printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
 
-static void paramPrintJoin(struct Param *p) {
+static void paramPrintJoin(struct Param * p) {
     printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static void handleCTCP(const char *nickname, char *message) {
+static char * ctime_now (char buf[26]) {
+    struct tm tm_;
+    time_t now = time (NULL);
+    if (!asctime_r (localtime_r (&now, &tm_), buf))
+        return NULL;
+    *strchr(buf, '\n') = '\0';
+    return buf;
+}
+
+static void handleCTCP(const char * nickname, char * message) {
     if (message[0] != '\001' && strncmp(message, "ACTION", 6))
         return;
     message++;
     if (!strncmp(message, "VERSION", 7)) {
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
     } else if (!strncmp(message, "TIME", 7)) {
-        char buf[256] = {0};
-        time_t rawtime = time(NULL);
-        struct tm *ptm = localtime(&rawtime);
-        strftime(buf, 256, "%c", ptm);
-        if (ptm) raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
+        char buf[26];
+        if (!ctime_now(buf))
+            raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
     } else if (!strncmp(message, "CLIENTINFO", 10)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
     } else if (!strncmp(message, "PING", 4)) {
@@ -508,7 +518,7 @@ static void handleCTCP(const char *nickname, char *message) {
     }
 }
 
-static void paramPrintPriv(struct Param *p) {
+static void paramPrintPriv(struct Param * p) {
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
@@ -529,26 +539,26 @@ static void paramPrintPriv(struct Param *p) {
     }
 }
 
-static void paramPrintChan(struct Param *p) {
+static void paramPrintChan(struct Param * p) {
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
 }
 
-static void rawParser(char *string) {
+static void rawParser(char * string) {
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
         raw("%s\r\n", string);
         return;
     }
-
-    if (string[0] != ':') return;
-
+    if (string[0] != ':')
+        return;
     printf("\r\x1b[0K");
-
-    if (verb) printf(">> %s", string);
-    if (olog) logAppend(string, olog);
+    if (verb)
+        printf(">> %s", string);
+    if (olog)
+        logAppend(string, olog);
 
     char * tok;
     struct Param p;
@@ -619,22 +629,20 @@ static int handleServerMessage(void) {
                 i = 0;
             }
         }
-        if (message_end == MSG_MAX) {
+        if (message_end == MSG_MAX)
             message_end = 0;
-        }
     }
 }
 
-static void handleUserInput(char *usrin) {
-    if (usrin == NULL) return;
+static void handleUserInput(char * usrin) {
+    if (usrin == NULL)
+        return;
 
-    char *tok;
-    size_t msg_len = strlen(usrin);
+    char * tok;
+    size_t msg_len = strnlen(usrin, MSG_MAX);
 
-    if (msg_len > 0 && usrin[msg_len - 1] == '\n') {
+    if (msg_len > 0 && usrin[msg_len - 1] == '\n')
         usrin[msg_len - 1] = '\0';
-    }
-
     printf("\r\x1b[0K");
     switch (usrin[0]) {
         case '/' : /* send system command */
@@ -664,7 +672,12 @@ static void handleUserInput(char *usrin) {
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-x command] [-o path] [-e|v|V]\n", stderr);
-    exit(EXIT_FAILURE);
+    exit(2);
+}
+
+static void version(void) {
+    fputs("kirc-" VERSION " © 2020 " AUTHORS "\n", stdout);
+    exit(0);
 }
 
 int main(int argc, char **argv) {
@@ -672,20 +685,20 @@ int main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
-            case 'v' : puts("kirc-" VERSION " © 2020 " AUTHORS); break;
-            case 'V' : ++verb;                                   break;
-            case 'e' : ++sasl;                                   break;
-            case 's' : host = optarg;                            break;
-            case 'p' : port = optarg;                            break;
-            case 'r' : real = optarg;                            break;
-            case 'u' : user = optarg;                            break;
-            case 'a' : auth = optarg;                            break;
-            case 'o' : olog = optarg;                            break;
-            case 'n' : nick = optarg;                            break;
-            case 'k' : pass = optarg;                            break;
-            case 'c' : chan = optarg;                            break;
-            case 'x' : inic = optarg;                            break;
-            case '?' : usage();                                  break;
+            case 'v' : version();     break;
+            case 'V' : ++verb;        break;
+            case 'e' : ++sasl;        break;
+            case 's' : host = optarg; break;
+            case 'p' : port = optarg; break;
+            case 'r' : real = optarg; break;
+            case 'u' : user = optarg; break;
+            case 'a' : auth = optarg; break;
+            case 'o' : olog = optarg; break;
+            case 'n' : nick = optarg; break;
+            case 'k' : pass = optarg; break;
+            case 'c' : chan = optarg; break;
+            case 'x' : inic = optarg; break;
+            case '?' : usage();       break;
         }
     }
 
@@ -694,19 +707,21 @@ int main(int argc, char **argv) {
         usage();
     }
 
-    if (initConnection() != 0) {
-        return EXIT_FAILURE;
-    }
+    if (initConnection() != 0)
+        return 1;
 
-    if (auth || sasl) raw("CAP REQ :sasl\r\n");
+    if (auth || sasl)
+        raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
     raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
     if (auth || sasl) {
         raw("AUTHENTICATE %s\r\n", (sasl ? "EXTERNAL" : "PLAIN"));
         raw("AUTHENTICATE %s\r\nCAP END\r\n", (sasl ? "+" : auth));
     }
-    if (pass) raw("PASS %s\r\n", pass);
-    if (inic) raw("%s\r\n", inic);
+    if (pass)
+        raw("PASS %s\r\n", pass);
+    if (inic)
+        raw("%s\r\n", inic);
 
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
@@ -714,14 +729,14 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[CHA_MAX];
+    char usrin[MSG_MAX];
 
     struct State l;
 
     l.buf = usrin;
     l.buflen = MSG_MAX;
-    l.prompt = promptc;
-    stateSet(&l, usrin, promptc);
+    l.prompt = cdef;
+    stateReset(&l);
 
     int editReturnFlag = 0;
 
@@ -730,30 +745,32 @@ int main(int argc, char **argv) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                editReturnFlag = edit(&l, promptc);
+                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+                editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
-                    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
-                    stateSet(&l, usrin, promptc);
+                    stateReset(&l);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
-                   return EXIT_SUCCESS;
+                   return 0;
                 }
                 refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
+                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 int rc = handleServerMessage();
                 if (rc != 0) {
-                    if (rc == -2) return EXIT_FAILURE;
-                    return EXIT_SUCCESS;
+                    if (rc == -2)
+                        return 1;
+                    return 0;
                 }
-                snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
                 refreshLine(&l);
             }
         } else {
-            if (errno == EAGAIN) continue;
+            if (errno == EAGAIN)
+                continue;
             perror("poll");
-            return EXIT_FAILURE;
+            return 1;
         }
     }
 }
