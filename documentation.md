@@ -8,6 +8,7 @@ layout: default
 - [SASL PLAIN Authentication](#sasl-plain-authentication)
 - [SASL EXTERNAL Authentication](#sasl-external-authentication)
 - [Color Scheme Definition](#color-scheme-definition)
+- [System Notifications](#system-notifications)
 
 ## Transport Layer Security Support
 
@@ -81,6 +82,30 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 # 13 - Bright Magenta
 # 14 - Bright Cyan
 # 15 - Bright White
+```
+
+## System Notifications
+
+The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc):
+
+```shell
+#!/bin/sh
+#
+# checks log file for substring and sends notification and
+# sends message to specified program.
+
+main () {
+    while true; do
+        tail -fn5 "$1" | awk '/PRIVMSG #.*nick.*/ {
+            system("wayherb \"kirc - new message\"")
+            print "new message recieved!"
+            exit
+        }'
+        sleep 5
+    done
+}
+
+main "$1"
 ```
 
 [back](./)
