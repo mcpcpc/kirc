@@ -168,7 +168,7 @@ static size_t pstrlen(const char *s) {
 
 static void refreshLine(struct State *l) {
     char seq[64];
-    size_t plen = pstrlen(l->prompt);
+    size_t plen = pstrlen(l->prompt) + 2;
     int fd = STDOUT_FILENO;
     char *buf = l->buf;
     size_t len = l->len;
@@ -188,6 +188,7 @@ static void refreshLine(struct State *l) {
     snprintf(seq, sizeof(seq), "\r");
     abAppend(&ab, seq, strnlen(seq, MSG_MAX));
     abAppend(&ab,l->prompt, strnlen(l->prompt, MSG_MAX));
+    abAppend(&ab, "> ", 2);
     abAppend(&ab, buf, len);
     snprintf(seq, sizeof(seq), "\x1b[0K");
     abAppend(&ab, seq, strnlen(seq, MSG_MAX));
@@ -366,8 +367,8 @@ static int edit(struct State * l) {
     return 0;
 }
 
-static void stateInit(struct State *l, char *buf, char *prompt) {
-    l->plen = pstrlen(prompt);
+static void stateReset(struct State *l) {
+    l->plen = pstrlen(l->prompt);
     l->oldpos = l->pos = 0;
     l->len = 0;
     l->buf[0] = '\0';
@@ -713,14 +714,14 @@ int main(int argc, char **argv) {
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
 
-    char usrin[MSG_MAX], promptc[CHA_MAX];
+    char usrin[MSG_MAX];
 
     struct State l;
 
     l.buf = usrin;
     l.buflen = MSG_MAX;
-    l.prompt = promptc;
-    stateInit(&l, usrin, promptc);
+    l.prompt = cdef;
+    stateReset(&l);
 
     int editReturnFlag = 0;
 
@@ -733,8 +734,7 @@ int main(int argc, char **argv) {
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
-                    snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
-                    stateInit(&l, usrin, promptc);
+                    stateReset(&l);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
                    return EXIT_SUCCESS;
@@ -748,7 +748,6 @@ int main(int argc, char **argv) {
                     if (rc == -2) return EXIT_FAILURE;
                     return EXIT_SUCCESS;
                 }
-                snprintf(promptc, CHA_MAX, "[\x1b[35m#%s\x1b[0m] ", cdef);
                 refreshLine(&l);
             }
         } else {
