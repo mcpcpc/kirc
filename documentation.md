@@ -88,24 +88,6 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 
 The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc).  Also, special thanks to @soliwilos contributing this one:
 
-```shell
-#!/bin/sh
-#
-# checks log file for substring and sends notification and
-# sends message to specified program.
-
-main () {
-    while true; do
-        tail -fn5 "$1" | awk '/PRIVMSG #.*nick.*/ {
-            system("wayherb \"kirc - new message\"")
-            print "new message recieved!"
-            exit
-        }'
-        sleep 5
-    done
-}
-
-main "$1"
-```
+{% d40eb3ce2c01e49144ef7f75f7776c10 %}
 
 [back](./)
