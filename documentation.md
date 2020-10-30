@@ -86,7 +86,7 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 
 ## System Notifications
 
-The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc):
+The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc).  Also, special thanks to @soliwilos contributing this one:
 
 ```shell
 #!/bin/sh
