@@ -107,8 +107,8 @@ static int getCursorPosition(int ifd, int ofd) {
     unsigned int i = 0;
     if (write(ofd, "\x1b[6n", 4) != 4)
         return -1;
-    while (i < sizeof(buf)-1) {
-        if (read(ifd,buf+i,1) != 1)
+    while (i < sizeof(buf) - 1) {
+        if (read(ifd, buf + i, 1) != 1)
             break;
         if (buf[i] == 'R')
             break;
@@ -138,7 +138,7 @@ static int getColumns(int ifd, int ofd) {
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
-            if (write(ofd, seq, strlen(seq)) == -1) {}
+            if (write(ofd, seq, strnlen(seq, MSG_MAX)) == -1) {}
         }
         return cols;
     } else {
@@ -322,12 +322,11 @@ static void editSwapCharWithPrev(struct State * l) {
 }
 
 static int edit(struct State * l) {
-    char c;
-    int nread;
-    char seq[3];
+    char    c, seq[3];
+    ssize_t nread = read(STDIN_FILENO, &c, 1);
 
-    nread = read(STDIN_FILENO, &c ,1);
-    if (nread <= 0) return 1;
+    if (nread <= 0)
+        return 1;
 
     switch(c) {
         case 13:                      return 1;  /* enter */
@@ -614,8 +613,8 @@ static size_t message_end = 0;
 
 static int handleServerMessage(void) {
     for (;;) {
-        ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
-        if (sl == -1) {
+        ssize_t nread = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
+        if (nread == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 return 0;
             } else {
@@ -623,14 +622,14 @@ static int handleServerMessage(void) {
                 return -2;
             }
         }
-        if (sl == 0) {
+        if (nread == 0) {
             fputs("\rconnection closed", stderr);
             puts("\r\x1b[E");
             return -1;
         }
 
         size_t i, old_message_end = message_end;
-        message_end += sl;
+        message_end += nread;
 
         for (i = old_message_end; i < message_end; ++i) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
