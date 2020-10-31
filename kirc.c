@@ -24,7 +24,7 @@ static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int    conn;                      /* connection socket */
 static int    verb = 0;                  /* verbose output */
 static int    sasl = 0;                  /* SASL method */
-static char * host = "irc.freenode.org"; /* host address */
+static char * host = "irc.freenode.net"; /* host address */
 static char * port = "6667";             /* port */
 static char * chan = NULL;               /* channel(s) */
 static char * nick = NULL;               /* nickname */
