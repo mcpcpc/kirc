@@ -73,8 +73,6 @@ static void disableRawMode(void) {
 }
 
 static int enableRawMode(int fd) {
-    struct termios raw;
-
     if (!isatty(STDIN_FILENO))
         goto fatal;
     if (!atexit_registered) {
@@ -84,7 +82,7 @@ static int enableRawMode(int fd) {
     if (tcgetattr(fd,&orig) == -1)
         goto fatal;
 
-    raw = orig;
+    struct termios raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
@@ -102,8 +100,8 @@ fatal:
 }
 
 static int getCursorPosition(int ifd, int ofd) {
-    char buf[32];
-    int cols, rows;
+    char         buf[32];
+    int          cols, rows;
     unsigned int i = 0;
     if (write(ofd, "\x1b[6n", 4) != 4)
         return -1;
@@ -126,13 +124,12 @@ static int getColumns(int ifd, int ofd) {
     struct winsize ws;
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        int start, cols;
-        start = getCursorPosition(ifd, ofd);
+        int start = getCursorPosition(ifd, ofd);
         if (start == -1)
             return 80;
         if (write(ofd,"\x1b[999C",6) != 6)
             return 80;
-        cols = getCursorPosition(ifd, ofd);
+        int cols = getCursorPosition(ifd, ofd);
         if (cols == -1)
             return 80;
         if (cols > start) {
@@ -152,7 +149,7 @@ static void abInit(struct abuf * ab) {
 }
 
 static void abAppend(struct abuf * ab, const char * s, int len) {
-    char *new = realloc(ab->b, ab->len + len);
+    char * new = realloc(ab->b, ab->len + len);
     if (new == NULL)
         return;
     memcpy(new + ab->len, s, len);
@@ -286,12 +283,13 @@ static void editBackspace(struct State * l) {
 
 static void editDeletePrevWord(struct State * l) {
     size_t old_pos = l->pos;
-    size_t diff;
 
-    while (l->pos > 0 && l->buf[l->pos - 1] == ' ') l->pos--;
-    while (l->pos > 0 && l->buf[l->pos - 1] != ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] == ' ')
+        l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] != ' ')
+        l->pos--;
 
-    diff = old_pos - l->pos;
+    size_t diff = old_pos - l->pos;
     memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
     l->len -= diff;
     refreshLine(l);
@@ -314,9 +312,8 @@ static void editSwapCharWithPrev(struct State * l) {
         int aux = l->buf[l->pos - 1];
         l->buf[l->pos - 1] = l->buf[l->pos];
         l->buf[l->pos] = aux;
-        if (l->pos != l->len - 1) {
+        if (l->pos != l->len - 1)
             l->pos++;
-        }
         refreshLine(l);
     }
 }
@@ -329,53 +326,52 @@ static int edit(struct State * l) {
         return 1;
 
     switch(c) {
-        case 13:                      return 1;  /* enter */
-        case 3: errno = EAGAIN;       return -1; /* ctrl-c */
-        case 127:                                /* backspace */
-        case 8:  editBackspace(l);        break; /* ctrl-h */
-        case 2:  editMoveLeft(l);         break; /* ctrl-b */
-        case 6:  editMoveRight(l);        break; /* ctrl-f */
-        case 1:  editMoveHome(l);         break; /* Ctrl+a */
-        case 5:  editMoveEnd(l);          break; /* ctrl+e */
-        case 23: editDeletePrevWord(l);   break; /* ctrl+w */
-        case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
-        case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
-        case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
-        case 4:     /* ctrl-d, remove char at right of cursor, or if the
-                            line is empty, act as end-of-file. */
-            if (l->len > 0) {
-                editDelete(l);
+    case 13:                      return 1;  /* enter */
+    case 3: errno = EAGAIN;       return -1; /* ctrl-c */
+    case 127:                                /* backspace */
+    case 8:  editBackspace(l);        break; /* ctrl-h */
+    case 2:  editMoveLeft(l);         break; /* ctrl-b */
+    case 6:  editMoveRight(l);        break; /* ctrl-f */
+    case 1:  editMoveHome(l);         break; /* Ctrl+a */
+    case 5:  editMoveEnd(l);          break; /* ctrl+e */
+    case 23: editDeletePrevWord(l);   break; /* ctrl+w */
+    case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
+    case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
+    case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
+    case 4:                                  /* ctrl-d */
+        if (l->len > 0) {
+            editDelete(l);
+        } else {
+            return -1;
+        }
+        break;
+    case 27:    /* escape sequence */
+        if (read(STDIN_FILENO, seq, 1) == -1) break;
+        if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
+        if (seq[0] == '[') { /* ESC [ sequences. */
+            if (seq[1] >= '0' && seq[1] <= '9') {
+                /* Extended escape, read additional byte. */
+                if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
+                if (seq[2] == '~') {
+                    if (seq[1] == 3) editDelete(l);    /* Delete key. */
+                }
             } else {
-                return -1;
-            }
-            break;
-        case 27:    /* escape sequence */
-            if (read(STDIN_FILENO, seq, 1) == -1) break;
-            if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-            if (seq[0] == '[') { /* ESC [ sequences. */
-                if (seq[1] >= '0' && seq[1] <= '9') {
-                    /* Extended escape, read additional byte. */
-                    if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
-                    if (seq[2] == '~') {
-                        if (seq[1] == 3) editDelete(l);    /* Delete key. */
-                    }
-                } else {
-                    switch(seq[1]) {
-                        case 'C': editMoveRight(l); break; /* Right */
-                        case 'D': editMoveLeft(l);  break; /* Left */
-                        case 'H': editMoveHome(l);  break; /* Home */
-                        case 'F': editMoveEnd(l);   break; /* End*/
-                    }
-                }
-            }
-            else if (seq[0] == 'O') { /* ESC O sequences. */
                 switch(seq[1]) {
-                    case 'H': editMoveHome(l); break; /* Home */
-                    case 'F': editMoveEnd(l);  break; /* End*/
+                case 'C': editMoveRight(l); break; /* Right */
+                case 'D': editMoveLeft(l);  break; /* Left */
+                case 'H': editMoveHome(l);  break; /* Home */
+                case 'F': editMoveEnd(l);   break; /* End*/
                 }
             }
-            break;
-        default: if (editInsert(l, c)) return -1; break;
+        }
+        else if (seq[0] == 'O') { /* ESC O sequences. */
+            switch(seq[1]) {
+            case 'H': editMoveHome(l); break; /* Home */
+            case 'F': editMoveEnd(l);  break; /* End*/
+            }
+        }
+        break;
+    default: if (editInsert(l, c)) return -1; break;
     }
     return 0;
 }
@@ -507,8 +503,8 @@ static void paramPrintJoin(struct Param * p) {
 
 static char * ctime_now (char buf[26]) {
     struct tm tm_;
-    time_t now = time (NULL);
-    if (!asctime_r (localtime_r (&now, &tm_), buf))
+    time_t now = time(NULL);
+    if (!asctime_r(localtime_r (&now, &tm_), buf))
         return NULL;
     *strchr(buf, '\n') = '\0';
     return buf;
@@ -658,27 +654,27 @@ static void handleUserInput(struct State * l) {
         l->buf[msg_len - 1] = '\0';
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
-        case '/' : /* send system command */
-            if (l->buf[1] == '#') {
-                strcpy(cdef, l->buf + 2);
-                printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
-            } else {
-                raw("%s\r\n", l->buf + 1);
-                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-            }
-            break;
-        case '@' : /* send private message to target channel or user */
-            strtok_r(l->buf, " ", &tok);
-            if (l->buf[1] == '@') {
-                raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
-                printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
-            } else {
-                raw("privmsg %s :%s\r\n", l->buf + 1, tok);
-                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
-            } break;
-        default  : /*  send private message to default channel */
-            raw("privmsg #%s :%s\r\n", cdef, l->buf);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
+    case '/' : /* send system command */
+        if (l->buf[1] == '#') {
+            strcpy(cdef, l->buf + 2);
+            printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
+        } else {
+            raw("%s\r\n", l->buf + 1);
+            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        }
+        break;
+    case '@' : /* send private message to target channel or user */
+        strtok_r(l->buf, " ", &tok);
+        if (l->buf[1] == '@') {
+            raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
+            printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
+        } else {
+            raw("privmsg %s :%s\r\n", l->buf + 1, tok);
+            printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
+        } break;
+    default  : /*  send private message to default channel */
+        raw("privmsg #%s :%s\r\n", cdef, l->buf);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
     }
 }
 
@@ -698,20 +694,20 @@ int main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
-            case 'v' : version();     break;
-            case 'V' : ++verb;        break;
-            case 'e' : ++sasl;        break;
-            case 's' : host = optarg; break;
-            case 'p' : port = optarg; break;
-            case 'r' : real = optarg; break;
-            case 'u' : user = optarg; break;
-            case 'a' : auth = optarg; break;
-            case 'o' : olog = optarg; break;
-            case 'n' : nick = optarg; break;
-            case 'k' : pass = optarg; break;
-            case 'c' : chan = optarg; break;
-            case 'x' : inic = optarg; break;
-            case '?' : usage();       break;
+        case 'v' : version();     break;
+        case 'V' : ++verb;        break;
+        case 'e' : ++sasl;        break;
+        case 's' : host = optarg; break;
+        case 'p' : port = optarg; break;
+        case 'r' : real = optarg; break;
+        case 'u' : user = optarg; break;
+        case 'a' : auth = optarg; break;
+        case 'o' : olog = optarg; break;
+        case 'n' : nick = optarg; break;
+        case 'k' : pass = optarg; break;
+        case 'c' : chan = optarg; break;
+        case 'x' : inic = optarg; break;
+        case '?' : usage();       break;
         }
     }
 
@@ -745,19 +741,17 @@ int main(int argc, char **argv) {
     char usrin[MSG_MAX];
 
     struct State l;
-
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = cdef;
     stateReset(&l);
 
-    int editReturnFlag = 0;
+    int rc, editReturnFlag = 0;
 
     if (enableRawMode(STDIN_FILENO) == -1)
-        return -1;
+        return 1;
     for (;;) {
-        int poll_res = poll(fds, 2, -1);
-        if (poll_res != -1) {
+        if (poll(fds, 2, -1) != -1) {
             if (fds[0].revents & POLLIN) {
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
@@ -770,7 +764,7 @@ int main(int argc, char **argv) {
                 refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
-                int rc = handleServerMessage();
+                rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2)
                         return 1;
