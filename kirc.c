@@ -648,38 +648,38 @@ static int handleServerMessage(void) {
     }
 }
 
-static void handleUserInput(char * usrin) {
-    if (usrin == NULL)
+static void handleUserInput(struct State * l) {
+    if (l->buf == NULL)
         return;
 
     char * tok;
-    size_t msg_len = strnlen(usrin, MSG_MAX);
+    size_t msg_len = strnlen(l->buf, MSG_MAX);
 
-    if (msg_len > 0 && usrin[msg_len - 1] == '\n')
-        usrin[msg_len - 1] = '\0';
+    if (msg_len > 0 && l->buf[msg_len - 1] == '\n')
+        l->buf[msg_len - 1] = '\0';
     printf("\r\x1b[0K");
-    switch (usrin[0]) {
+    switch (l->buf[0]) {
         case '/' : /* send system command */
-            if (usrin[1] == '#') {
-                strcpy(cdef, usrin + 2);
+            if (l->buf[1] == '#') {
+                strcpy(cdef, l->buf + 2);
                 printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
             } else {
-                raw("%s\r\n", usrin + 1);
-                printf("\x1b[35m%s\x1b[0m\r\n", usrin);
+                raw("%s\r\n", l->buf + 1);
+                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
             }
             break;
         case '@' : /* send private message to target channel or user */
-            strtok_r(usrin, " ", &tok);
-            if (usrin[1] == '@') {
-                raw("privmsg %s :\001ACTION %s\001\r\n", usrin + 2, tok);
-                printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", usrin + 2, tok);
+            strtok_r(l->buf, " ", &tok);
+            if (l->buf[1] == '@') {
+                raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
+                printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
             } else {
-                raw("privmsg %s :%s\r\n", usrin + 1, tok);
-                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", usrin + 1, tok);
+                raw("privmsg %s :%s\r\n", l->buf + 1, tok);
+                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
             } break;
         default  : /*  send private message to default channel */
-            raw("privmsg #%s :%s\r\n", cdef, usrin);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, usrin);
+            raw("privmsg #%s :%s\r\n", cdef, l->buf);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
     }
 }
 
@@ -762,7 +762,7 @@ int main(int argc, char **argv) {
             if (fds[0].revents & POLLIN) {
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
-                    handleUserInput(l.buf);
+                    handleUserInput(&l);
                     stateReset(&l);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
