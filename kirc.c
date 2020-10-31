@@ -52,36 +52,37 @@ static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
-    char * prompt; /* Prompt to display. */
-    char * buf;    /* Edited line buffer. */
-    size_t buflen; /* Edited line buffer size. */
-    size_t plen;   /* Prompt length. */
-    size_t pos;    /* Current cursor position. */
-    size_t oldpos; /* Previous refresh cursor position. */
-    size_t len;    /* Current edited line length. */
-    size_t cols;   /* Number of columns in terminal. */
+    char * prompt;                       /* Prompt to display. */
+    char * buf;                          /* Edited line buffer. */
+    size_t buflen;                       /* Edited line buffer size. */
+    size_t plen;                         /* Prompt length. */
+    size_t pos;                          /* Current cursor position. */
+    size_t oldpos;                       /* Previous refresh cursor position. */
+    size_t len;                          /* Current edited line length. */
+    size_t cols;                         /* Number of columns in terminal. */
 };
 
 struct abuf {
     char * b;
-    int len;
+    int    len;
 };
 
 static void disableRawMode(void) {
-    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1) {
+    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1)
         rawmode = 0;
-    }
 }
 
 static int enableRawMode(int fd) {
     struct termios raw;
 
-    if (!isatty(STDIN_FILENO)) goto fatal;
+    if (!isatty(STDIN_FILENO))
+        goto fatal;
     if (!atexit_registered) {
         atexit(disableRawMode);
         atexit_registered = 1;
     }
-    if (tcgetattr(fd,&orig) == -1) goto fatal;
+    if (tcgetattr(fd,&orig) == -1)
+        goto fatal;
 
     raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
@@ -90,7 +91,8 @@ static int enableRawMode(int fd) {
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
     raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0;
 
-    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) goto fatal;
+    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0)
+        goto fatal;
     rawmode = 1;
     return 0;
 
@@ -103,15 +105,20 @@ static int getCursorPosition(int ifd, int ofd) {
     char buf[32];
     int cols, rows;
     unsigned int i = 0;
-    if (write(ofd, "\x1b[6n", 4) != 4) return -1;
+    if (write(ofd, "\x1b[6n", 4) != 4)
+        return -1;
     while (i < sizeof(buf)-1) {
-        if (read(ifd,buf+i,1) != 1) break;
-        if (buf[i] == 'R') break;
+        if (read(ifd,buf+i,1) != 1)
+            break;
+        if (buf[i] == 'R')
+            break;
         i++;
     }
     buf[i] = '\0';
-    if (buf[0] != 27 || buf[1] != '[') return -1;
-    if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2) return -1;
+    if (buf[0] != 27 || buf[1] != '[')
+        return -1;
+    if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2)
+        return -1;
     return cols;
 }
 
@@ -121,10 +128,13 @@ static int getColumns(int ifd, int ofd) {
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start, cols;
         start = getCursorPosition(ifd, ofd);
-        if (start == -1) return 80;
-        if (write(ofd,"\x1b[999C",6) != 6) return 80;
+        if (start == -1)
+            return 80;
+        if (write(ofd,"\x1b[999C",6) != 6)
+            return 80;
         cols = getCursorPosition(ifd, ofd);
-        if (cols == -1) return 80;
+        if (cols == -1)
+            return 80;
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
@@ -143,7 +153,8 @@ static void abInit(struct abuf * ab) {
 
 static void abAppend(struct abuf * ab, const char * s, int len) {
     char *new = realloc(ab->b, ab->len + len);
-    if (new == NULL) return;
+    if (new == NULL)
+        return;
     memcpy(new + ab->len, s, len);
     ab->b = new;
     ab->len += len;
@@ -174,6 +185,8 @@ static void refreshLine(struct State * l) {
     size_t len = l->len;
     size_t pos = l->pos;
     struct abuf ab;
+
+    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
 
     while (plen + pos >= l->cols) {
         buf++;
@@ -207,7 +220,8 @@ static int editInsert(struct State * l, char c) {
             l->buf[l->len] = '\0';
             if (l->plen + l->len < l->cols) {
                 char d = c;
-                if (write(STDOUT_FILENO, &d, 1) == -1) return -1;
+                if (write(STDOUT_FILENO, &d, 1) == -1)
+                    return -1;
             } else {
                 refreshLine(l);
             }
@@ -283,23 +297,23 @@ static void editDeletePrevWord(struct State * l) {
     refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State * l, char * buf) {
-    buf[0] = '\0';
+static void editDeleteWholeLine(struct State * l) {
+    l->buf[0] = '\0';
     l->pos = l->len = 0;
     refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State * l, char * buf) {
-    buf[l->pos] = '\0';
+static void editDeleteLineToEnd(struct State * l) {
+    l->buf[l->pos] = '\0';
     l->len = l->pos;
     refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State * l, char * buf) {
+static void editSwapCharWithPrev(struct State * l) {
     if (l->pos > 0 && l->pos < l->len) {
-        int aux = buf[l->pos - 1];
-        buf[l->pos - 1] = buf[l->pos];
-        buf[l->pos] = aux;
+        int aux = l->buf[l->pos - 1];
+        l->buf[l->pos - 1] = l->buf[l->pos];
+        l->buf[l->pos] = aux;
         if (l->pos != l->len - 1) {
             l->pos++;
         }
@@ -316,18 +330,18 @@ static int edit(struct State * l) {
     if (nread <= 0) return 1;
 
     switch(c) {
-        case 13:                              return 1;  /* enter */
-        case 3: errno = EAGAIN;               return -1; /* ctrl-c */
-        case 127:                                        /* backspace */
-        case 8:  editBackspace(l);                break; /* ctrl-h */
-        case 2:  editMoveLeft(l);                 break; /* ctrl-b */
-        case 6:  editMoveRight(l);                break; /* ctrl-f */
-        case 1:  editMoveHome(l);                 break; /* Ctrl+a */
-        case 5:  editMoveEnd(l);                  break; /* ctrl+e */
-        case 23: editDeletePrevWord(l);           break; /* ctrl+w */
-        case 21: editDeleteWholeLine(l, l->buf);  break; /* Ctrl+u */
-        case 11: editDeleteLineToEnd(l, l->buf);  break; /* Ctrl+k */
-        case 20: editSwapCharWithPrev(l, l->buf); break; /* ctrl-t */
+        case 13:                      return 1;  /* enter */
+        case 3: errno = EAGAIN;       return -1; /* ctrl-c */
+        case 127:                                /* backspace */
+        case 8:  editBackspace(l);        break; /* ctrl-h */
+        case 2:  editMoveLeft(l);         break; /* ctrl-b */
+        case 6:  editMoveRight(l);        break; /* ctrl-f */
+        case 1:  editMoveHome(l);         break; /* Ctrl+a */
+        case 5:  editMoveEnd(l);          break; /* ctrl+e */
+        case 23: editDeletePrevWord(l);   break; /* ctrl+w */
+        case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
+        case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
+        case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
         case 4:     /* ctrl-d, remove char at right of cursor, or if the
                             line is empty, act as end-of-file. */
             if (l->len > 0) {
@@ -740,12 +754,12 @@ int main(int argc, char **argv) {
 
     int editReturnFlag = 0;
 
-    if (enableRawMode(STDIN_FILENO) == -1) return -1;
+    if (enableRawMode(STDIN_FILENO) == -1)
+        return -1;
     for (;;) {
         int poll_res = poll(fds, 2, -1);
         if (poll_res != -1) {
             if (fds[0].revents & POLLIN) {
-                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
                     handleUserInput(l.buf);
@@ -757,7 +771,6 @@ int main(int argc, char **argv) {
                 refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
-                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 int rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2)
