@@ -42,6 +42,7 @@ struct Param {
     char * nickname;
     char * command;
     char * channel;
+    char * params;
     size_t offset;
     size_t maxcols;
     int    nicklen;
@@ -544,6 +545,8 @@ static void paramPrintChan(struct Param * p) {
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
+    if (p->params)
+	   printf(p->params); 
 }
 
 static void rawParser(char * string) {
@@ -568,6 +571,7 @@ static void rawParser(char * string) {
     p.nickname = strtok(p.prefix, "!");
     p.command =  strtok(p.suffix, "#& ");
     p.channel =  strtok(NULL, " \r");
+    p.params =   strtok(NULL, ":\r");
     p.maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
     p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
     p.offset = 0;
