@@ -13,7 +13,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION     "0.2.0"              /* version */
+#define VERSION     "0.2.1"              /* version */
 #define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
@@ -53,45 +53,45 @@ static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 
 struct State {
-    char * prompt; /* Prompt to display. */
-    char * buf;    /* Edited line buffer. */
-    size_t buflen; /* Edited line buffer size. */
-    size_t plen;   /* Prompt length. */
-    size_t pos;    /* Current cursor position. */
-    size_t oldpos; /* Previous refresh cursor position. */
-    size_t len;    /* Current edited line length. */
-    size_t cols;   /* Number of columns in terminal. */
+    char * prompt;                       /* Prompt to display. */
+    char * buf;                          /* Edited line buffer. */
+    size_t buflen;                       /* Edited line buffer size. */
+    size_t plen;                         /* Prompt length. */
+    size_t pos;                          /* Current cursor position. */
+    size_t oldpos;                       /* Previous refresh cursor position. */
+    size_t len;                          /* Current edited line length. */
+    size_t cols;                         /* Number of columns in terminal. */
 };
 
 struct abuf {
     char * b;
-    int len;
+    int    len;
 };
 
 static void disableRawMode(void) {
-    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1) {
+    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1)
         rawmode = 0;
-    }
 }
 
 static int enableRawMode(int fd) {
-    struct termios raw;
-
-    if (!isatty(STDIN_FILENO)) goto fatal;
+    if (!isatty(STDIN_FILENO))
+        goto fatal;
     if (!atexit_registered) {
         atexit(disableRawMode);
         atexit_registered = 1;
     }
-    if (tcgetattr(fd,&orig) == -1) goto fatal;
+    if (tcgetattr(fd,&orig) == -1)
+        goto fatal;
 
-    raw = orig;
+    struct termios raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
     raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0;
 
-    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) goto fatal;
+    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0)
+        goto fatal;
     rawmode = 1;
     return 0;
 
@@ -101,18 +101,23 @@ fatal:
 }
 
 static int getCursorPosition(int ifd, int ofd) {
-    char buf[32];
-    int cols, rows;
+    char         buf[32];
+    int          cols, rows;
     unsigned int i = 0;
-    if (write(ofd, "\x1b[6n", 4) != 4) return -1;
-    while (i < sizeof(buf)-1) {
-        if (read(ifd,buf+i,1) != 1) break;
-        if (buf[i] == 'R') break;
+    if (write(ofd, "\x1b[6n", 4) != 4)
+        return -1;
+    while (i < sizeof(buf) - 1) {
+        if (read(ifd, buf + i, 1) != 1)
+            break;
+        if (buf[i] == 'R')
+            break;
         i++;
     }
     buf[i] = '\0';
-    if (buf[0] != 27 || buf[1] != '[') return -1;
-    if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2) return -1;
+    if (buf[0] != 27 || buf[1] != '[')
+        return -1;
+    if (sscanf(buf+2, "%d;%d", &rows, &cols) != 2)
+        return -1;
     return cols;
 }
 
@@ -120,16 +125,18 @@ static int getColumns(int ifd, int ofd) {
     struct winsize ws;
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        int start, cols;
-        start = getCursorPosition(ifd, ofd);
-        if (start == -1) return 80;
-        if (write(ofd,"\x1b[999C",6) != 6) return 80;
-        cols = getCursorPosition(ifd, ofd);
-        if (cols == -1) return 80;
+        int start = getCursorPosition(ifd, ofd);
+        if (start == -1)
+            return 80;
+        if (write(ofd,"\x1b[999C",6) != 6)
+            return 80;
+        int cols = getCursorPosition(ifd, ofd);
+        if (cols == -1)
+            return 80;
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
-            if (write(ofd, seq, strlen(seq)) == -1) {}
+            if (write(ofd, seq, strnlen(seq, MSG_MAX)) == -1) {}
         }
         return cols;
     } else {
@@ -143,8 +150,9 @@ static void abInit(struct abuf * ab) {
 }
 
 static void abAppend(struct abuf * ab, const char * s, int len) {
-    char *new = realloc(ab->b, ab->len + len);
-    if (new == NULL) return;
+    char * new = realloc(ab->b, ab->len + len);
+    if (new == NULL)
+        return;
     memcpy(new + ab->len, s, len);
     ab->b = new;
     ab->len += len;
@@ -175,6 +183,8 @@ static void refreshLine(struct State * l) {
     size_t len = l->len;
     size_t pos = l->pos;
     struct abuf ab;
+
+    l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
 
     while (plen + pos >= l->cols) {
         buf++;
@@ -208,7 +218,8 @@ static int editInsert(struct State * l, char c) {
             l->buf[l->len] = '\0';
             if (l->plen + l->len < l->cols) {
                 char d = c;
-                if (write(STDOUT_FILENO, &d, 1) == -1) return -1;
+                if (write(STDOUT_FILENO, &d, 1) == -1)
+                    return -1;
             } else {
                 refreshLine(l);
             }
@@ -273,97 +284,95 @@ static void editBackspace(struct State * l) {
 
 static void editDeletePrevWord(struct State * l) {
     size_t old_pos = l->pos;
-    size_t diff;
 
-    while (l->pos > 0 && l->buf[l->pos - 1] == ' ') l->pos--;
-    while (l->pos > 0 && l->buf[l->pos - 1] != ' ') l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] == ' ')
+        l->pos--;
+    while (l->pos > 0 && l->buf[l->pos - 1] != ' ')
+        l->pos--;
 
-    diff = old_pos - l->pos;
+    size_t diff = old_pos - l->pos;
     memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
     l->len -= diff;
     refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State * l, char * buf) {
-    buf[0] = '\0';
+static void editDeleteWholeLine(struct State * l) {
+    l->buf[0] = '\0';
     l->pos = l->len = 0;
     refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State * l, char * buf) {
-    buf[l->pos] = '\0';
+static void editDeleteLineToEnd(struct State * l) {
+    l->buf[l->pos] = '\0';
     l->len = l->pos;
     refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State * l, char * buf) {
+static void editSwapCharWithPrev(struct State * l) {
     if (l->pos > 0 && l->pos < l->len) {
-        int aux = buf[l->pos - 1];
-        buf[l->pos - 1] = buf[l->pos];
-        buf[l->pos] = aux;
-        if (l->pos != l->len - 1) {
+        int aux = l->buf[l->pos - 1];
+        l->buf[l->pos - 1] = l->buf[l->pos];
+        l->buf[l->pos] = aux;
+        if (l->pos != l->len - 1)
             l->pos++;
-        }
         refreshLine(l);
     }
 }
 
 static int edit(struct State * l) {
-    char c;
-    int nread;
-    char seq[3];
+    char    c, seq[3];
+    ssize_t nread = read(STDIN_FILENO, &c, 1);
 
-    nread = read(STDIN_FILENO, &c ,1);
-    if (nread <= 0) return 1;
+    if (nread <= 0)
+        return 1;
 
     switch(c) {
-        case 13:                              return 1;  /* enter */
-        case 3: errno = EAGAIN;               return -1; /* ctrl-c */
-        case 127:                                        /* backspace */
-        case 8:  editBackspace(l);                break; /* ctrl-h */
-        case 2:  editMoveLeft(l);                 break; /* ctrl-b */
-        case 6:  editMoveRight(l);                break; /* ctrl-f */
-        case 1:  editMoveHome(l);                 break; /* Ctrl+a */
-        case 5:  editMoveEnd(l);                  break; /* ctrl+e */
-        case 23: editDeletePrevWord(l);           break; /* ctrl+w */
-        case 21: editDeleteWholeLine(l, l->buf);  break; /* Ctrl+u */
-        case 11: editDeleteLineToEnd(l, l->buf);  break; /* Ctrl+k */
-        case 20: editSwapCharWithPrev(l, l->buf); break; /* ctrl-t */
-        case 4:     /* ctrl-d, remove char at right of cursor, or if the
-                            line is empty, act as end-of-file. */
-            if (l->len > 0) {
-                editDelete(l);
+    case 13:                      return 1;  /* enter */
+    case 3: errno = EAGAIN;       return -1; /* ctrl-c */
+    case 127:                                /* backspace */
+    case 8:  editBackspace(l);        break; /* ctrl-h */
+    case 2:  editMoveLeft(l);         break; /* ctrl-b */
+    case 6:  editMoveRight(l);        break; /* ctrl-f */
+    case 1:  editMoveHome(l);         break; /* Ctrl+a */
+    case 5:  editMoveEnd(l);          break; /* ctrl+e */
+    case 23: editDeletePrevWord(l);   break; /* ctrl+w */
+    case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
+    case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
+    case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
+    case 4:                                  /* ctrl-d */
+        if (l->len > 0) {
+            editDelete(l);
+        } else {
+            return -1;
+        }
+        break;
+    case 27:    /* escape sequence */
+        if (read(STDIN_FILENO, seq, 1) == -1) break;
+        if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
+        if (seq[0] == '[') { /* ESC [ sequences. */
+            if (seq[1] >= '0' && seq[1] <= '9') {
+                /* Extended escape, read additional byte. */
+                if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
+                if (seq[2] == '~') {
+                    if (seq[1] == 3) editDelete(l);    /* Delete key. */
+                }
             } else {
-                return -1;
-            }
-            break;
-        case 27:    /* escape sequence */
-            if (read(STDIN_FILENO, seq, 1) == -1) break;
-            if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-            if (seq[0] == '[') { /* ESC [ sequences. */
-                if (seq[1] >= '0' && seq[1] <= '9') {
-                    /* Extended escape, read additional byte. */
-                    if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
-                    if (seq[2] == '~') {
-                        if (seq[1] == 3) editDelete(l);    /* Delete key. */
-                    }
-                } else {
-                    switch(seq[1]) {
-                        case 'C': editMoveRight(l); break; /* Right */
-                        case 'D': editMoveLeft(l);  break; /* Left */
-                        case 'H': editMoveHome(l);  break; /* Home */
-                        case 'F': editMoveEnd(l);   break; /* End*/
-                    }
-                }
-            }
-            else if (seq[0] == 'O') { /* ESC O sequences. */
                 switch(seq[1]) {
-                    case 'H': editMoveHome(l); break; /* Home */
-                    case 'F': editMoveEnd(l);  break; /* End*/
+                case 'C': editMoveRight(l); break; /* Right */
+                case 'D': editMoveLeft(l);  break; /* Left */
+                case 'H': editMoveHome(l);  break; /* Home */
+                case 'F': editMoveEnd(l);   break; /* End*/
                 }
             }
-            break;
-        default: if (editInsert(l, c)) return -1; break;
+        }
+        else if (seq[0] == 'O') { /* ESC O sequences. */
+            switch(seq[1]) {
+            case 'H': editMoveHome(l); break; /* Home */
+            case 'F': editMoveEnd(l);  break; /* End*/
+            }
+        }
+        break;
+    default: if (editInsert(l, c)) return -1; break;
     }
     return 0;
 }
@@ -495,8 +504,8 @@ static void paramPrintJoin(struct Param * p) {
 
 static char * ctime_now (char buf[26]) {
     struct tm tm_;
-    time_t now = time (NULL);
-    if (!asctime_r (localtime_r (&now, &tm_), buf))
+    time_t now = time(NULL);
+    if (!asctime_r(localtime_r (&now, &tm_), buf))
         return NULL;
     *strchr(buf, '\n') = '\0';
     return buf;
@@ -604,8 +613,8 @@ static size_t message_end = 0;
 
 static int handleServerMessage(void) {
     for (;;) {
-        ssize_t sl = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
-        if (sl == -1) {
+        ssize_t nread = read(conn, &message_buffer[message_end], MSG_MAX - message_end);
+        if (nread == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 return 0;
             } else {
@@ -613,14 +622,14 @@ static int handleServerMessage(void) {
                 return -2;
             }
         }
-        if (sl == 0) {
+        if (nread == 0) {
             fputs("\rconnection closed", stderr);
             puts("\r\x1b[E");
             return -1;
         }
 
         size_t i, old_message_end = message_end;
-        message_end += sl;
+        message_end += nread;
 
         for (i = old_message_end; i < message_end; ++i) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
@@ -638,38 +647,38 @@ static int handleServerMessage(void) {
     }
 }
 
-static void handleUserInput(char * usrin) {
-    if (usrin == NULL)
+static void handleUserInput(struct State * l) {
+    if (l->buf == NULL)
         return;
 
     char * tok;
-    size_t msg_len = strnlen(usrin, MSG_MAX);
+    size_t msg_len = strnlen(l->buf, MSG_MAX);
 
-    if (msg_len > 0 && usrin[msg_len - 1] == '\n')
-        usrin[msg_len - 1] = '\0';
+    if (msg_len > 0 && l->buf[msg_len - 1] == '\n')
+        l->buf[msg_len - 1] = '\0';
     printf("\r\x1b[0K");
-    switch (usrin[0]) {
-        case '/' : /* send system command */
-            if (usrin[1] == '#') {
-                strcpy(cdef, usrin + 2);
-                printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
-            } else {
-                raw("%s\r\n", usrin + 1);
-                printf("\x1b[35m%s\x1b[0m\r\n", usrin);
-            }
-            break;
-        case '@' : /* send private message to target channel or user */
-            strtok_r(usrin, " ", &tok);
-            if (usrin[1] == '@') {
-                raw("privmsg %s :\001ACTION %s\001\r\n", usrin + 2, tok);
-                printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", usrin + 2, tok);
-            } else {
-                raw("privmsg %s :%s\r\n", usrin + 1, tok);
-                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", usrin + 1, tok);
-            } break;
-        default  : /*  send private message to default channel */
-            raw("privmsg #%s :%s\r\n", cdef, usrin);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, usrin);
+    switch (l->buf[0]) {
+    case '/' : /* send system command */
+        if (l->buf[1] == '#') {
+            strcpy(cdef, l->buf + 2);
+            printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
+        } else {
+            raw("%s\r\n", l->buf + 1);
+            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        }
+        break;
+    case '@' : /* send private message to target channel or user */
+        strtok_r(l->buf, " ", &tok);
+        if (l->buf[1] == '@') {
+            raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
+            printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
+        } else {
+            raw("privmsg %s :%s\r\n", l->buf + 1, tok);
+            printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
+        } break;
+    default  : /*  send private message to default channel */
+        raw("privmsg #%s :%s\r\n", cdef, l->buf);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
     }
 }
 
@@ -689,20 +698,20 @@ int main(int argc, char **argv) {
 
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
-            case 'v' : version();     break;
-            case 'V' : ++verb;        break;
-            case 'e' : ++sasl;        break;
-            case 's' : host = optarg; break;
-            case 'p' : port = optarg; break;
-            case 'r' : real = optarg; break;
-            case 'u' : user = optarg; break;
-            case 'a' : auth = optarg; break;
-            case 'o' : olog = optarg; break;
-            case 'n' : nick = optarg; break;
-            case 'k' : pass = optarg; break;
-            case 'c' : chan = optarg; break;
-            case 'x' : inic = optarg; break;
-            case '?' : usage();       break;
+        case 'v' : version();     break;
+        case 'V' : ++verb;        break;
+        case 'e' : ++sasl;        break;
+        case 's' : host = optarg; break;
+        case 'p' : port = optarg; break;
+        case 'r' : real = optarg; break;
+        case 'u' : user = optarg; break;
+        case 'a' : auth = optarg; break;
+        case 'o' : olog = optarg; break;
+        case 'n' : nick = optarg; break;
+        case 'k' : pass = optarg; break;
+        case 'c' : chan = optarg; break;
+        case 'x' : inic = optarg; break;
+        case '?' : usage();       break;
         }
     }
 
@@ -736,23 +745,21 @@ int main(int argc, char **argv) {
     char usrin[MSG_MAX];
 
     struct State l;
-
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = cdef;
     stateReset(&l);
 
-    int editReturnFlag = 0;
+    int rc, editReturnFlag = 0;
 
-    if (enableRawMode(STDIN_FILENO) == -1) return -1;
+    if (enableRawMode(STDIN_FILENO) == -1)
+        return 1;
     for (;;) {
-        int poll_res = poll(fds, 2, -1);
-        if (poll_res != -1) {
+        if (poll(fds, 2, -1) != -1) {
             if (fds[0].revents & POLLIN) {
-                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
-                    handleUserInput(l.buf);
+                    handleUserInput(&l);
                     stateReset(&l);
                 } else if (editReturnFlag < 0) {
                    printf("\r\n");
@@ -761,8 +768,7 @@ int main(int argc, char **argv) {
                 refreshLine(&l);
             }
             if (fds[1].revents & POLLIN) {
-                l.cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-                int rc = handleServerMessage();
+                rc = handleServerMessage();
                 if (rc != 0) {
                     if (rc == -2)
                         return 1;
