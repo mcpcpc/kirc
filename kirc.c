@@ -13,7 +13,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION     "0.2.1"              /* version */
+#define VERSION     "0.2.2"              /* version */
 #define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
@@ -554,8 +554,10 @@ static void paramPrintChan(struct Param * p) {
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
-    if (p->params)
-	   printf(p->params); 
+    if (p->params) {
+       printf(p->params);
+       p->offset += strnlen(p->params, CHA_MAX);
+    }
 }
 
 static void rawParser(char * string) {
