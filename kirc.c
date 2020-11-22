@@ -554,8 +554,10 @@ static void paramPrintChan(struct Param * p) {
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
-    if (p->params)
-	   printf(p->params); 
+    if (p->params) {
+       printf(p->params);
+       p->offset += strnlen(p->params, CHA_MAX);
+    }
 }
 
 static void rawParser(char * string) {
