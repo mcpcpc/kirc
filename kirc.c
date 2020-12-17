@@ -365,7 +365,7 @@ static int edit(struct State * l) {
 }
 
 static void stateReset(struct State * l) {
-    l->plen = pstrlen(l->prompt);
+    l->plen = strlen(l->prompt);
     l->oldpos = 0;
     l->pos = 0;
     l->len = 0;
@@ -542,7 +542,7 @@ static void paramPrintChan(struct Param * p) {
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
     if (p->params) {
-       printf(p->params);
+       printf("%s", p->params);
        p->offset += strnlen(p->params, CHA_MAX);
     }
 }
