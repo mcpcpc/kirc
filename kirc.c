@@ -13,7 +13,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION     "0.2.2"              /* version */
+#define VERSION     "0.2.3"              /* version */
 #define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
