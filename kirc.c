@@ -381,7 +381,7 @@ static void logAppend(char * str, char * path) {
         exit(1);
     }
 
-    fprintf(out, "%s", str);
+    fputs(str, out);
     fclose(out);
 }
 
