@@ -162,22 +162,9 @@ static void abFree(struct abuf * ab) {
     free(ab->b);
 }
 
-static size_t pstrlen(const char * s) {
-    size_t len = 0, i = 0;
-    while (s[i] != '\0') {
-        if (s[i] == '\033') {
-            i = strpbrk(s + i, "m") - s + 1;
-            continue;
-        }
-        len++;
-        i++;
-    }
-    return len;
-}
-
 static void refreshLine(struct State * l) {
     char   seq[64];
-    size_t plen = pstrlen(l->prompt) + 2;
+    size_t plen = strlen(l->prompt) + 2;
     int    fd = STDOUT_FILENO;
     char * buf = l->buf;
     size_t len = l->len;
@@ -394,7 +381,7 @@ static void logAppend(char * str, char * path) {
         exit(1);
     }
 
-    fprintf(out, "%s\n", str);
+    fprintf(out, "%s", str);
     fclose(out);
 }
 
