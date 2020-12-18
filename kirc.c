@@ -373,15 +373,25 @@ static void stateReset(struct State * l) {
     l->buflen--; 
 }
 
+static char * ctime_now(char buf[26]) {
+    struct tm tm_;
+    time_t now = time(NULL);
+    if (!asctime_r(localtime_r (&now, &tm_), buf))
+        return NULL;
+    *strchr(buf, '\n') = '\0';
+    return buf;
+}
+
 static void logAppend(char * str, char * path) {
     FILE * out;
+    char buf[26];
 
     if ((out = fopen(path, "a")) == NULL) {
         perror("fopen");
         exit(1);
     }
-
-    fputs(str, out);
+    ctime_now(buf);
+    fprintf(out, "%s:%s", buf, str);
     fclose(out);
 }
 
@@ -487,15 +497,6 @@ static void paramPrintJoin(struct Param * p) {
     printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
-}
-
-static char * ctime_now (char buf[26]) {
-    struct tm tm_;
-    time_t now = time(NULL);
-    if (!asctime_r(localtime_r (&now, &tm_), buf))
-        return NULL;
-    *strchr(buf, '\n') = '\0';
-    return buf;
 }
 
 static void handleCTCP(const char * nickname, char * message) {
