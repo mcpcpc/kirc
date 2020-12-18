@@ -13,7 +13,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION     "0.2.2"              /* version */
+#define VERSION     "0.2.3"              /* version */
 #define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
@@ -162,22 +162,9 @@ static void abFree(struct abuf * ab) {
     free(ab->b);
 }
 
-static size_t pstrlen(const char * s) {
-    size_t len = 0, i = 0;
-    while (s[i] != '\0') {
-        if (s[i] == '\033') {
-            i = strpbrk(s + i, "m") - s + 1;
-            continue;
-        }
-        len++;
-        i++;
-    }
-    return len;
-}
-
 static void refreshLine(struct State * l) {
     char   seq[64];
-    size_t plen = pstrlen(l->prompt) + 2;
+    size_t plen = strlen(l->prompt) + 2;
     int    fd = STDOUT_FILENO;
     char * buf = l->buf;
     size_t len = l->len;
@@ -378,7 +365,7 @@ static int edit(struct State * l) {
 }
 
 static void stateReset(struct State * l) {
-    l->plen = pstrlen(l->prompt);
+    l->plen = strlen(l->prompt);
     l->oldpos = 0;
     l->pos = 0;
     l->len = 0;
@@ -386,15 +373,25 @@ static void stateReset(struct State * l) {
     l->buflen--; 
 }
 
+static char * ctime_now(char buf[26]) {
+    struct tm tm_;
+    time_t now = time(NULL);
+    if (!asctime_r(localtime_r (&now, &tm_), buf))
+        return NULL;
+    *strchr(buf, '\n') = '\0';
+    return buf;
+}
+
 static void logAppend(char * str, char * path) {
     FILE * out;
+    char buf[26];
 
     if ((out = fopen(path, "a")) == NULL) {
         perror("fopen");
         exit(1);
     }
-
-    fprintf(out, "%s\n", str);
+    ctime_now(buf);
+    fprintf(out, "%s:%s", buf, str);
     fclose(out);
 }
 
@@ -502,15 +499,6 @@ static void paramPrintJoin(struct Param * p) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static char * ctime_now (char buf[26]) {
-    struct tm tm_;
-    time_t now = time(NULL);
-    if (!asctime_r(localtime_r (&now, &tm_), buf))
-        return NULL;
-    *strchr(buf, '\n') = '\0';
-    return buf;
-}
-
 static void handleCTCP(const char * nickname, char * message) {
     if (message[0] != '\001' && strncmp(message, "ACTION", 6))
         return;
@@ -555,7 +543,7 @@ static void paramPrintChan(struct Param * p) {
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
     if (p->params) {
-       printf(p->params);
+       printf("%s", p->params);
        p->offset += strnlen(p->params, CHA_MAX);
     }
 }
