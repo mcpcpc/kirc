@@ -485,7 +485,7 @@ static void paramPrintNick(struct Param * p) {
 
 static void paramPrintPart(struct Param * p) {
     printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
-    if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
+    if (p->channel != NULL && strcmp(p->channel+1, cdef))
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
@@ -495,7 +495,7 @@ static void paramPrintQuit(struct Param * p) {
 
 static void paramPrintJoin(struct Param * p) {
     printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
-    if (p->channel != NULL && strstr(p->channel, cdef) == NULL)
+    if (p->channel != NULL && strcmp(p->channel+1, cdef))
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
