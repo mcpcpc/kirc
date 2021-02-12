@@ -21,6 +21,15 @@ socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
 kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
 ```
 
+## HTTP/HTTPS Proxy Support
+
+Similar to the TLS example, we can use third-party utilities, such as stunnel or socat, to connect to a proxy server.
+
+```shell
+socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 proxy:<proxyurl>:irc.freenode.org:6667;,proxyport=<proxyport>
+kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
+```
+
 ## SASL PLAIN Authentication
 
 In order to connect using `SASL PLAIN` mechanism authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways. For example, using Python, one could use the following:
