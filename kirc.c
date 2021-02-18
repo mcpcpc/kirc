@@ -674,7 +674,7 @@ static void handleUserInput(struct State * l) {
 
 static void usage(void) {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
-[-u username] [-k password] [-a token] [-x command] [-o path] [-e|v|V]\n", stderr);
+[-u username] [-k password] [-a token] [-x command] [-o path] [-e] [-v] [-V]\n", stderr);
     exit(2);
 }
 
