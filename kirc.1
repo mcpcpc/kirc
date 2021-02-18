@@ -32,7 +32,7 @@ Specifies the channel(s) to JOIN (delimited by "," or "|")
 .BI \-n " nick"
 Specifies the NICK connection nickname
 .TP
-.BI \-u " real"
+.BI \-r " real"
 Specifies the users real name
 .TP
 .BI \-u " user"
@@ -52,6 +52,10 @@ Specifies SASL EXTERNAL mechanism
 .TP
 .BI \-v
 Prints the version information to stderr, then exits
+.TP
+.BI \-V
+Increases verbosity. Causes raw IRC messages to be printed when sent or
+received.
 .SH COMMANDS
 .TP
 .BI /<command>
@@ -63,8 +67,21 @@ Set default message channel to <channel>
 .BI <message>
 Send PRIVMSG to default message channel with <message> as the content
 .TP
-.BI @<channel|nick>
-Send PRIVMSG to specified <channel> or <nick>
+.BI @<channel|nick> " <message>"
+Send
+.I <message>
+to specified
+.I <channel>
+or
+.I <nick>
+.TP
+.BI @@<channel|nick>
+Send CTCP ACTION containing
+.I <message>
+to specified
+.I <channel>
+or
+.I <nick>
 .SH AUTHOR
 Michael Czigler <michaelczigler at icloud dot com>
 .SH BUGS
