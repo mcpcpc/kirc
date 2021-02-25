@@ -1,5 +1,25 @@
 #include <unistd.h>
 
+static size_t strlen_c(char * str) {
+    size_t n = 0;
+    char * p = str;
+    while ((* (p++)) != 0) {
+        ++n;
+    }
+    return n;
+}
+
+static int strcmp_c(char * str1, char * str2) {
+    char * c1 = str1;
+    char * c2 = str2;
+    while ((* c1) && ((* c1) == (* c2))) {
+        ++c1;
+        ++c2;
+    }
+    int n = (* c1) - (* c2);
+    return n;
+}
+
 static void abInit(struct abuf * ab) {
     ab->b = NULL;
     ab->len = 0;
