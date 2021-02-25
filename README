@@ -3,6 +3,15 @@ kirc
 
 A tiny IRC client written in POSIX C99. 
 
+Usage
+-----
+
+Consult `man kirc` for a complete explanation and list of arguments.
+
+    kirc [-s hostname] [-p port] [-c channels] [-n nickname] 
+         [-r realname] [-u username] [-k password] [-a token] 
+         [-x command] [-o logfile] [-e|v|V]
+
 Installation
 ------------
 
@@ -12,15 +21,6 @@ Build and install from source:
     cd kirc
     make
     make install
-
-Usage
------
-
-Consult `man kirc` for a complete explanation and list of arguments
-
-    kirc [-s hostname] [-p port] [-c channels] [-n nickname] 
-         [-r realname] [-u username] [-k password] [-a token] 
-         [-x command] [-o logfile] [-e|v|V]
 
 Support Documentation
 ---------------------
@@ -35,6 +35,6 @@ Contact
 
 For any further questions or concerns, feel free to reach out to me:
 
-*    github: <https://github.com/mcpcpc>
+*    github: https://github.com/mcpcpc
 *    email: info [at] mcpcpc [dot] com
 *    irc: `#kirc` Freenode IRC channel.
