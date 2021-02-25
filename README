@@ -1,28 +1,14 @@
 kirc
 ====
 
-A tiny IRC client written in POSIX C99.
-
-Features
---------
-
-*   Excellent cross-platform compatibility.
-*   Asynchronous user input and server messager handling.
-*   No dependencies other than a C99 compiler.
-*   Simple Authentication and Security Layer (SASL) procotol support.
-*   Client-to-client protocol (CTCP) support.
-*   Transport Layer Security (TLS) protocol support (via external utilities).
-*   Full chat history logging.
-*   Multi-channel joining at server connection.
-*   Simple command aliases and full support for all RFC 2812 commands.
-*   Easy color scheme definition via ANSI 8-bit colors.
+A tiny IRC client written in POSIX C99. 
 
 Installation
 ------------
 
 Build and install from source:
     
-    git clone https://github.com/mcpcpc/kirc.git
+    git clone https://github.com/mcpcpc/kirc
     cd kirc
     make
     make install
@@ -30,17 +16,25 @@ Build and install from source:
 Usage
 -----
 
-Consult `man kirc` for a full list and explanation of available `kirc` arguments.
+Consult `man kirc` for a complete explanation and list of arguments
 
-    kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-o logfile] [-e|v|V]
+    kirc [-s hostname] [-p port] [-c channels] [-n nickname] 
+         [-r realname] [-u username] [-k password] [-a token] 
+         [-x command] [-o logfile] [-e|v|V]
 
 Support Documentation
 ---------------------
 
-Please refer to the official [Support Documention](https://mcpcpc.github.io/kirc/documentation.html) for examples, troubleshooting and use cases.
+Please refer to the official Support Documention [0] for examples, 
+troubleshooting and use cases.
+    
+    https://mcpcpc.github.io/kirc/documentation.html
 
 Contact
 -------
 
-For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
-or `#kisslinux` Freenode IRC channels.
+For any further questions or concerns, feel free to reach out to me:
+
+*    github: <https://github.com/mcpcpc>
+*    email: info [at] mcpcpc [dot] com
+*    irc: `#kirc` Freebnode IRC channel.
