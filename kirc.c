@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include "kirc.h"
 
 static size_t strlen_c(char * str) {
     size_t n = 0;
