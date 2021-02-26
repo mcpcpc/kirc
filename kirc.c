@@ -16,8 +16,9 @@ static int die(char * errstr) {
 }
 
 static void disableRawMode() {
-	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig) == -1)
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig) == -1) {
 		die("tcsetattr() failed\n");
+	}
 }
 
 static int enableRawMode() {
@@ -27,15 +28,15 @@ static int enableRawMode() {
 	}
 	if (ret == 0) {
 	    atexit(disableRawMode);
-    	struct termios raw = E.orig;
-    	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-    	raw.c_oflag &= ~(OPOST);
-    	raw.c_cflag |= (CS8);
-    	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    	raw.c_cc[VMIN] = 0;
-    	raw.c_cc[VTIME] = 1;
+        	struct termios raw = E.orig;
+        	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+        	raw.c_oflag &= ~(OPOST);
+        	raw.c_cflag |= (CS8);
+        	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+        	raw.c_cc[VMIN] = 0;
+        	raw.c_cc[VTIME] = 1;
 	}
-	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
+	if ((ret == 0) && (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)) {
 	    ret = die("tcsetattr() failed\n");
 	}
 	return ret;
@@ -80,35 +81,35 @@ static void abFree(struct abuf * ab) {
     free(ab->b);
 }
 
-static void editMoveLeft(struct State * l) {
+static void moveLeft(struct State * l) {
     if (l->pos > 0) {
         l->pos--;
         refreshLine(l);
     }
 }
 
-static void editMoveRight(struct State * l) {
+static void moveRight(struct State * l) {
     if (l->pos != l->len) {
         l->pos++;
         refreshLine(l);
     }
 }
 
-static void editMoveHome(struct State * l) {
+static void moveHome(struct State * l) {
     if (l->pos != 0) {
         l->pos = 0;
         refreshLine(l);
     }
 }
 
-static void editMoveEnd(struct State * l) {
+static void moveEnd(struct State * l) {
     if (l->pos != l->len) {
         l->pos = l->len;
         refreshLine(l);
     }
 }
 
-static void editDelete(struct State * l) {
+static void delete(struct State * l) {
     if (l->len > 0 && l->pos < l->len) {
         memmove(l->buf + l->pos, l->buf + l->pos + 1, l->len - l->pos - 1);
         l->len--;
@@ -117,7 +118,7 @@ static void editDelete(struct State * l) {
     }
 }
 
-static void editBackspace(struct State * l) {
+static void backspace(struct State * l) {
     if (l->pos > 0 && l->len > 0) {
         memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
         l->pos--;
@@ -127,7 +128,7 @@ static void editBackspace(struct State * l) {
     }
 }
 
-static void editDeletePrevWord(struct State * l) {
+static void deletePrevWord(struct State * l) {
     size_t old_pos = l->pos;
     while (l->pos > 0 && l->buf[l->pos - 1] == ' ') {
         l->pos--;
@@ -141,19 +142,19 @@ static void editDeletePrevWord(struct State * l) {
     refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State * l) {
+static void deleteWholeLine(struct State * l) {
     l->buf[0] = '\0';
     l->pos = l->len = 0;
     refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State * l) {
+static void deleteLineToEnd(struct State * l) {
     l->buf[l->pos] = '\0';
     l->len = l->pos;
     refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State * l) {
+static void swapCharWithPrev(struct State * l) {
     if (l->pos > 0 && l->pos < l->len) {
         int aux = l->buf[l->pos - 1];
         l->buf[l->pos - 1] = l->buf[l->pos];
