@@ -17,24 +17,26 @@ static int die(char * errstr) {
 
 static void disableRawMode() {
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig) == -1)
-		die("tcsetattr");
+		die("tcsetattr() failed\n");
 }
 
 static int enableRawMode() {
     int ret  = 0;
 	if (tcgetattr(STDIN_FILENO, &E.orig) == -1) {
-	    ret = die("tcgetattr");
+	    ret = die("tcgetattr() failed\n");
 	}
-	atexit(disableRawMode);
-	struct termios raw = E.orig;
-	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-	raw.c_oflag &= ~(OPOST);
-	raw.c_cflag |= (CS8);
-	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-	raw.c_cc[VMIN] = 0;
-	raw.c_cc[VTIME] = 1;
+	if (ret == 0) {
+	    atexit(disableRawMode);
+    	struct termios raw = E.orig;
+    	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    	raw.c_oflag &= ~(OPOST);
+    	raw.c_cflag |= (CS8);
+    	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    	raw.c_cc[VMIN] = 0;
+    	raw.c_cc[VTIME] = 1;
+	}
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
-	    ret = die("tcsetattr");
+	    ret = die("tcsetattr() failed\n");
 	}
 	return ret;
 }
