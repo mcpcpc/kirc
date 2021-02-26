@@ -1,6 +1,44 @@
 #include <unistd.h>
 #include "kirc.h"
 
+static int die(char * errstr) {
+    size_t n = 0;
+    char * p = errstr;
+    while ((* (p++)) != 0) {
+        ++n;
+    }
+    ssize_t o = write(STDERR_FILENO, errstr, n);
+    int ret = 1;
+    if (o < 0) {
+        ret = -1;
+    }
+    return ret;
+}
+
+static void disableRawMode() {
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig) == -1)
+		die("tcsetattr");
+}
+
+static int enableRawMode() {
+    int ret  = 0;
+	if (tcgetattr(STDIN_FILENO, &E.orig) == -1) {
+	    ret = die("tcgetattr");
+	}
+	atexit(disableRawMode);
+	struct termios raw = E.orig;
+	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+	raw.c_oflag &= ~(OPOST);
+	raw.c_cflag |= (CS8);
+	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+	raw.c_cc[VMIN] = 0;
+	raw.c_cc[VTIME] = 1;
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
+	    ret = die("tcsetattr");
+	}
+	return ret;
+}
+
 static size_t strlen_c(char * str) {
     size_t n = 0;
     char * p = str;
