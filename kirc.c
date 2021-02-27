@@ -45,7 +45,9 @@ static int enableRawMode() {
 int cursorPosition(int *rows, int *cols) {
 	char buf[32];
 	unsigned int i = 0;
-	if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) return -1;
+	if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) {
+		return -1;
+	}
 	while (i < sizeof(buf) - 1) {
 		if (read(STDIN_FILENO, &buf[i], 1) != 1) {
 			break;
@@ -219,3 +221,22 @@ static void refreshScreen() {
 	abFree(&ab);
 }
 
+int main(int argc, *argv[]) {
+	int ret = 0;
+	
+	struct pollfd fds[2];
+	fds[0].fd = STDIN_FILENO;
+	fds[1].fd = conn;
+	fds[0].events = POLLIN;
+	fds[1].events = POLLIN;
+	
+	while (ret == 0) {
+	    if (poll(fds, 2, -1) != -1) {
+	    		If (fds[0].revents & POLLIN) {
+	    		}
+	    		if (fds[1].revents & POLLIN) {
+	    		}
+	    }
+	}
+	return ret;
+}
