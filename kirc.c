@@ -42,6 +42,44 @@ static int enableRawMode() {
 	return ret;
 }
 
+int cursorPosition(int *rows, int *cols) {
+	char buf[32];
+	unsigned int i = 0;
+	if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) return -1;
+	while (i < sizeof(buf) - 1) {
+		if (read(STDIN_FILENO, &buf[i], 1) != 1) {
+			break;
+		}
+		if (buf[i] == 'R') {
+			break;
+		}
+		i++;
+	}
+	buf[i] = '\0';
+	if (buf[0] != '\x1b' || buf[1] != '[') {
+		return -1;
+	}
+	if (sscanf(&buf[2], "%d;%d", rows, cols) != 2) {
+		return -1;
+	}
+	return 0;
+}
+
+static int windowSize(int *rows, int *cols) {
+	struct winsize ws;
+	int ret = 0;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+		if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) {
+		    return -1;
+		}
+		ret = getCursorPosition(rows, cols);
+	} else {
+		*cols = ws.ws_col;
+		*rows = ws.ws_row;
+	}
+	return ret;
+}
+
 static size_t strlen_c(char * str) {
     size_t n = 0;
     char * p = str;
@@ -165,3 +203,19 @@ static void swapCharWithPrev(struct State * l) {
         refreshLine(l);
     }
 }
+
+static void refreshScreen() {
+	scroll();
+	struct abuf ab = ABUF_INIT;
+	abAppend(&ab, "\x1b[?25l", 6);
+	abAppend(&ab, "\x1b[H", 3);
+	drawRows(&ab);
+	drawMessageBar(&ab);
+	char buf[32];
+	snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1, (E.rx - E.coloff) + 1);
+	abAppend(&ab, buf, strlen(buf));
+	abAppend(&ab, "\x1b[?25h", 6);
+	write(STDOUT_FILENO, ab.b, ab.len);
+	abFree(&ab);
+}
+
