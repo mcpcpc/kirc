@@ -215,24 +215,82 @@ static void refreshScreen() {
 	drawMessageBar(&ab);
 	char buf[32];
 	snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1, (E.rx - E.coloff) + 1);
-	abAppend(&ab, buf, strlen(buf));
+	abAppend(&ab, buf, strlen_c(buf));
 	abAppend(&ab, "\x1b[?25h", 6);
 	write(STDOUT_FILENO, ab.b, ab.len);
 	abFree(&ab);
 }
 
-int main(int argc, *argv[]) {
+static int edit(struct State * l) {
+    char    c, seq[3];
+    ssize_t nread = read(STDIN_FILENO, &c, 1);
+
+    if (nread <= 0)
+        return 1;
+
+    switch(c) {
+    case 13:                      return 1;  /* enter */
+    case 3: errno = EAGAIN;       return -1; /* ctrl-c */
+    case 127:                                /* backspace */
+    case 8:  backspace(l);        break; /* ctrl-h */
+    case 2:  moveLeft(l);         break; /* ctrl-b */
+    case 6:  moveRight(l);        break; /* ctrl-f */
+    case 1:  moveHome(l);         break; /* Ctrl+a */
+    case 5:  moveEnd(l);          break; /* ctrl+e */
+    case 23: deletePrevWord(l);   break; /* ctrl+w */
+    case 21: deleteWholeLine(l);  break; /* Ctrl+u */
+    case 11: deleteLineToEnd(l);  break; /* Ctrl+k */
+    case 20: swapCharWithPrev(l); break; /* ctrl-t */
+    case 4:                                  /* ctrl-d */
+        if (l->len > 0) {
+            editDelete(l);
+        } else {
+            return -1;
+        }
+        break;
+    case 27:    /* escape sequence */
+        if (read(STDIN_FILENO, seq, 1) == -1) break;
+        if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
+        if (seq[0] == '[') { /* ESC [ sequences. */
+            if (seq[1] >= '0' && seq[1] <= '9') {
+                /* Extended escape, read additional byte. */
+                if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
+                if (seq[2] == '~') {
+                    if (seq[1] == 3) delete(l);    /* Delete key. */
+                }
+            } else {
+                switch(seq[1]) {
+                case 'C': moveRight(l); break; /* Right */
+                case 'D': moveLeft(l);  break; /* Left */
+                case 'H': moveHome(l);  break; /* Home */
+                case 'F': moveEnd(l);   break; /* End*/
+                }
+            }
+        }
+        else if (seq[0] == 'O') { /* ESC O sequences. */
+            switch(seq[1]) {
+            case 'H': moveHome(l); break; /* Home */
+            case 'F': moveEnd(l);  break; /* End*/
+            }
+        }
+        break;
+    default: if (editInsert(l, c)) return -1; break;
+    }
+    return 0;
+}
+
+int main(int argc, char *argv[]) {
 	int ret = 0;
-	
+
 	struct pollfd fds[2];
 	fds[0].fd = STDIN_FILENO;
 	fds[1].fd = conn;
 	fds[0].events = POLLIN;
 	fds[1].events = POLLIN;
-	
+
 	while (ret == 0) {
 	    if (poll(fds, 2, -1) != -1) {
-	    		If (fds[0].revents & POLLIN) {
+	    		if (fds[0].revents & POLLIN) {
 	    		}
 	    		if (fds[1].revents & POLLIN) {
 	    		}
