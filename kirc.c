@@ -148,12 +148,12 @@ static void *memset_c(void *s, int c, size_t n) {
 	return s;
 }
 
-static void abInit(struct abuf * ab) {
+static void abInit(struct abuf *ab) {
 	ab->b = NULL;
 	ab->len = 0;
 }
 
-static void abAppend(struct abuf * ab, const char * s, int len) {
+static void abAppend(struct abuf *ab, char *s, int len) {
 	char * new = realloc(ab->b, ab->len + len);
 	if (new == NULL) {
 		return;
@@ -279,13 +279,13 @@ static void swapCharWithPrev(struct State * l) {
 }
 
 static void refreshScreen() {
-	scroll();
+	//scroll();
 	struct abuf ab;
 	abInit(&ab);
 	abAppend(&ab, "\x1b[?25l", 6);
 	abAppend(&ab, "\x1b[H", 3);
-	drawRows(&ab);
-	drawMessageBar(&ab);
+	//drawRows(&ab);
+	//drawMessageBar(&ab);
 	char buf[32];
 	snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1, (E.rx - E.coloff) + 1);
 	abAppend(&ab, buf, strlen_c(buf));
@@ -294,13 +294,44 @@ static void refreshScreen() {
 	abFree(&ab);
 }
 
+static void escapeSequence(struct State * l, char seq[3]) {
+	if (read(STDIN_FILENO, seq, 1) == -1) {
+		return;
+	}
+	if (read(STDIN_FILENO, seq + 1, 1) == -1) {
+		return;
+	}
+	if (seq[0] == '[') { /* ESC [ sequences. */
+		if (seq[1] >= '0' && seq[1] <= '9') {
+			/* Extended escape, read additional byte. */
+			if (read(STDIN_FILENO, seq + 2, 1) == -1) {
+				return;
+			}
+			if (seq[2] == '~') {
+				if (seq[1] == 3) delete(l);	/* Delete key. */
+			}
+		} else {
+			switch(seq[1]) {
+				case 'C': moveRight(l); break; /* Right */
+				case 'D': moveLeft(l);  break; /* Left */
+				case 'H': moveHome(l);  break; /* Home */
+				case 'F': moveEnd(l);   break; /* End*/
+			}
+		}
+	} else if (seq[0] == 'O') { /* ESC O sequences. */
+		switch(seq[1]) {
+			case 'H': moveHome(l); break; /* Home */
+			case 'F': moveEnd(l);  break; /* End*/
+		}
+	}
+}
+
 static int edit(struct State * l) {
 	char	c, seq[3];
 	ssize_t nread = read(STDIN_FILENO, &c, 1);
-
-	if (nread <= 0)
+	if (nread <= 0) {
 		return 1;
-
+	}
 	switch(c) {
 	case 13:					  return 1;  /* enter */
 	case 3: errno = EAGAIN;	   return -1; /* ctrl-c */
@@ -321,32 +352,7 @@ static int edit(struct State * l) {
 			return -1;
 		}
 		break;
-	case 27:	/* escape sequence */
-		if (read(STDIN_FILENO, seq, 1) == -1) break;
-		if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-		if (seq[0] == '[') { /* ESC [ sequences. */
-			if (seq[1] >= '0' && seq[1] <= '9') {
-				/* Extended escape, read additional byte. */
-				if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
-				if (seq[2] == '~') {
-					if (seq[1] == 3) delete(l);	/* Delete key. */
-				}
-			} else {
-				switch(seq[1]) {
-				case 'C': moveRight(l); break; /* Right */
-				case 'D': moveLeft(l);  break; /* Left */
-				case 'H': moveHome(l);  break; /* Home */
-				case 'F': moveEnd(l);   break; /* End*/
-				}
-			}
-		}
-		else if (seq[0] == 'O') { /* ESC O sequences. */
-			switch(seq[1]) {
-			case 'H': moveHome(l); break; /* Home */
-			case 'F': moveEnd(l);  break; /* End*/
-			}
-		}
-		break;
+	case 27: escapeSequence(l, seq); break; /* escape sequence */
 	default: if (insert(l, c)) return -1; break;
 	}
 	return 0;
@@ -400,13 +406,23 @@ int main(int argc, char *argv[]) {
 	fds[1].fd = sock;
 	fds[0].events = POLLIN;
 	fds[1].events = POLLIN;
+	char usrin[MSG_MAX];
+	struct State l;
+	l.buf = usrin;
+	l.buflen = MSG_MAX;
+	l.prompt = cdef;
+	stateReset(&l);
 	while (ret == 0) {
 		if (poll(fds, 2, -1) != -1) {
 				if (fds[0].revents & POLLIN) {
 				}
 				if (fds[1].revents & POLLIN) {
 				}
-		}
+		} else {
+			if (errno == EAGAIN) {
+				continue;
+			}
+		ret = 1;
 	}
 	return ret;
 }

@@ -1,3 +1,5 @@
+#define MSG_MAX 512
+
 struct abuf {
     char * b;
     int    len;
