@@ -1,0 +1,78 @@
+kirc.c: In function 'disableRawMode':
+kirc.c:27:42: error: 'E' undeclared (first use in this function)
+   27 |  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig) == -1) {
+      |                                          ^
+kirc.c:27:42: note: each undeclared identifier is reported only once for each function it appears in
+kirc.c: In function 'enableRawMode':
+kirc.c:34:31: error: 'E' undeclared (first use in this function)
+   34 |  if (tcgetattr(STDIN_FILENO, &E.orig) == -1) {
+      |                               ^
+kirc.c:47:57: error: 'raw' undeclared (first use in this function)
+   47 |  if ((ret == 0) && (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)) {
+      |                                                         ^~~
+kirc.c: In function 'cursorPosition':
+kirc.c:72:6: warning: implicit declaration of function 'sscanf' [-Wimplicit-function-declaration]
+   72 |  if (sscanf(&buf[2], "%d;%d", rows, cols) != 2) {
+      |      ^~~~~~
+kirc.c:72:6: warning: incompatible implicit declaration of built-in function 'sscanf'
+kirc.c:11:1: note: include '<stdio.h>' or provide a declaration of 'sscanf'
+   10 | #include "kirc.h"
+  +++ |+#include <stdio.h>
+   11 | 
+kirc.c: In function 'abAppend':
+kirc.c:161:26: warning: passing argument 2 of 'memcpy_c' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  161 |  memcpy_c(new + ab->len, s, len);
+      |                          ^
+kirc.c:113:40: note: expected 'void *' but argument is of type 'const char *'
+  113 | static void memcpy_c(void *dest, void *src, size_t n) {
+      |                                  ~~~~~~^~~
+kirc.c: In function 'insert':
+kirc.c:182:5: warning: implicit declaration of function 'refreshLine' [-Wimplicit-function-declaration]
+  182 |     refreshLine(l);
+      |     ^~~~~~~~~~~
+kirc.c: In function 'refreshScreen':
+kirc.c:282:2: warning: implicit declaration of function 'scroll'; did you mean 'strtoll'? [-Wimplicit-function-declaration]
+  282 |  scroll();
+      |  ^~~~~~
+      |  strtoll
+kirc.c:287:2: warning: implicit declaration of function 'drawRows' [-Wimplicit-function-declaration]
+  287 |  drawRows(&ab);
+      |  ^~~~~~~~
+kirc.c:288:2: warning: implicit declaration of function 'drawMessageBar' [-Wimplicit-function-declaration]
+  288 |  drawMessageBar(&ab);
+      |  ^~~~~~~~~~~~~~
+kirc.c:290:2: warning: implicit declaration of function 'snprintf' [-Wimplicit-function-declaration]
+  290 |  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1, (E.rx - E.coloff) + 1);
+      |  ^~~~~~~~
+kirc.c:290:2: warning: incompatible implicit declaration of built-in function 'snprintf'
+kirc.c:290:2: note: include '<stdio.h>' or provide a declaration of 'snprintf'
+kirc.c:290:45: error: 'E' undeclared (first use in this function)
+  290 |  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1, (E.rx - E.coloff) + 1);
+      |                                             ^
+kirc.c: In function 'main':
+kirc.c:395:14: warning: unused parameter 'argc' [-Wunused-parameter]
+  395 | int main(int argc, char *argv[]) {
+      |          ~~~~^~~~
+kirc.c:395:26: warning: unused parameter 'argv' [-Wunused-parameter]
+  395 | int main(int argc, char *argv[]) {
+      |                    ~~~~~~^~~~~~
+At top level:
+kirc.c:355:13: warning: 'stateReset' defined but not used [-Wunused-function]
+  355 | static void stateReset(struct State * l) {
+      |             ^~~~~~~~~~
+kirc.c:297:12: warning: 'edit' defined but not used [-Wunused-function]
+  297 | static int edit(struct State * l) {
+      |            ^~~~
+kirc.c:281:13: warning: 'refreshScreen' defined but not used [-Wunused-function]
+  281 | static void refreshScreen() {
+      |             ^~~~~~~~~~~~~
+kirc.c:102:12: warning: 'strcmp_c' defined but not used [-Wunused-function]
+  102 | static int strcmp_c(char * str1, char * str2) {
+      |            ^~~~~~~~
+kirc.c:78:12: warning: 'windowSize' defined but not used [-Wunused-function]
+   78 | static int windowSize(int *rows, int *cols) {
+      |            ^~~~~~~~~~
+kirc.c:32:12: warning: 'enableRawMode' defined but not used [-Wunused-function]
+   32 | static int enableRawMode() {
+      |            ^~~~~~~~~~~~~
+make: *** [Makefile:21: kirc.o] Error 1
