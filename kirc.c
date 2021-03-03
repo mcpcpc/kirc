@@ -554,7 +554,7 @@ static void rawParser(char * string) {
         raw("%s\r\n", string);
         return;
     }
-    if (string[0] != ':')
+    if (string[0] != ':' || (strnlen(string, MSG_MAX) < 4))
         return;
     printf("\r\x1b[0K");
     if (verb)
