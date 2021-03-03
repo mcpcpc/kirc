@@ -82,19 +82,16 @@ static int enableRawMode(int fd) {
     }
     if (tcgetattr(fd,&orig) == -1)
         goto fatal;
-
     struct termios raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
     raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0;
-
     if (tcsetattr(fd,TCSAFLUSH,&raw) < 0)
         goto fatal;
     rawmode = 1;
     return 0;
-
 fatal:
     errno = ENOTTY;
     return -1;
@@ -123,7 +120,6 @@ static int getCursorPosition(int ifd, int ofd) {
 
 static int getColumns(int ifd, int ofd) {
     struct winsize ws;
-
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         int start = getCursorPosition(ifd, ofd);
         if (start == -1)
@@ -170,9 +166,7 @@ static void refreshLine(struct State * l) {
     size_t len = l->len;
     size_t pos = l->pos;
     struct abuf ab;
-
     l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-
     while (plen + pos >= l->cols) {
         buf++;
         len--;
@@ -271,12 +265,10 @@ static void editBackspace(struct State * l) {
 
 static void editDeletePrevWord(struct State * l) {
     size_t old_pos = l->pos;
-
     while (l->pos > 0 && l->buf[l->pos - 1] == ' ')
         l->pos--;
     while (l->pos > 0 && l->buf[l->pos - 1] != ' ')
         l->pos--;
-
     size_t diff = old_pos - l->pos;
     memmove(l->buf+l->pos,l->buf+old_pos,l->len-old_pos+1);
     l->len -= diff;
@@ -309,10 +301,8 @@ static void editSwapCharWithPrev(struct State * l) {
 static int edit(struct State * l) {
     char    c, seq[3];
     ssize_t nread = read(STDIN_FILENO, &c, 1);
-
     if (nread <= 0)
         return 1;
-
     switch(c) {
     case 13:                      return 1;  /* enter */
     case 3: errno = EAGAIN;       return -1; /* ctrl-c */
@@ -385,7 +375,6 @@ static char * ctime_now(char buf[26]) {
 static void logAppend(char * str, char * path) {
     FILE * out;
     char buf[26];
-
     if ((out = fopen(path, "a")) == NULL) {
         perror("fopen");
         exit(1);
@@ -398,16 +387,13 @@ static void logAppend(char * str, char * path) {
 static void raw(char * fmt, ...) {
     va_list ap;
     char *cmd_str = malloc(MSG_MAX);
-
     if (!cmd_str) {
         perror("malloc");
         exit(1);
     }
-
     va_start(ap, fmt);
     vsnprintf(cmd_str, MSG_MAX, fmt, ap);
     va_end(ap);
-
     if (verb)
         printf("<< %s", cmd_str);
     if (olog)
@@ -416,7 +402,6 @@ static void raw(char * fmt, ...) {
         perror("write");
         exit(1);
     }
-
     free(cmd_str);
 }
 
@@ -426,12 +411,10 @@ static int initConnection(void) {
         .ai_family = AF_UNSPEC,
         .ai_socktype = SOCK_STREAM
     };
-
     if ((gai_status = getaddrinfo(host, port, &hints, &res)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_status));
         return -1;
     }
-
     struct addrinfo *p;
     for (p = res; p != NULL; p = p->ai_next) {
         if ((conn = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
@@ -445,14 +428,11 @@ static int initConnection(void) {
         }
         break;
     }
-
     freeaddrinfo(res);
-
     if (p == NULL) {
         fputs("Failed to connect\n", stderr);
         return -1;
     }
-
     int flags = fcntl(conn, F_GETFL, 0);
     flags |= O_NONBLOCK;
     fcntl(conn, F_SETFL, flags);
@@ -561,7 +541,6 @@ static void rawParser(char * string) {
         printf(">> %s", string);
     if (olog)
         logAppend(string, olog);
-
     char * tok;
     struct Param p;
     p.prefix =   strtok(string, " ") + 1;
@@ -574,7 +553,6 @@ static void rawParser(char * string) {
     p.maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
     p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
     p.offset = 0;
-
     if (!strncmp(p.command, "001", 3) && chan != NULL) {
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(cdef, tok);
@@ -617,10 +595,8 @@ static int handleServerMessage(void) {
             puts("\r\x1b[E");
             return -1;
         }
-
         size_t i, old_message_end = message_end;
         message_end += nread;
-
         for (i = old_message_end; i < message_end; ++i) {
             if (i != 0 && message_buffer[i - 1] == '\r' && message_buffer[i] == '\n') {
                 char saved_char = message_buffer[i + 1];
@@ -640,10 +616,8 @@ static int handleServerMessage(void) {
 static void handleUserInput(struct State * l) {
     if (l->buf == NULL)
         return;
-
     char * tok;
     size_t msg_len = strnlen(l->buf, MSG_MAX);
-
     if (msg_len > 0 && l->buf[msg_len - 1] == '\n')
         l->buf[msg_len - 1] = '\0';
     printf("\r\x1b[0K");
@@ -685,7 +659,6 @@ static void version(void) {
 
 int main(int argc, char **argv) {
     int cval;
-
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
         switch (cval) {
         case 'v' : version();     break;
@@ -704,15 +677,12 @@ int main(int argc, char **argv) {
         case '?' : usage();       break;
         }
     }
-
     if (!nick) {
         fputs("Nick not specified\n", stderr);
         usage();
     }
-
     if (initConnection() != 0)
         return 1;
-
     if (auth || sasl)
         raw("CAP REQ :sasl\r\n");
     raw("NICK %s\r\n", nick);
@@ -725,23 +695,18 @@ int main(int argc, char **argv) {
         raw("PASS %s\r\n", pass);
     if (inic)
         raw("%s\r\n", inic);
-
     struct pollfd fds[2];
     fds[0].fd = STDIN_FILENO;
     fds[1].fd = conn;
     fds[0].events = POLLIN;
     fds[1].events = POLLIN;
-
     char usrin[MSG_MAX];
-
     struct State l;
     l.buf = usrin;
     l.buflen = MSG_MAX;
     l.prompt = cdef;
     stateReset(&l);
-
     int rc, editReturnFlag = 0;
-
     if (enableRawMode(STDIN_FILENO) == -1)
         return 1;
     for (;;) {
