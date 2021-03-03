@@ -14,7 +14,6 @@
 #include <sys/ioctl.h>
 
 #define VERSION     "0.2.4"              /* version */
-#define AUTHORS     "Michael Czigler"    /* authors */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
 #define NIC_MAX      26                  /* max nickname length */
@@ -653,7 +652,7 @@ static void usage(void) {
 }
 
 static void version(void) {
-    fputs("kirc-" VERSION " © 2020 " AUTHORS "\n", stdout);
+    fputs("kirc-" VERSION "Copyright © 2021 Michael Czigler, MIT License\n", stdout);
     exit(0);
 }
 
