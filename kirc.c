@@ -20,44 +20,44 @@
 #define CTCP_CMDS   "ACTION VERSION TIME CLIENTINFO PING"
 #define HBUFFER      100
 
-static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
-static int    conn;                      /* connection socket */
-static int    verb = 0;                  /* verbose output */
-static int    sasl = 0;                  /* SASL method */
-static char * host = "irc.freenode.net"; /* host address */
-static char * port = "6667";             /* port */
-static char * chan = NULL;               /* channel(s) */
-static char * nick = NULL;               /* nickname */
-static char * pass = NULL;               /* password */
-static char * user = NULL;               /* user name */
-static char * auth = NULL;               /* PLAIN SASL token */
-static char * real = NULL;               /* real name */
-static char * olog = NULL;               /* chat log path*/
-static char * inic = NULL;               /* additional server command */
+static char  cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
+static int   conn;                      /* connection socket */
+static int   verb = 0;                  /* verbose output */
+static int   sasl = 0;                  /* SASL method */
+static char *host = "irc.freenode.net"; /* host address */
+static char *port = "6667";             /* port */
+static char *chan = NULL;               /* channel(s) */
+static char *nick = NULL;               /* nickname */
+static char *pass = NULL;               /* password */
+static char *user = NULL;               /* user name */
+static char *auth = NULL;               /* PLAIN SASL token */
+static char *real = NULL;               /* real name */
+static char *olog = NULL;               /* chat log path*/
+static char *inic = NULL;               /* additional server command */
 
 struct Param {
-    char * prefix;
-    char * suffix;
-    char * message;
-    char * nickname;
-    char * command;
-    char * channel;
-    char * params;
+    char  *prefix;
+    char  *suffix;
+    char  *message;
+    char  *nickname;
+    char  *command;
+    char  *channel;
+    char  *params;
     size_t offset;
     size_t maxcols;
     int    nicklen;
 };
 
-static struct termios orig;              /* restore at exit. */
-static int    rawmode = 0;               /* check if restore is needed */
-static int    atexit_registered = 0;     /* register atexit() */
-static int    history_max_len = HBUFFER;/*  */
+static struct termios orig;
+static int    rawmode = 0;
+static int    atexit_registered = 0;
+static int    history_max_len = HBUFFER;
 static int    history_len = 0;
 static char **history = NULL;
 
 struct State {
-    char * prompt;                       /* Prompt to display. */
-    char * buf;                          /* Edited line buffer. */
+    char  *prompt;                       /* Prompt to display. */
+    char  *buf;                          /* Edited line buffer. */
     size_t buflen;                       /* Edited line buffer size. */
     size_t plen;                         /* Prompt length. */
     size_t pos;                          /* Current cursor position. */
@@ -68,8 +68,8 @@ struct State {
 };
 
 struct abuf {
-    char * b;
-    int    len;
+    char *b;
+    int   len;
 };
 
 static void freeHistory(void) {
@@ -156,13 +156,13 @@ static int getColumns(int ifd, int ofd) {
     }
 }
 
-static void abInit(struct abuf * ab) {
+static void abInit(struct abuf *ab) {
     ab->b = NULL;
     ab->len = 0;
 }
 
-static void abAppend(struct abuf * ab, const char * s, int len) {
-    char * new = realloc(ab->b, ab->len + len);
+static void abAppend(struct abuf *ab, const char *s, int len) {
+    char *new = realloc(ab->b, ab->len + len);
     if (new == NULL)
         return;
     memcpy(new + ab->len, s, len);
@@ -170,15 +170,15 @@ static void abAppend(struct abuf * ab, const char * s, int len) {
     ab->len += len;
 }
 
-static void abFree(struct abuf * ab) {
+static void abFree(struct abuf *ab) {
     free(ab->b);
 }
 
-static void refreshLine(struct State * l) {
+static void refreshLine(struct State *l) {
     char   seq[64];
     size_t plen = strlen(l->prompt) + 2;
     int    fd = STDOUT_FILENO;
-    char * buf = l->buf;
+    char  *buf = l->buf;
     size_t len = l->len;
     size_t pos = l->pos;
     struct abuf ab;
@@ -206,7 +206,7 @@ static void refreshLine(struct State * l) {
     abFree(&ab);
 }
 
-static int editInsert(struct State * l, char c) {
+static int editInsert(struct State *l, char c) {
     if (l->len < l->buflen) {
         if (l->len == l->pos) {
             l->buf[l->pos] = c;
@@ -232,35 +232,35 @@ static int editInsert(struct State * l, char c) {
     return 0;
 }
 
-static void editMoveLeft(struct State * l) {
+static void editMoveLeft(struct State *l) {
     if (l->pos > 0) {
         l->pos--;
         refreshLine(l);
     }
 }
 
-static void editMoveRight(struct State * l) {
+static void editMoveRight(struct State *l) {
     if (l->pos != l->len) {
         l->pos++;
         refreshLine(l);
     }
 }
 
-static void editMoveHome(struct State * l) {
+static void editMoveHome(struct State *l) {
     if (l->pos != 0) {
         l->pos = 0;
         refreshLine(l);
     }
 }
 
-static void editMoveEnd(struct State * l) {
+static void editMoveEnd(struct State *l) {
     if (l->pos != l->len) {
         l->pos = l->len;
         refreshLine(l);
     }
 }
 
-static void editDelete(struct State * l) {
+static void editDelete(struct State *l) {
     if (l->len > 0 && l->pos < l->len) {
         memmove(l->buf + l->pos, l->buf + l->pos + 1, l->len - l->pos - 1);
         l->len--;
@@ -269,7 +269,7 @@ static void editDelete(struct State * l) {
     }
 }
 
-static void editBackspace(struct State * l) {
+static void editBackspace(struct State *l) {
     if (l->pos > 0 && l->len > 0) {
         memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
         l->pos--;
@@ -279,7 +279,7 @@ static void editBackspace(struct State * l) {
     }
 }
 
-static void editDeletePrevWord(struct State * l) {
+static void editDeletePrevWord(struct State *l) {
     size_t old_pos = l->pos;
     while (l->pos > 0 && l->buf[l->pos - 1] == ' ')
         l->pos--;
@@ -291,19 +291,19 @@ static void editDeletePrevWord(struct State * l) {
     refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State * l) {
+static void editDeleteWholeLine(struct State *l) {
     l->buf[0] = '\0';
     l->pos = l->len = 0;
     refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State * l) {
+static void editDeleteLineToEnd(struct State *l) {
     l->buf[l->pos] = '\0';
     l->len = l->pos;
     refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State * l) {
+static void editSwapCharWithPrev(struct State *l) {
     if (l->pos > 0 && l->pos < l->len) {
         int aux = l->buf[l->pos - 1];
         l->buf[l->pos - 1] = l->buf[l->pos];
@@ -314,7 +314,7 @@ static void editSwapCharWithPrev(struct State * l) {
     }
 }
 
-static void editHistory(struct State * l, int dir) {
+static void editHistory(struct State *l, int dir) {
     if (history_len > 1) {
         free(history[history_len - (1 + l->history_index)]);
         history[history_len - (1 + l->history_index)] = strdup(l->buf);
@@ -354,12 +354,12 @@ static int historyAdd(const char *line) {
     return 1;
 }
 
-static void editEnter(struct State * l) {
+static void editEnter(struct State *l) {
     history_len--;
     free(history[history_len]);
 }
 
-static void editEscSequence(struct State * l, char seq[3]) {
+static void editEscSequence(struct State *l, char seq[3]) {
     if (read(STDIN_FILENO, seq, 1) == -1) return;
     if (read(STDIN_FILENO, seq + 1, 1) == -1) return;
     if (seq[0] == '[') { /* ESC [ sequences. */
@@ -387,7 +387,7 @@ static void editEscSequence(struct State * l, char seq[3]) {
     }
 }
 
-static int edit(struct State * l) {
+static int edit(struct State *l) {
     char    c, seq[3];
     ssize_t nread = read(STDIN_FILENO, &c, 1);
     if (nread <= 0)
@@ -422,7 +422,7 @@ static int edit(struct State * l) {
     return 0;
 }
 
-static void stateReset(struct State * l) {
+static void stateReset(struct State *l) {
     l->plen = strlen(l->prompt);
     l->oldpos = 0;
     l->pos = 0;
@@ -432,7 +432,7 @@ static void stateReset(struct State * l) {
     l->buflen--;
 }
 
-static char * ctime_now(char buf[26]) {
+static char *ctime_now(char buf[26]) {
     struct tm tm_;
     time_t now = time(NULL);
     if (!asctime_r(localtime_r (&now, &tm_), buf))
@@ -441,8 +441,8 @@ static char * ctime_now(char buf[26]) {
     return buf;
 }
 
-static void logAppend(char * str, char * path) {
-    FILE * out;
+static void logAppend(char *str, char *path) {
+    FILE *out;
     char buf[26];
     if ((out = fopen(path, "a")) == NULL) {
         perror("fopen");
@@ -453,7 +453,7 @@ static void logAppend(char * str, char * path) {
     fclose(out);
 }
 
-static void raw(char * fmt, ...) {
+static void raw(char *fmt, ...) {
     va_list ap;
     char *cmd_str = malloc(MSG_MAX);
     if (!cmd_str) {
@@ -509,10 +509,10 @@ static int initConnection(void) {
     return 0;
 }
 
-static void messageWrap(struct Param * p) {
+static void messageWrap(struct Param *p) {
     if (!p->message)
         return;
-    char * tok;
+    char *tok;
     size_t wordwidth, spacewidth = 1;
     size_t spaceleft = p->maxcols - p->nicklen - p->offset;
     for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
@@ -527,28 +527,28 @@ static void messageWrap(struct Param * p) {
     }
 }
 
-static void paramPrintNick(struct Param * p) {
+static void paramPrintNick(struct Param *p) {
     printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
     printf("--> \x1b[35;1m%s\x1b[0m", p->message);
 }
 
-static void paramPrintPart(struct Param * p) {
+static void paramPrintPart(struct Param *p) {
     printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strcmp(p->channel+1, cdef))
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static void paramPrintQuit(struct Param * p) {
+static void paramPrintQuit(struct Param *p) {
     printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
 
-static void paramPrintJoin(struct Param * p) {
+static void paramPrintJoin(struct Param *p) {
     printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
     if (p->channel != NULL && strcmp(p->channel+1, cdef))
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 }
 
-static void handleCTCP(const char * nickname, char * message) {
+static void handleCTCP(const char *nickname, char *message) {
     if (message[0] != '\001' && strncmp(message, "ACTION", 6))
         return;
     message++;
@@ -565,7 +565,7 @@ static void handleCTCP(const char * nickname, char * message) {
     }
 }
 
-static void paramPrintPriv(struct Param * p) {
+static void paramPrintPriv(struct Param *p) {
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
@@ -586,7 +586,7 @@ static void paramPrintPriv(struct Param * p) {
     }
 }
 
-static void paramPrintChan(struct Param * p) {
+static void paramPrintChan(struct Param *p) {
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= p->nicklen)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
@@ -597,7 +597,7 @@ static void paramPrintChan(struct Param * p) {
     }
 }
 
-static void rawParser(char * string) {
+static void rawParser(char *string) {
     if (!strncmp(string, "PING", 4)) {
         string[1] = 'O';
         raw("%s\r\n", string);
@@ -610,7 +610,7 @@ static void rawParser(char * string) {
         printf(">> %s", string);
     if (olog)
         logAppend(string, olog);
-    char * tok;
+    char *tok;
     struct Param p;
     p.prefix =   strtok(string, " ") + 1;
     p.suffix =   strtok(NULL, ":");
@@ -682,12 +682,12 @@ static int handleServerMessage(void) {
     }
 }
 
-static void handleUserInput(struct State * l) {
+static void handleUserInput(struct State *l) {
     if (l->buf == NULL) {
         return;
     }
     historyAdd(l->buf);
-    char * tok;
+    char *tok;
     size_t msg_len = strnlen(l->buf, MSG_MAX);
     if (msg_len > 0 && l->buf[msg_len - 1] == '\n')
         l->buf[msg_len - 1] = '\0';
