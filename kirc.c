@@ -13,11 +13,12 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define VERSION     "0.2.4"              /* version */
+#define VERSION     "0.2.5"              /* version */
 #define MSG_MAX      512                 /* max message length */
 #define CHA_MAX      200                 /* max channel length */
 #define NIC_MAX      26                  /* max nickname length */
 #define CTCP_CMDS   "ACTION VERSION TIME CLIENTINFO PING"
+#define HBUFFER      100
 
 static char   cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int    conn;                      /* connection socket */
@@ -50,6 +51,8 @@ struct Param {
 static struct termios orig;              /* restore at exit. */
 static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
+static int    historyMaxLength = HBUFFER;/*  */
+static int    historyLength = 0;
 
 struct State {
     char * prompt;                       /* Prompt to display. */
@@ -60,6 +63,7 @@ struct State {
     size_t oldpos;                       /* Previous refresh cursor position. */
     size_t len;                          /* Current edited line length. */
     size_t cols;                         /* Number of columns in terminal. */
+    size_t history_index;                 /* Current line in the edit history */
 };
 
 struct abuf {
@@ -297,6 +301,25 @@ static void editSwapCharWithPrev(struct State * l) {
     }
 }
 
+static void editHistory(struct Stat * l, int dir) {
+    if (historyLength > 1) {
+        free(history[historyLength - (1 + l->history_index)];
+        history[historyLength - (l->history_index)] = strdup(l->buf);
+        l->history_index += (dir == 1) ? 1 : -1; /* 1 = previous */
+        if (l->history_index < 0) {
+            l->history_index = 0;
+            return;
+        } else if (l->history_index >= historyLength) {
+            l->history_index = historyLength - 1;
+            return;
+        }
+        strncpy(l->buf, history[historyLength - (1 + l->history_index)], l->buflen);
+        l->buf[l->buflen - 1] = '\0';
+        l->len = l->pos = strnlen(l->buf, MSG_MAX);
+        refreshLine(l);
+    }
+}
+
 static int edit(struct State * l) {
     char    c, seq[3];
     ssize_t nread = read(STDIN_FILENO, &c, 1);
@@ -314,6 +337,8 @@ static int edit(struct State * l) {
     case 23: editDeletePrevWord(l);   break; /* ctrl+w */
     case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
     case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
+    case 14: editHistory(l, 0);       break; /* Ctrl+n */
+    case 16: editHistory(l, 1);       break; /* Ctrl+p */
     case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
     case 4:                                  /* ctrl-d */
         if (l->len > 0) {
@@ -334,10 +359,12 @@ static int edit(struct State * l) {
                 }
             } else {
                 switch(seq[1]) {
-                case 'C': editMoveRight(l); break; /* Right */
-                case 'D': editMoveLeft(l);  break; /* Left */
-                case 'H': editMoveHome(l);  break; /* Home */
-                case 'F': editMoveEnd(l);   break; /* End*/
+                case 'A': editHistory(l, 1); break; /* Up */
+                case 'b': editHistory(l, 0); break; /* Down */
+                case 'C': editMoveRight(l);  break; /* Right */
+                case 'D': editMoveLeft(l);   break; /* Left */
+                case 'H': editMoveHome(l);   break; /* Home */
+                case 'F': editMoveEnd(l);    break; /* End*/
                 }
             }
         }
