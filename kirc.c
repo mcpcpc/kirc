@@ -420,7 +420,7 @@ static void stateReset(struct State * l) {
     l->oldpos = 0;
     l->pos = 0;
     l->len = 0;
-    l.history_index = 0;
+    l->history_index = 0;
     l->buf[0] = '\0';
     l->buflen--; 
 }
