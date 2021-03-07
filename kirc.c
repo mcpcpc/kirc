@@ -393,31 +393,31 @@ static int edit(struct State *l) {
     if (nread <= 0)
         return 1;
     switch(c) {
-    case 13: editEnter(l);        return 1; /* enter */
-    case 3: errno = EAGAIN;       return -1; /* ctrl-c */
-    case 127:                                /* backspace */
-    case 8:  editBackspace(l);        break; /* ctrl-h */
-    case 2:  editMoveLeft(l);         break; /* ctrl-b */
-    case 6:  editMoveRight(l);        break; /* ctrl-f */
-    case 1:  editMoveHome(l);         break; /* Ctrl+a */
-    case 5:  editMoveEnd(l);          break; /* ctrl+e */
-    case 23: editDeletePrevWord(l);   break; /* ctrl+w */
-    case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
-    case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
-    case 14: editHistory(l, 0);       break; /* Ctrl+n */
-    case 16: editHistory(l, 1);       break; /* Ctrl+p */
-    case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
-    case 27: editEscSequence(l, seq); break; /* escape sequence */
-    case 4:                                  /* ctrl-d */
-        if (l->len > 0) {
-            editDelete(l);
-        } else {
-            history_len--;
-            free(history[history_len]);
-            return -1;
-        }
-        break;
-    default: if (editInsert(l, c)) return -1; break;
+        case 13: editEnter(l);        return 1; /* enter */
+        case 3: errno = EAGAIN;       return -1; /* ctrl-c */
+        case 127:                                /* backspace */
+        case 8:  editBackspace(l);        break; /* ctrl-h */
+        case 2:  editMoveLeft(l);         break; /* ctrl-b */
+        case 6:  editMoveRight(l);        break; /* ctrl-f */
+        case 1:  editMoveHome(l);         break; /* Ctrl+a */
+        case 5:  editMoveEnd(l);          break; /* ctrl+e */
+        case 23: editDeletePrevWord(l);   break; /* ctrl+w */
+        case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
+        case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
+        case 14: editHistory(l, 0);       break; /* Ctrl+n */
+        case 16: editHistory(l, 1);       break; /* Ctrl+p */
+        case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
+        case 27: editEscSequence(l, seq); break; /* escape sequence */
+        case 4:                                  /* ctrl-d */
+            if (l->len > 0) {
+                editDelete(l);
+            } else {
+                history_len--;
+                free(history[history_len]);
+                return -1;
+            }
+            break;
+        default: if (editInsert(l, c)) return -1; break;
     }
     return 0;
 }
