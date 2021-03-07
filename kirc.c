@@ -314,7 +314,7 @@ static void editSwapCharWithPrev(struct State * l) {
     }
 }
 
-static void editHistory(struct Stat * l, int dir) {
+static void editHistory(struct State * l, int dir) {
     if (history_len > 1) {
         free(history[history_len - (1 + l->history_index)];
         history[history_len - (l->history_index)] = strdup(l->buf);
