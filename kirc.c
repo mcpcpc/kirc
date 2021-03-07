@@ -355,13 +355,18 @@ static int historyAdd(const char *line) {
     return 1;
 }
 
+static void editEnter(struct State * l) {
+    history_len--;
+    free(history[history_len]);
+}
+
 static int edit(struct State * l) {
     char    c, seq[3];
     ssize_t nread = read(STDIN_FILENO, &c, 1);
     if (nread <= 0)
         return 1;
     switch(c) {
-    case 13:                       return 1; /* enter */
+    case 13: editEnter(l);        return 1; /* enter */
     case 3: errno = EAGAIN;       return -1; /* ctrl-c */
     case 127:                                /* backspace */
     case 8:  editBackspace(l);        break; /* ctrl-h */
@@ -379,6 +384,8 @@ static int edit(struct State * l) {
         if (l->len > 0) {
             editDelete(l);
         } else {
+            history_len--;
+            free(history[history_len]);
             return -1;
         }
         break;
