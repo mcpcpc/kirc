@@ -317,7 +317,7 @@ static void editSwapCharWithPrev(struct State * l) {
 static void editHistory(struct State * l, int dir) {
     if (history_len > 1) {
         free(history[history_len - (1 + l->history_index)]);
-        history[history_len - (l->history_index)] = strdup(l->buf);
+        history[history_len - (1 + l->history_index)] = strdup(l->buf);
         l->history_index += (dir == 1) ? 1 : -1; /* 1 = previous */
         if (l->history_index < 0) {
             l->history_index = 0;
@@ -335,7 +335,6 @@ static void editHistory(struct State * l, int dir) {
 
 static int historyAdd(const char *line) {
     char *linecopy;
-
     if (history_max_len == 0) return 0;
     if (history == NULL) {
         history = malloc(sizeof(char*)*history_max_len);
@@ -429,7 +428,7 @@ static void stateReset(struct State * l) {
     l->len = 0;
     l->history_index = 0;
     l->buf[0] = '\0';
-    l->buflen--; 
+    l->buflen--;
 }
 
 static char * ctime_now(char buf[26]) {
