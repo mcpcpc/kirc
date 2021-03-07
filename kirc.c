@@ -359,6 +359,34 @@ static void editEnter(struct State * l) {
     free(history[history_len]);
 }
 
+static void editEscSequence(struct State * l, char seq[3]) {
+    if (read(STDIN_FILENO, seq, 1) == -1) return;
+    if (read(STDIN_FILENO, seq + 1, 1) == -1) return;
+    if (seq[0] == '[') { /* ESC [ sequences. */
+        if (seq[1] >= '0' && seq[1] <= '9') {
+            /* Extended escape, read additional byte. */
+            if (read(STDIN_FILENO, seq + 2, 1) == -1) return;
+            if (seq[2] == '~') {
+                if (seq[1] == 3) editDelete(l);    /* Delete key. */
+            }
+        } else {
+            switch(seq[1]) {
+                case 'A': editHistory(l, 1); break; /* Up */
+                case 'b': editHistory(l, 0); break; /* Down */
+                case 'C': editMoveRight(l);  break; /* Right */
+                case 'D': editMoveLeft(l);   break; /* Left */
+                case 'H': editMoveHome(l);   break; /* Home */
+                case 'F': editMoveEnd(l);    break; /* End*/
+            }
+        }
+    } else if (seq[0] == 'O') { /* ESC O sequences. */
+        switch(seq[1]) {
+            case 'H': editMoveHome(l); break; /* Home */
+            case 'F': editMoveEnd(l);  break; /* End*/
+        }
+    }
+}
+
 static int edit(struct State * l) {
     char    c, seq[3];
     ssize_t nread = read(STDIN_FILENO, &c, 1);
@@ -379,6 +407,7 @@ static int edit(struct State * l) {
     case 14: editHistory(l, 0);       break; /* Ctrl+n */
     case 16: editHistory(l, 1);       break; /* Ctrl+p */
     case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
+    case 27: editEscSequence(l, seq); break; /* escape sequence */
     case 4:                                  /* ctrl-d */
         if (l->len > 0) {
             editDelete(l);
@@ -386,34 +415,6 @@ static int edit(struct State * l) {
             history_len--;
             free(history[history_len]);
             return -1;
-        }
-        break;
-    case 27:    /* escape sequence */
-        if (read(STDIN_FILENO, seq, 1) == -1) break;
-        if (read(STDIN_FILENO, seq + 1, 1) == -1) break;
-        if (seq[0] == '[') { /* ESC [ sequences. */
-            if (seq[1] >= '0' && seq[1] <= '9') {
-                /* Extended escape, read additional byte. */
-                if (read(STDIN_FILENO, seq + 2, 1) == -1) break;
-                if (seq[2] == '~') {
-                    if (seq[1] == 3) editDelete(l);    /* Delete key. */
-                }
-            } else {
-                switch(seq[1]) {
-                case 'A': editHistory(l, 1); break; /* Up */
-                case 'b': editHistory(l, 0); break; /* Down */
-                case 'C': editMoveRight(l);  break; /* Right */
-                case 'D': editMoveLeft(l);   break; /* Left */
-                case 'H': editMoveHome(l);   break; /* Home */
-                case 'F': editMoveEnd(l);    break; /* End*/
-                }
-            }
-        }
-        else if (seq[0] == 'O') { /* ESC O sequences. */
-            switch(seq[1]) {
-            case 'H': editMoveHome(l); break; /* Home */
-            case 'F': editMoveEnd(l);  break; /* End*/
-            }
         }
         break;
     default: if (editInsert(l, c)) return -1; break;
