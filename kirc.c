@@ -51,7 +51,7 @@ struct Param {
 static struct termios orig;              /* restore at exit. */
 static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
-static int    historyMaxLength = HBUFFER;/*  */
+static int    history_max_len = HBUFFER;/*  */
 static int    history_len = 0;
 static char **history = NULL;
 
@@ -316,7 +316,7 @@ static void editSwapCharWithPrev(struct State * l) {
 
 static void editHistory(struct State * l, int dir) {
     if (history_len > 1) {
-        free(history[history_len - (1 + l->history_index)];
+        free(history[history_len - (1 + l->history_index)]);
         history[history_len - (l->history_index)] = strdup(l->buf);
         l->history_index += (dir == 1) ? 1 : -1; /* 1 = previous */
         if (l->history_index < 0) {
