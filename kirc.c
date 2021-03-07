@@ -52,7 +52,8 @@ static struct termios orig;              /* restore at exit. */
 static int    rawmode = 0;               /* check if restore is needed */
 static int    atexit_registered = 0;     /* register atexit() */
 static int    historyMaxLength = HBUFFER;/*  */
-static int    historyLength = 0;
+static int    history_len = 0;
+static char **history = NULL;
 
 struct State {
     char * prompt;                       /* Prompt to display. */
@@ -71,9 +72,21 @@ struct abuf {
     int    len;
 };
 
+static void freeHistory(void) {
+    if (history) {
+        int j;
+        for (j = 0; j < history_len; j++) {
+            free(history[j]);
+        }
+        free(history);
+    }
+}
+
 static void disableRawMode(void) {
-    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1)
+    if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1) {
         rawmode = 0;
+    }
+    freeHistory();
 }
 
 static int enableRawMode(int fd) {
@@ -302,22 +315,44 @@ static void editSwapCharWithPrev(struct State * l) {
 }
 
 static void editHistory(struct Stat * l, int dir) {
-    if (historyLength > 1) {
-        free(history[historyLength - (1 + l->history_index)];
-        history[historyLength - (l->history_index)] = strdup(l->buf);
+    if (history_len > 1) {
+        free(history[history_len - (1 + l->history_index)];
+        history[history_len - (l->history_index)] = strdup(l->buf);
         l->history_index += (dir == 1) ? 1 : -1; /* 1 = previous */
         if (l->history_index < 0) {
             l->history_index = 0;
             return;
-        } else if (l->history_index >= historyLength) {
-            l->history_index = historyLength - 1;
+        } else if (l->history_index >= history_len) {
+            l->history_index = history_len - 1;
             return;
         }
-        strncpy(l->buf, history[historyLength - (1 + l->history_index)], l->buflen);
+        strncpy(l->buf, history[history_len - (1 + l->history_index)], l->buflen);
         l->buf[l->buflen - 1] = '\0';
         l->len = l->pos = strnlen(l->buf, MSG_MAX);
         refreshLine(l);
     }
+}
+
+static int historyAdd(const char *line) {
+    char *linecopy;
+
+    if (history_max_len == 0) return 0;
+    if (history == NULL) {
+        history = malloc(sizeof(char*)*history_max_len);
+        if (history == NULL) return 0;
+        memset(history,0,(sizeof(char*)*history_max_len));
+    }
+    if (history_len && !strcmp(history[history_len-1], line)) return 0;
+    linecopy = strdup(line);
+    if (!linecopy) return 0;
+    if (history_len == history_max_len) {
+        free(history[0]);
+        memmove(history,history+1,sizeof(char*)*(history_max_len-1));
+        history_len--;
+    }
+    history[history_len] = linecopy;
+    history_len++;
+    return 1;
 }
 
 static int edit(struct State * l) {
@@ -640,8 +675,10 @@ static int handleServerMessage(void) {
 }
 
 static void handleUserInput(struct State * l) {
-    if (l->buf == NULL)
+    if (l->buf == NULL) {
         return;
+    }
+    historyAdd(l->buf);
     char * tok;
     size_t msg_len = strnlen(l->buf, MSG_MAX);
     if (msg_len > 0 && l->buf[msg_len - 1] == '\n')
