@@ -361,7 +361,7 @@ static int edit(struct State * l) {
     if (nread <= 0)
         return 1;
     switch(c) {
-    case 13:                      return 1;  /* enter */
+    case 13:                       return 1; /* enter */
     case 3: errno = EAGAIN;       return -1; /* ctrl-c */
     case 127:                                /* backspace */
     case 8:  editBackspace(l);        break; /* ctrl-h */
@@ -420,6 +420,7 @@ static void stateReset(struct State * l) {
     l->oldpos = 0;
     l->pos = 0;
     l->len = 0;
+    l.history_index = 0;
     l->buf[0] = '\0';
     l->buflen--; 
 }
