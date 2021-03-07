@@ -770,6 +770,7 @@ int main(int argc, char **argv) {
     l.buflen = MSG_MAX;
     l.prompt = cdef;
     stateReset(&l);
+    historyAdd("");
     int rc, editReturnFlag = 0;
     if (enableRawMode(STDIN_FILENO) == -1)
         return 1;
