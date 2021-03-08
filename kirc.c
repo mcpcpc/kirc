@@ -308,8 +308,9 @@ static void editSwapCharWithPrev(struct State *l) {
         int aux = l->buf[l->pos - 1];
         l->buf[l->pos - 1] = l->buf[l->pos];
         l->buf[l->pos] = aux;
-        if (l->pos != l->len - 1)
+        if (l->pos != l->len - 1) {
             l->pos++;
+        }
         refreshLine(l);
     }
 }
@@ -318,17 +319,17 @@ static void editHistory(struct State *l, int dir) {
     if (history_len > 1) {
         free(history[history_len - (1 + l->history_index)]);
         history[history_len - (1 + l->history_index)] = strdup(l->buf);
-        l->history_index += (dir == 1) ? 1 : -1; /* 1 = previous */
+        l->history_index += (dir == 1) ? 1 : -1;
         if (l->history_index < 0) {
             l->history_index = 0;
             return;
         } else if (l->history_index >= history_len) {
-            l->history_index = history_len - 1;
+            l->history_index = history_len-1;
             return;
         }
-        strncpy(l->buf, history[history_len - (1 + l->history_index)], l->buflen);
-        l->buf[l->buflen - 1] = '\0';
-        l->len = l->pos = strnlen(l->buf, MSG_MAX);
+        strncpy(l->buf,history[history_len - (1 + l->history_index]), l->buflen);
+        l->buf[l->buflen-1] = '\0';
+        l->len = l->pos = strlen(l->buf);
         refreshLine(l);
     }
 }
@@ -785,6 +786,7 @@ int main(int argc, char **argv) {
         if (poll(fds, 2, -1) != -1) {
             if (fds[0].revents & POLLIN) {
                 editReturnFlag = edit(&l);
+                historyAdd(l.buf);
                 if (editReturnFlag > 0) {
                     handleUserInput(&l);
                     stateReset(&l);
