@@ -64,7 +64,7 @@ struct State {
     size_t oldpos;        /* Previous refresh cursor position. */
     size_t len;           /* Current edited line length. */
     size_t cols;          /* Number of columns in terminal. */
-    size_t history_index; /* Current line in the edit history */
+    int history_index;    /* Current line in the edit history */
 };
 
 struct abuf {
@@ -327,7 +327,7 @@ static void editHistory(struct State *l, int dir) {
             l->history_index = history_len - 1;
             return;
         }
-        strncpy(l->buf,history[history_len - (1 + l->history_index)], l->buflen);
+        strncpy(l->buf, history[history_len - (1 + l->history_index)], l->buflen);
         l->buf[l->buflen - 1] = '\0';
         l->len = l->pos = strnlen(l->buf, MSG_MAX);
         refreshLine(l);
@@ -342,7 +342,7 @@ static int historyAdd(const char *line) {
     if (history == NULL) {
         history = malloc(sizeof(char*)*history_max_len);
         if (history == NULL) return 0;
-        memset(history,0,(sizeof(char*)*history_max_len));
+        memset(history, 0, (sizeof(char*)*history_max_len));
     }
     if (history_len && !strcmp(history[history_len-1], line)) {
         return 0;
@@ -353,7 +353,7 @@ static int historyAdd(const char *line) {
     }
     if (history_len == history_max_len) {
         free(history[0]);
-        memmove(history,history+1,sizeof(char*)*(history_max_len - 1));
+        memmove(history, history + 1, sizeof(char*)*(history_max_len - 1));
         history_len--;
     }
     history[history_len] = linecopy;
@@ -361,7 +361,7 @@ static int historyAdd(const char *line) {
     return 1;
 }
 
-static void editEnter(struct State *l) {
+static void editEnter(void) {
     history_len--;
     free(history[history_len]);
 }
@@ -400,7 +400,7 @@ static int edit(struct State *l) {
     if (nread <= 0)
         return 1;
     switch(c) {
-        case 13: editEnter(l);        return 1; /* enter */
+        case 13: editEnter();         return 1;  /* enter */
         case 3: errno = EAGAIN;       return -1; /* ctrl-c */
         case 127:                                /* backspace */
         case 8:  editBackspace(l);        break; /* ctrl-h */
