@@ -56,15 +56,15 @@ static int    history_len = 0;
 static char **history = NULL;
 
 struct State {
-    char  *prompt;                       /* Prompt to display. */
-    char  *buf;                          /* Edited line buffer. */
-    size_t buflen;                       /* Edited line buffer size. */
-    size_t plen;                         /* Prompt length. */
-    size_t pos;                          /* Current cursor position. */
-    size_t oldpos;                       /* Previous refresh cursor position. */
-    size_t len;                          /* Current edited line length. */
-    size_t cols;                         /* Number of columns in terminal. */
-    size_t history_index;                 /* Current line in the edit history */
+    char  *prompt;        /* Prompt to display. */
+    char  *buf;           /* Edited line buffer. */
+    size_t buflen;        /* Edited line buffer size. */
+    size_t plen;          /* Prompt length. */
+    size_t pos;           /* Current cursor position. */
+    size_t oldpos;        /* Previous refresh cursor position. */
+    size_t len;           /* Current edited line length. */
+    size_t cols;          /* Number of columns in terminal. */
+    size_t history_index; /* Current line in the edit history */
 };
 
 struct abuf {
@@ -324,30 +324,36 @@ static void editHistory(struct State *l, int dir) {
             l->history_index = 0;
             return;
         } else if (l->history_index >= history_len) {
-            l->history_index = history_len-1;
+            l->history_index = history_len - 1;
             return;
         }
-        strncpy(l->buf,history[history_len - (1 + l->history_index]), l->buflen);
-        l->buf[l->buflen-1] = '\0';
-        l->len = l->pos = strlen(l->buf);
+        strncpy(l->buf,history[history_len - (1 + l->history_index)], l->buflen);
+        l->buf[l->buflen - 1] = '\0';
+        l->len = l->pos = strnlen(l->buf, MSG_MAX);
         refreshLine(l);
     }
 }
 
 static int historyAdd(const char *line) {
     char *linecopy;
-    if (history_max_len == 0) return 0;
+    if (history_max_len == 0) {
+        return 0;
+    }
     if (history == NULL) {
         history = malloc(sizeof(char*)*history_max_len);
         if (history == NULL) return 0;
         memset(history,0,(sizeof(char*)*history_max_len));
     }
-    if (history_len && !strcmp(history[history_len-1], line)) return 0;
+    if (history_len && !strcmp(history[history_len-1], line)) {
+        return 0;
+    }
     linecopy = strdup(line);
-    if (!linecopy) return 0;
+    if (!linecopy) {
+        return 0;
+    }
     if (history_len == history_max_len) {
         free(history[0]);
-        memmove(history,history+1,sizeof(char*)*(history_max_len-1));
+        memmove(history,history+1,sizeof(char*)*(history_max_len - 1));
         history_len--;
     }
     history[history_len] = linecopy;
@@ -373,7 +379,7 @@ static void editEscSequence(struct State *l, char seq[3]) {
         } else {
             switch(seq[1]) {
                 case 'A': editHistory(l, 1); break; /* Up */
-                case 'b': editHistory(l, 0); break; /* Down */
+                case 'B': editHistory(l, 0); break; /* Down */
                 case 'C': editMoveRight(l);  break; /* Right */
                 case 'D': editMoveLeft(l);   break; /* Left */
                 case 'H': editMoveHome(l);   break; /* Home */
@@ -687,11 +693,11 @@ static void handleUserInput(struct State *l) {
     if (l->buf == NULL) {
         return;
     }
-    historyAdd(l->buf);
     char *tok;
     size_t msg_len = strnlen(l->buf, MSG_MAX);
-    if (msg_len > 0 && l->buf[msg_len - 1] == '\n')
+    if (msg_len > 0 && l->buf[msg_len - 1] == '\n') {
         l->buf[msg_len - 1] = '\0';
+    }
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
     case '/' : /* send system command */
