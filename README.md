@@ -36,6 +36,8 @@ kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u usern
 
 * **CTRL+B** or **LEFT ARROW** moves the cursor one character to the left.
 * **CTRL+F** or **RIGHT ARROW** moves the cursor one character to the right.
+* **CTRL+P** or **UP ARROW** moves to previous record in the input history buffer.
+* **CTRL+N** or **DOWN ARROW** move to next record in the input history buffer.
 * **CTRL+E** moves the cursor to the end of the line.
 * **CTRL+A** or **HOME** moves the cursor to the start of the line.
 * **CTRL+W** deletes the previous word.
