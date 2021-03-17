@@ -419,7 +419,7 @@ static int edit(struct State *l) {
 		return 1;
 	}
 	switch(c) {
-		case 13: editEnter();          return (int)l->len; /* enter */
+		case 13: editEnter();          return 1; /* enter */
 		case 3: errno = EAGAIN;       return -1; /* ctrl-c */
 		case 127:                                /* backspace */
 		case 8:  editBackspace(l);        break; /* ctrl-h */
@@ -456,6 +456,7 @@ static void stateReset(struct State *l) {
 	l->history_index = 0;
 	l->buf[0] = '\0';
 	l->buflen--;
+	historyAdd("");
 }
 
 static char *ctime_now(char buf[26]) {
@@ -821,7 +822,6 @@ int main(int argc, char **argv) {
 	l.buflen = MSG_MAX;
 	l.prompt = cdef;
 	stateReset(&l);
-	historyAdd("");
 	int rc, editReturnFlag = 0;
 	if (enableRawMode(STDIN_FILENO) == -1) {
 		return 1;
@@ -831,8 +831,8 @@ int main(int argc, char **argv) {
 			if (fds[0].revents & POLLIN) {
 				editReturnFlag = edit(&l);
 				if (editReturnFlag > 0) {
-					handleUserInput(&l);
 					historyAdd(l.buf);
+					handleUserInput(&l);
 					stateReset(&l);
 				} else if (editReturnFlag < 0) {
 				   printf("\r\n");
