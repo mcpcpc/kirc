@@ -25,10 +25,11 @@ Consult `man kirc` for a full list and explanation of available arguments.
 Command Aliases
 ---------------
 
-	<message>                  Send a PRIVMSG to the current channel.
-	@<channel|nick> <message>  Send a message to a specified channel or nick.
-	@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick.
-	/<command>                 Send a command to the IRC server (see RFC 2812).
+	<message>                  Send PRIVMSG to the current channel.
+	@<channel|nick> <message>  Send message to a specified channel or nick.
+	@@<channel|nick> <message> Send CTCP ACTION message to a specified channel or nick.
+	/<command>                 Send command to the IRC server (see RFC 2812).
+	/#<channel>                Assign new default message channel.
 
 Key Bindings
 ------------
