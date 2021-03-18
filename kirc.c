@@ -357,7 +357,9 @@ static int historyAdd(const char *line) {
 	}
 	if (history == NULL) {
 		history = malloc(sizeof(char*)*history_max_len);
-		if (history == NULL) return 0;
+		if (history == NULL) {
+			return 0;
+		}
 		memset(history, 0, (sizeof(char*)*history_max_len));
 	}
 	if (history_len && !strcmp(history[history_len-1], line)) {
@@ -391,8 +393,8 @@ static void editEscSequence(struct State *l, char seq[3]) {
 			if (read(STDIN_FILENO, seq + 2, 1) == -1) {
 				return;
 			}
-			if (seq[2] == '~') {
-				if (seq[1] == 3) editDelete(l);	/* Delete key. */
+			if ((seq[2] == '~') && (seq[1] == 3)) {
+				editDelete(l);	/* Delete key. */
 			}
 		} else {
 			switch(seq[1]) {
@@ -545,7 +547,7 @@ static void messageWrap(struct Param *p) {
 	}
 	char *tok;
 	size_t wordwidth, spacewidth = 1;
-	size_t spaceleft = p->maxcols - p->nicklen - p->offset;
+	size_t spaceleft = p->maxcols - (p->nicklen + p->offset);
 	for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
 		wordwidth = strnlen(tok, MSG_MAX);
 		if ((wordwidth + spacewidth) > spaceleft) {
@@ -554,7 +556,7 @@ static void messageWrap(struct Param *p) {
 		} else {
 			printf("%s ", tok);
 		}
-		spaceleft -= (wordwidth + spacewidth);
+		spaceleft -= wordwidth + spacewidth;
 	}
 }
 
@@ -565,7 +567,7 @@ static void paramPrintNick(struct Param *p) {
 
 static void paramPrintPart(struct Param *p) {
 	printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
-	if (p->channel != NULL && strcmp(p->channel+1, cdef)) {
+	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
 		printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 	}
 }
@@ -576,7 +578,7 @@ static void paramPrintQuit(struct Param *p) {
 
 static void paramPrintJoin(struct Param *p) {
 	printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
-	if (p->channel != NULL && strcmp(p->channel+1, cdef)) {
+	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
 		printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 	}
 }
@@ -797,20 +799,24 @@ int main(int argc, char **argv) {
 		fputs("Nick not specified\n", stderr);
 		usage();
 	}
-	if (initConnection() != 0)
+	if (initConnection() != 0) {
 		return 1;
-	if (auth || sasl)
+	}
+	if (auth || sasl) {
 		raw("CAP REQ :sasl\r\n");
+	}
 	raw("NICK %s\r\n", nick);
 	raw("USER %s - - :%s\r\n", (user ? user : nick), (real ? real : nick));
 	if (auth || sasl) {
 		raw("AUTHENTICATE %s\r\n", (sasl ? "EXTERNAL" : "PLAIN"));
 		raw("AUTHENTICATE %s\r\nCAP END\r\n", (sasl ? "+" : auth));
 	}
-	if (pass)
+	if (pass) {
 		raw("PASS %s\r\n", pass);
-	if (inic)
+	}
+	if (inic) {
 		raw("%s\r\n", inic);
+	}
 	struct pollfd fds[2];
 	fds[0].fd = STDIN_FILENO;
 	fds[1].fd = conn;
@@ -843,8 +849,9 @@ int main(int argc, char **argv) {
 			if (fds[1].revents & POLLIN) {
 				rc = handleServerMessage();
 				if (rc != 0) {
-					if (rc == -2)
+					if (rc == -2) {
 						return 1;
+					}
 					return 0;
 				}
 				refreshLine(&l);
