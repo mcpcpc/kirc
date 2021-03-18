@@ -99,4 +99,4 @@ The following is an example script that can be used or modified to send custom s
 
 {% d40eb3ce2c01e49144ef7f75f7776c10 %}
 
-[back](./)
+[back]({{ site.url }})
