@@ -8,6 +8,6 @@ layout: default
 
 **Want to help make kirc better?** Create a new [Pull Request](https://github.com/mcpcpc/kirc/pulls) or create a new [Feature Request](https://github.com/mcpcpc/kirc/issues/new?assignees=&labels=&template=feature_request.md&title=).
 
-**Other questions?** Feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc` or `#kisslinux` Freenode IRC channels.
+**Other questions?** Feel free to reach out to me at *info[at]mcpcpc[dot]com*.
 
-[back](./)
+[back]({{ site.url }})
