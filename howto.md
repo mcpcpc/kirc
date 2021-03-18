@@ -94,4 +94,4 @@ For example, if i wanted to learn about the `\NAMES` Function, I could type:
 
 This concludes this IRC protocol primer! As of now, you should know same of the basic IRC commands, a few _kirc_ specific aliases, as well as ways to discover more commands. 
 
-[back](./)
+[back]({{ site.url }})
