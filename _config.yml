@@ -1,17 +1,5 @@
-title: kirc | KISS for IRC
-logo: kirc.png
-description: A tiny IRC client written in POSIX C99.
-theme: jekyll-theme-minimal
-show_downloads: true
-author:
-  name: "Michael Czigler"
-  email: "info@kirc.chat"
+url: https://mcpcpc.github.io/kirc
 
-github:
-  is_project_page: false
-  is_user_page: false
-  zip_url: https://github.com/mcpcpc/kirc/zipball/master
-  tar_url: https://github.com/mcpcpc/kirc/tarball/master
-  
-plugins:
+gems:
   - jekyll-sitemap
+  - jekyll-feed
