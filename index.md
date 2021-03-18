@@ -21,8 +21,8 @@ A tiny open-source Internet Relay Chat (IRC) client designed with usability and 
 
 ## Getting Started
 
-Hop over to our [Getting Started](./install.html) page for installation and usage instructions.  When you are done, check out our [Support Documentation](./documentation.html) for additional protocol (i.e Tor netowrk, TLS/SSL, etc.) support and/or tips-and-tricks.
+Hop over to our [Getting Started]({{ site.url }}/install.html) page for installation and usage instructions.  When you are done, check out our [Support Documentation]({{ site.url }}/documentation.html) for additional protocol (i.e Tor netowrk, TLS/SSL, etc.) support and/or tips-and-tricks.
 
 ## New to IRC?
 
-Learning a new tool or protocol can be intimidating! Check out the [Beginner's Guide](./howto.html) to walk you through some of the basics and get you up and running.
+Learning a new tool or protocol can be intimidating! Check out the [Beginner's Guide]({{ site.url }}/howto.html) to walk you through some of the basics and get you up and running.
