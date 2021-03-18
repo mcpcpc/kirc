@@ -1,10 +1,11 @@
 ---
 layout: default
+title: home
 ---
 
-## About
+# kirc
 
-**kirc** ("KISS for IRC") is a tiny open-source Internet Relay Chat (IRC) client designed with usability and cross-platform compatibility in mind. 
+A tiny open-source Internet Relay Chat (IRC) client designed with usability and cross-platform compatibility in mind. 
 
 ## Features
 
