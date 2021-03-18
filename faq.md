@@ -8,4 +8,4 @@ layout: default
 
 **POSIX** is an acronym for [Portable Operating System Interface](https://opensource.com/article/19/7/what-posix-richard-stallman-explains), which is a family of standards specified by the IEEE Computer Society for maintaining compatibility between operating systems. The *C99* Standard is preferred over other versions (e.g. *C89* or *C11*) since this currently the only one specified by [POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html).
 
-[back](./)
+[back]({{ site.url }})
