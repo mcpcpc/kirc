@@ -1,8 +1,9 @@
 ---
 layout: default
+title: how to
 ---
 
-## Beginner's Guide to Internet Relay Chat (IRC)
+# Beginner's Guide to Internet Relay Chat (IRC)
 
 For those that are new to the **Internet Relay Chat (IRC)** Protocol, learning the commands can be a daunting task. A glance through the public [RFC 1459](https://tools.ietf.org/html/rfc1459) documentation reveals a `~65` page maze of “cryptic  and strange jargon”. Most IRC clients attempt to _simply_ this maze by defining their own command structures with shorter and easier to remember aliases.  Shorter commands means fewer keystrokes, which (most assume) translates to more productivity. The question ultimately becomes, why would anyone take the time learn these IRC Protocol commands?
 

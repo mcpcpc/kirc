@@ -1,13 +1,20 @@
 ---
 layout: default
+title: contact
 ---
 
-## Contact Information
 
-**Need to report an issue?** Please check  [GitHub](https://github.com/mcpcpc/kirc/issues) for existing issues. 
+# Contact Information
 
-**Want to help make kirc better?** Create a new [Pull Request](https://github.com/mcpcpc/kirc/pulls) or create a new [Feature Request](https://github.com/mcpcpc/kirc/issues/new?assignees=&labels=&template=feature_request.md&title=).
+## Need to report an issue?
 
-**Other questions?** Feel free to reach out to me at *info[at]mcpcpc[dot]com*.
+Please check  [GitHub](https://github.com/mcpcpc/kirc/issues) for existing issues. 
 
-[back]({{ site.url }})
+## Want to help make kirc better?
+
+Create a new [Pull Request](https://github.com/mcpcpc/kirc/pulls) or create a new [Feature Request](https://github.com/mcpcpc/kirc/issues/new?assignees=&labels=&template=feature_request.md&title=).
+
+## Other questions?
+
+Feel free to reach out to me at *info[at]mcpcpc[dot]com*.
+

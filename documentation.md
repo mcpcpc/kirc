@@ -1,18 +1,88 @@
 ---
 layout: default
+title: documentation
 ---
+
+# Documentation
 
 ## Table of Contents
 
+- [Installation](#installation)
+- [Usage](#usage)
+- [Command Aliases](#command-aliases)
+- [Key Bindings](#key-bindings)
 - [Transport Layer Security Support](#transport-layer-security-support)
 - [SASL PLAIN Authentication](#sasl-plain-authentication)
 - [SASL EXTERNAL Authentication](#sasl-external-authentication)
 - [Color Scheme Definition](#color-scheme-definition)
 - [System Notifications](#system-notifications)
+- [FAQs](#faqs)
+
+## Installation
+
+Building and installing on **KISS Linux** using the Community repository:
+
+```shell
+kiss b kirc
+kiss i kirc
+```
+
+Building and installing on **Arch** and Arch-based distros using the AUR:
+
+```shell
+git clone https://aur.archlinux.org/kirc-git.git
+cd kirc
+makepkg -si
+```
+
+Building and installing from source (works on **Raspbian**, **Debian**, **Ubuntu** and many other Unix distributions):
+
+```shell
+git clone https://github.com/mcpcpc/kirc.git
+cd kirc
+make
+make install
+```
+
+## Usage
+
+Consult `man kirc` for a full list and explanation of available arguments.
+
+```shell
+kirc [-s server] [-p port] [-n nick] [-c chan] ...
+```
+
+## Command Aliases
+
+```shell
+<message>                  Send a PRIVMSG to the current channel.
+@<channel|nick> <message>  Send a message to a specified channel or nick.
+@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick.
+/<command>                 Send command to IRC server (see RFC 2812 for full list).
+/#<channel>                Assign new default message channel.
+```
+
+## Key Bindings
+
+A number of key bindings have been supplied to make text editing and string manipulation a breeze! 
+
+| Key Binding           | Behavior Description                               |
+|-----------------------|----------------------------------------------------|
+| CTRL+B or LEFT ARROW  | moves the cursor one character to the left.        |
+| CTRL+F or RIGHT ARROW | moves the cursor one character to the right.       |
+| CTRL+A                | moves the cursor to the end of the line.           |
+| CTRL+E or HOME        | moves the cursor to the start of the line.         |
+| CTRL+W                | deletes the previous word.                         |
+| CTRL+U                | deletes the entire line.                           |
+| CTRL+K                | deletes the from current character to end of line. |
+| CTRL+C                | force quit kirc.                                   |
+| CTRL+D                | deletes the character to the right of cursor.      |
+| CTRL+T                | swap character at cursor with previous character.  |
+| CTRL+H                | equivalent to backspace.                           |
 
 ## Transport Layer Security Support
 
-There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party utilities (e.g. stunnel, [socat](https://linux.die.net/man/1/socat), ghosttunnel, etc).
+There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party utilities (e.g. stunnel, socat, ghosttunnel, etc).
 
 *   Example using `socat`. Remember to replace items enclosed with `<>`.
 
@@ -48,9 +118,9 @@ $ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 
 ## SASL EXTERNAL Authentication
 
-Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate using credentials by external means. An example where this might be required is when trying to connect to an IRC host through [Tor](https://www.torproject.org/). To do so, we can using third-party utilities (e.g. stunnel, socat, ghosttunnel, etc).
+Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate using credentials by external means. An example where this might be required is when trying to connect to an IRC host through Tor. To do so, we can using third-party utilities (e.g. stunnel, socat, ghosttunnel, etc).
 
-*   Example using `socat`. Remember to replace items enclosed with `<>`.
+An example using `socat`. Remember to replace items enclosed with `<>`:
 
 ```shell
 socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
@@ -60,15 +130,15 @@ kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
 
 ## Color Scheme Definition
 
-Applying a new color scheme is easy! One of the quickest ways is to use an application, such as [kfc](https://github.com/mcpcpc/kfc), to apply pre-made color palettes. Alternatively, you can manually apply escape sequences to change the default terminal colors.
+Applying a new color scheme is easy! One of the quickest ways is to use an application, such as kfc, to apply pre-made color palettes. Alternatively, you can manually apply escape sequences to change the default terminal colors.
 
-*   Example using `kfc`
+An example using `kfc`:
 
 ```shell
 kfc -s gruvbox
 ```
 
-*   Example using ANSI escape sequences
+An example using ANSI escape sequences:
 
 ```shell
 printf -e "\033]4;<color_number>;#<hex_color_code>"
@@ -95,8 +165,32 @@ printf -e "\033]4;<color_number>;#<hex_color_code>"
 
 ## System Notifications
 
-The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc).  Also, special thanks to @soliwilos contributing this one:
+The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc).  Also, special thanks to soliwilos contributing this one:
 
-{% d40eb3ce2c01e49144ef7f75f7776c10 %}
+```shell
+#!/bin/sh
+#
+# checks log file for substring and sends notification and
+# sends message to specified program.
 
-[back]({{ site.url }})
+main () {
+    while true; do
+        tail -fn5 "$1" | awk '/PRIVMSG #.*nick.*/ {
+            system("wayherb \"kirc - new message\"")
+            print "new message recieved!"
+            exit
+        }'
+        sleep 5
+    done
+}
+
+main "$1"
+```
+
+## FAQs
+
+**KISS** is an acronym for [Keep It Simple Stupid](https://en.wikipedia.org/wiki/KISS_principle), which is a design principle noted by the U.S. Navy in 1960s. The KISS principle states that most systems work best if they are kept simple rather than made complicated; therefore, simplicity should be a key goal in design, and unnecessary complexity should be avoided.
+
+**POSIX** is an acronym for [Portable Operating System Interface](https://opensource.com/article/19/7/what-posix-richard-stallman-explains), which is a family of standards specified by the IEEE Computer Society for maintaining compatibility between operating systems. The *C99* Standard is preferred over other versions (e.g. *C89* or *C11*) since this currently the only one specified by [POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html).
+
+
