@@ -1,99 +1,63 @@
-<!-- vim: syntax=Markdown -->
-<!--
-  Title: KISS for IRC (kirc)
-  Description: A tiny IRC client written in POSIX C99.
-  Author: mcpcpc
--->
+kirc
+====
 
-<h3 align="center">
-  <img src="https://raw.githubusercontent.com/mcpcpc/kirc/gh-pages/kirc.png" alt="kirc" height="170px">
-</h3>
+kirc (KISS for IRC) is a tiny IRC client written in POSIX C99.
 
-<p align="center">KISS for IRC, a tiny IRC client written in POSIX C99.</p>
+Installation
+------------
 
-<p align="center">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <a href="https://github.com/mcpcpc/kirc/releases"><img src="https://img.shields.io/github/v/release/mcpcpc/kirc.svg"></a>
-  <a href="https://repology.org/metapackage/kirc"><img src="https://repology.org/badge/tiny-repos/kirc.svg" alt="Packaging status"></a>
-  <a href="https://www.codacy.com/manual/mcpcpc/kirc/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mcpcpc/kirc&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/5616c0ed4b2f4209826038dbc270dbf5" alt="Codacy status"></a>
-</p>
+Building and installing from source:
 
-## Features
+	git clone https://github.com/mcpcpc/kirc
+	cd kirc
+	make
+	make install
 
-*   Excellent cross-platform compatibility.
-*   Asynchronous user input and server messager handling.
-*   No dependencies other than a C99 compiler.
-*   Simple Authentication and Security Layer (SASL) procotol support.
-*   Client-to-client protocol (CTCP) support.
-*   Transport Layer Security (TLS) protocol support (via external utilities).
-*   Full chat history logging.
-*   Multi-channel joining at server connection.
-*   Simple command aliases and full support for all RFC 2812 commands.
-*   Easy color scheme definition via ANSI 8-bit colors.
+Usage
+-----
 
-## Installation & Usage
+Consult `man kirc` for a full list and explanation of available arguments.
 
-Building and installing on **KISS Linux** using the Community repository:
+	kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname]
+	     [-u username] [-k password] [-a token] [-x command] [-o logfile]
+	     [-e|v|V]
 
-```shell
-kiss b kirc
-kiss i kirc
-```
+Command Aliases
+---------------
 
-Building and installing on **Arch** and **Arch-based** distros using the AUR:
+	<message>                  send PRIVMSG to the current channel.
+	@<channel|nick> <message>  send message to a specified channel or nick.
+	@@<channel|nick> <message> send CTCP ACTION message to a specified channel or nick.
+	/<command>                 send command to the IRC server (see RFC 2812).
+	/#<channel>                assign new default message channel.
 
-```shell
-git clone https://aur.archlinux.org/kirc-git.git
-cd kirc
-makepkg -si
-```
+Key Bindings
+------------
 
-Building and installing from source (works on **Raspbian**, **Debian**, **Ubuntu** and many other Unix distributions):
+	CTRL+B or LEFT ARROW       move the cursor one character to the left.
+	CTRL+F or RIGHT ARROW      move the cursor one character to the right.
+	CTRL+P or UP ARROW         move to previous record in the input history buffer.
+	CTRL+N or DOWN ARROW       move to next record in the input history buffer.
+	CTRL+E                     move the cursor to the end of the line.
+	CTRL+A or HOME             move the cursor to the start of the line.
+	CTRL+W                     delete the previous word.
+	CTRL+U                     delete the entire line.
+	CTRL+K                     delete the from current character to end of line.
+	CTRL+D                     delete the character to the right of cursor.
+	CTRL+C                     force quit kirc.
+	CTRL+T                     swap character at cursor with previous character.
+	CTRL+H                     equivalent to backspace.
 
-```shell
-git clone https://github.com/mcpcpc/kirc.git
-cd kirc
-make
-make install
-```
+Support Documentation
+---------------------
 
-### Usage
+Please refer to the official for examples, troubleshooting and use cases.
 
-Consult `man kirc` for a full list and explanation of available `kirc` arguments.
+	https://mcpcpc.github.io/kirc/documentation.html
 
-```shell
-kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-u username] [-k password] [-a token] [-x command] [-o logfile] [-e|v|V]
-```
+Contact
+-------
 
-### Command Aliases
+For any further questions or concerns, feel free to email me at:
 
-```shell
-<message>                  Send a PRIVMSG to the current channel.
-@<channel|nick> <message>  Send a message to a specified channel or nick 
-@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick 
-/<command>                 Send command to IRC server (see RFC 2812 for full list).
-/#<channel>                Assign new default message channel.
-```
-
-### User Input Key Bindings
-
-*   **CTRL+B** or **LEFT ARROW** moves the cursor one character to the left.
-*   **CTRL+F** or **RIGHT ARROW** moves the cursor one character to the right.
-*   **CTRL+E** moves the cursor to the end of the line.
-*   **CTRL+A** or **HOME** moves the cursor to the start of the line.
-*   **CTRL+W** deletes the previous word.
-*   **CTRL+U** deletes the entire line.
-*   **CTRL+K** deletes the from current character to end of line.
-*   **CTRL+C** Force quit kirc.
-*   **CTRL+D** deletes the character to the right of cursor.
-*   **CTRL+T** swap character at cursor with previous character.
-*   **CTRL+H** equivalent to backspace.
-
-## Support Documentation
-
-Please refer to the official [Support Documention](https://mcpcpc.github.io/kirc/documentation.html) for examples, troubleshooting and use cases.
-
-## Contact
-
-For any further questions or concerns, feel free to reach out to me, [mcpcpc](https://github.com/mcpcpc), on `#kirc`
-or `#kisslinux` Freenode IRC channels.
+	michaelczigler [at] mcpcpc [dot] com
