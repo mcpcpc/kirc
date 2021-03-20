@@ -8,8 +8,8 @@ title: documentation
 ## Table of Contents
 
 - [Installation](#installation)
-  - [Usage](#usage)
-  - [Command Aliases](#command-aliases)
+- [Usage](#usage)
+- [Command Aliases](#command-aliases)
 - [Key Bindings](#key-bindings)
 - [Transport Layer Security Support](#transport-layer-security-support)
 - [SASL PLAIN Authentication](#sasl-plain-authentication)
