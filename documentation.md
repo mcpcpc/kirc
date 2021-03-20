@@ -22,63 +22,53 @@ title: documentation
 
 Building and installing on **KISS Linux** using the Community repository:
 
-```shell
-kiss b kirc
-kiss i kirc
-```
+	kiss b kirc
+	kiss i kirc
 
 Building and installing on **Arch** and Arch-based distros using the AUR:
 
-```shell
-git clone https://aur.archlinux.org/kirc-git.git
-cd kirc
-makepkg -si
-```
+	git clone https://aur.archlinux.org/kirc-git.git
+	cd kirc
+	makepkg -si
 
 Building and installing from source (works on **Raspbian**, **Debian**, **Ubuntu** and many other Unix distributions):
 
-```shell
-git clone https://github.com/mcpcpc/kirc.git
-cd kirc
-make
-make install
-```
+	git clone https://github.com/mcpcpc/kirc.git
+	cd kirc
+	make
+	make install
 
 ## Usage
 
 Consult `man kirc` for a full list and explanation of available arguments.
 
-```shell
-kirc [-s server] [-p port] [-n nick] [-c chan] ...
-```
+	kirc [-s server] [-p port] [-n nick] [-c chan] ...
 
 ## Command Aliases
 
-```shell
-<message>                  Send a PRIVMSG to the current channel.
-@<channel|nick> <message>  Send a message to a specified channel or nick.
-@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick.
-/<command>                 Send command to IRC server (see RFC 2812 for full list).
-/#<channel>                Assign new default message channel.
-```
+	<message>                  Send a PRIVMSG to the current channel.
+	@<channel|nick> <message>  Send a message to a specified channel or nick.
+	@@<channel|nick> <message> Send a CTCP ACTION message to a specified channel or nick.
+	/<command>                 Send command to IRC server (see RFC 2812 for full list).
+	/#<channel>                Assign new default message channel.
 
 ## Key Bindings
 
 A number of key bindings have been supplied to make text editing and string manipulation a breeze! 
 
-| Key Binding           | Behavior Description                               |
-|-----------------------|----------------------------------------------------|
-| CTRL+B or LEFT ARROW  | moves the cursor one character to the left.        |
-| CTRL+F or RIGHT ARROW | moves the cursor one character to the right.       |
-| CTRL+A                | moves the cursor to the end of the line.           |
-| CTRL+E or HOME        | moves the cursor to the start of the line.         |
-| CTRL+W                | deletes the previous word.                         |
-| CTRL+U                | deletes the entire line.                           |
-| CTRL+K                | deletes the from current character to end of line. |
-| CTRL+C                | force quit kirc.                                   |
-| CTRL+D                | deletes the character to the right of cursor.      |
-| CTRL+T                | swap character at cursor with previous character.  |
-| CTRL+H                | equivalent to backspace.                           |
+	CTRL+B or LEFT ARROW       move the cursor one character to the left.
+	CTRL+F or RIGHT ARROW      move the cursor one character to the right.
+	CTRL+P or UP ARROW         move to previous record in the input history buffer.
+	CTRL+N or DOWN ARROW       move to next record in the input history buffer.
+	CTRL+E                     move the cursor to the end of the line.
+	CTRL+A or HOME             move the cursor to the start of the line.
+	CTRL+W                     delete the previous word.
+	CTRL+U                     delete the entire line.
+	CTRL+K                     delete the from current character to end of line.
+	CTRL+D                     delete the character to the right of cursor.
+	CTRL+C                     force quit kirc.
+	CTRL+T                     swap character at cursor with previous character.
+	CTRL+H                     equivalent to backspace.
 
 ## Transport Layer Security Support
 
@@ -86,35 +76,28 @@ There is no native TLS/SSL support. Instead, users can achieve this functionalit
 
 *   Example using `socat`. Remember to replace items enclosed with `<>`.
 
-```shell
-socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
-kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
-```
+	socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
+	kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
+
 
 ## HTTP/HTTPS Proxy Support
 
 Similar to the TLS example, we can use third-party utilities, such as stunnel or socat, to connect to a proxy server.
 
-```shell
-socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 proxy:<proxyurl>:irc.freenode.org:6667;,proxyport=<proxyport>
-kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
-```
+	socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 proxy:<proxyurl>:irc.freenode.org:6667;,proxyport=<proxyport>
+	kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
 
 ## SASL PLAIN Authentication
 
 In order to connect using `SASL PLAIN` mechanism authentication, the user must provide the required token during the initial connection. If the authentication token is base64 encoded and, therefore, can be generated a number of ways. For example, using Python, one could use the following:
 
-```shell
-python -c 'import base64; print(base64.encodebytes(b"nick\x00nick\x00password"))'
-```
+	python -c 'import base64; print(base64.encodebytes(b"nick\x00nick\x00password"))'
 
 For example, lets assume an authentication identity of `jilles` and password `sesame`:
 
-```shell
-$ python -c 'import base64; print(base64.encodebytes(b"jilles\x00jilles\x00sesame"))'
-b 'amlsbGVzAGppbGxlcwBzZXNhbWU=\n'
-$ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
-```
+	$ python -c 'import base64; print(base64.encodebytes(b"jilles\x00jilles\x00sesame"))'
+	b 'amlsbGVzAGppbGxlcwBzZXNhbWU=\n'
+	$ kirc -n jilles -a amlsbGVzAGppbGxlcwBzZXNhbWU=
 
 ## SASL EXTERNAL Authentication
 
@@ -122,11 +105,10 @@ Similar to `SASL PLAIN`, the `SASL EXTERNAL` mechanism allows us to authenticate
 
 An example using `socat`. Remember to replace items enclosed with `<>`:
 
-```shell
-socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
-socat TCP4-LISTEN:1111,fork,bind=0,reuseaddr 'OPENSSL:127.0.0.1:1110,verify=0,cert=<path_to_pem>'
-kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
-```
+	socat TCP4-LISTEN:1110,fork,bind=0,reuseaddr SOCKS4A:127.0.0.1:<onion_address.onion>:<onion_port>,socksport=9050
+	socat TCP4-LISTEN:1111,fork,bind=0,reuseaddr 'OPENSSL:127.0.0.1:1110,verify=0,cert=<path_to_pem>'
+	kirc -e -s 127.0.0.1 -p 1111 -n <nick> -x 'wait 5000'
+
 
 ## Color Scheme Definition
 
@@ -134,58 +116,52 @@ Applying a new color scheme is easy! One of the quickest ways is to use an appli
 
 An example using `kfc`:
 
-```shell
-kfc -s gruvbox
-```
+	kfc -s gruvbox
 
 An example using ANSI escape sequences:
 
-```shell
-printf -e "\033]4;<color_number>;#<hex_color_code>"
+	printf -e "\033]4;<color_number>;#<hex_color_code>"
 
-# Replace <hex_color_code> with the desired Hex code (e.g. #FFFFFF is white).
-# Replace <color_number> with the one of the numbers below:
-# 0 -  Regular Black
-# 1 -  Regular Red
-# 2 -  Regular Green
-# 3 -  Regular Yellow
-# 4 -  Regular Blue
-# 5 -  Regular Magenta
-# 6 -  Regular Cyan
-# 7 -  Regular White
-# 8 -  Bright Black
-# 9 -  Bright Red
-# 10 - Bright Green
-# 11 - Bright Yellow
-# 12 - Bright Blue
-# 13 - Bright Magenta
-# 14 - Bright Cyan
-# 15 - Bright White
-```
+	# Replace <hex_color_code> with the desired Hex code (e.g. #FFFFFF is white).
+	# Replace <color_number> with the one of the numbers below:
+	# 0 -  Regular Black
+	# 1 -  Regular Red
+	# 2 -  Regular Green
+	# 3 -  Regular Yellow
+	# 4 -  Regular Blue
+	# 5 -  Regular Magenta
+	# 6 -  Regular Cyan
+	# 7 -  Regular White
+	# 8 -  Bright Black
+	# 9 -  Bright Red
+	# 10 - Bright Green
+	# 11 - Bright Yellow
+	# 12 - Bright Blue
+	# 13 - Bright Magenta
+	# 14 - Bright Cyan
+	# 15 - Bright White
 
 ## System Notifications
 
 The following is an example script that can be used or modified to send custom system notifications to a specified tool (i.e herbe, wayeherb, etc).  Also, special thanks to soliwilos contributing this one:
 
-```shell
-#!/bin/sh
-#
-# checks log file for substring and sends notification and
-# sends message to specified program.
+	#!/bin/sh
+	#
+	# checks log file for substring and sends notification and
+	# sends message to specified program.
 
-main () {
-    while true; do
-        tail -fn5 "$1" | awk '/PRIVMSG #.*nick.*/ {
-            system("wayherb \"kirc - new message\"")
-            print "new message recieved!"
-            exit
-        }'
-        sleep 5
-    done
-}
+	main () {
+	    while true; do
+	        tail -fn5 "$1" | awk '/PRIVMSG #.*nick.*/ {
+	            system("wayherb \"kirc - new message\"")
+	            print "new message recieved!"
+	            exit
+	        }'
+	        sleep 5
+	    done
+	}
 
-main "$1"
-```
+	main "$1"
 
 ## FAQs
 
