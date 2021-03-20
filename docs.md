@@ -74,7 +74,7 @@ A number of key bindings have been supplied to make text editing and string mani
 
 There is no native TLS/SSL support. Instead, users can achieve this functionality by using third-party utilities (e.g. stunnel, socat, ghosttunnel, etc).
 
-*   Example using `socat`. Remember to replace items enclosed with `<>`.
+An example using `socat`. Remember to replace items enclosed with `<>`.
 
 	socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:<irc-server>:6697
 	kirc -s 127.0.0.1 -c 'channel' -n 'name' -r 'realname'
