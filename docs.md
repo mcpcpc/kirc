@@ -3,7 +3,7 @@ layout: default
 title: documentation
 ---
 
-# Documentation
+# Support Documentation
 
 ## Table of Contents
 
