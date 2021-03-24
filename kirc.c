@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.2.5"
+#define VERSION "0.2.6"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
