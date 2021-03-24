@@ -24,6 +24,7 @@ static char  cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int   conn;                      /* connection socket */
 static int   verb = 0;                  /* verbose output */
 static int   sasl = 0;                  /* SASL method */
+static int   isu8 = 0;                  /* UTF-8 flag */
 static char *host = "irc.freenode.net"; /* host address */
 static char *port = "6667";             /* port */
 static char *chan = NULL;               /* channel(s) */
@@ -34,7 +35,6 @@ static char *auth = NULL;               /* PLAIN SASL token */
 static char *real = NULL;               /* real name */
 static char *olog = NULL;               /* chat log path*/
 static char *inic = NULL;               /* additional server command */
-static int   isu8 = 0;
 
 struct Param {
 	char  *prefix;
@@ -173,66 +173,95 @@ static int getColumns(int ifd, int ofd) {
 	}
 }
 
-static void bufposmove(struct State *l, ssize_t dest, ssize_t src, size_t size) {
-	memmove(l->buf+l->posb+dest, l->buf+l->posb+src, size);
+static void bufPosMove(struct State *l, ssize_t dest, ssize_t src, size_t size) {
+	memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
 }
 
-static void bufposmoveend(struct State *l, ssize_t dest, ssize_t src) {
-	bufposmove(l, dest, src, l->lenb - (l->posb + src) + 1);
+static void bufPosMoveEnd(struct State *l, ssize_t dest, ssize_t src) {
+	bufPosMove(l, dest, src, l->lenb - (l->posb + src) + 1);
 }
 
 static int u8CharStart(char c) {
-	if(!isu8) return 1;
-		return (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0;
+	int ret = 1;
+	if (isu8 != 0) {
+		ret = (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0;
+	}
+	return ret;
 }
 
 static int u8CharSize(char c) {
-	if(!isu8) return 1;
-	int size = 0;
-	while( c & (0x80 >> size)) size++;
-		return size != 0 ? size : 1;
+	int ret = 1;
+	if(isu8 != 0) {
+		int size = 0;
+		while (c & (0x80 >> size)) {
+			size++;
+		}
+		ret = (size != 0) ? size : 1;
+	}
+	return ret;
 }
 
 static size_t u8Len(const char *s) {
 	size_t lenu8 = 0;
-	while(*s != '\0')
+	while (*s != '\0') {
 		lenu8 += u8CharStart(*(s++));
+	}
 	return lenu8;
 }
 
 static size_t u8Prev(const char *s, size_t posb) {
-	if(posb == 0) return posb;
-	do{
-		posb--;
-	}while(posb > 0 && !u8CharStart(s[posb]));
+	if (posb != 0) {
+		do {
+			posb--;
+		} while ((posb > 0) && !u8CharStart(s[posb]));
+	}
 	return posb;
 }
 
 static size_t u8Next(const char *s, size_t posb) {
-	if(s[posb] == '\0') return posb;
-	do{
-		posb++;
-	}while(s[posb] != '\0' && !u8CharStart(s[posb]));
+	if (s[posb] != '\0') {
+		do {
+			posb++;
+		} while((s[posb] != '\0') && !u8CharStart(s[posb]));
+	}
 	return posb;
 }
 
 static int setIsu8_C(int ifd, int ofd) {
-	if(isu8) return 0; /*we already tested it and it isn't going to change*/
-	if (write(ofd,"\r",1) != 1) return -1; /*move first to first position*/
-	if (getCursorPosition(ifd,ofd) != 1) return -1;
+	if (isu8) {
+		return 0;
+	}
+	if (write(ofd, "\r", 1) != 1) {
+		return -1;
+	}
+	if (getCursorPosition(ifd, ofd) != 1) {
+		return -1;
+	}
 	const char* testChars[] = {
-		"\xe1\xbb\xa4",/*U+1EE4, 3 valid chars in: ISO 8859-*,Windows-1252,Mac OS Roman,...*/
+		"\xe1\xbb\xa4",
 		NULL
 	};
-	for(const char** it = testChars; *it; it++){
-		if(write(ofd,*it,strlen(*it)) != (ssize_t) strlen(*it)) return -1; /*test char*/
-		int pos = getCursorPosition(ifd,ofd);
-		if(write(ofd,"\r",1) != 1) return -1;
-		for(int i=1; i<pos;i++) if(write(ofd," ",1) != 1) return -1; /*erase*/
-		if(write(ofd,"\r",1) != 1) return -1;
-		if(pos != 2) return 0; /* check that it moved by 1.*/
+	for (const char** it = testChars; *it; it++){
+		if (write(ofd, *it, strlen(*it)) != (ssize_t) strlen(*it)) {
+			return -1;
+		}
+		int pos = getCursorPosition(ifd, ofd);
+		if (write(ofd, "\r", 1) != 1) {
+			return -1;
+		}
+		for (int i = 1; i < pos; i++) {
+			if (write(ofd, " ", 1) != 1) {
+				return -1;
+			}
+		}
+		if (write(ofd, "\r", 1) != 1) {
+			return -1;
+		}
+		if (pos != 2) {
+			return 0;
+		}
 	}
-	isu8 = 1; /*if all of them are printed correctly, then it's probably uft8*/
+	isu8 = 1;
 	return 0;
  }
 
@@ -311,7 +340,7 @@ static int editInsert(struct State *l, char *c) {
 				refreshLine(l);
 			}
 		} else {
-			bufposmoveend(l, clenb, 0);
+			bufPosMoveEnd(l, clenb, 0);
 			memmove(l->buf + l->posb, c, clenb);
 			l->posu8++;
 			l->lenu8++;
@@ -358,7 +387,7 @@ static void editMoveEnd(struct State *l) {
 static void editDelete(struct State *l) {
 	if ((l->lenu8 > 0) && (l->posu8 < l->lenu8)) {
 		size_t this_size = u8Next(l->buf, l->posb) - l->posb;
-		bufposmoveend(l, 0, this_size);
+		bufPosMoveEnd(l, 0, this_size);
 		l->lenb -= this_size;
 		l->lenu8--;
 		refreshLine(l);
@@ -368,7 +397,7 @@ static void editDelete(struct State *l) {
 static void editBackspace(struct State *l) {
 	if ((l->posu8 > 0) && (l->lenu8 > 0)) {
 		size_t prev_size = l->posb - u8Prev(l->buf, l->posb);
-		bufposmoveend(l, (ssize_t)-prev_size, 0);
+		bufPosMoveEnd(l, (ssize_t)-prev_size, 0);
 		l->posb -= prev_size;
 		l->lenb -= prev_size;
 		l->posu8--;
@@ -392,7 +421,7 @@ static void editDeletePrevWord(struct State *l) {
 	}
 	size_t diffb = old_posb - l->posb;
 	size_t diffu8 = old_posu8 - l->posu8;
-	bufposmoveend(l, 0, diffb);
+	bufPosMoveEnd(l, 0, diffb);
 	l->lenb -= diffb;
 	l->lenu8 -= diffu8;
 	refreshLine(l);
@@ -417,7 +446,7 @@ static void editSwapCharWithPrev(struct State *l) {
 		ssize_t prev_size = l->posb - u8Prev(l->buf, l->posb);
 		ssize_t this_size = u8Next(l->buf, l->posb) - l->posb;
 		memmove(aux, l->buf + l->posb, this_size);
-		bufposmove(l, -prev_size + this_size, -prev_size, prev_size);
+		bufPosMove(l, -prev_size + this_size, -prev_size, prev_size);
 		memmove(l->buf + l->posb - prev_size, aux, this_size);
 		if (l->posu8 != l->lenu8-1){
 			l->posu8++;
