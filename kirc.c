@@ -470,7 +470,7 @@ static void editHistory(struct State *l, int dir) {
 		}
 		strncpy(l->buf, history[history_len - (1 + l->history_index)], l->buflen);
 		l->buf[l->buflen - 1] = '\0';
-		l->lenb = l->posb = strlen(l->buf);
+		l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
 		l->lenu8 = l->posu8 = u8Len(l->buf);
 		refreshLine(l);
 	}
@@ -595,7 +595,7 @@ static int edit(struct State *l) {
 }
 
 static void stateReset(struct State *l) {
-	l->plenb = strlen(l->prompt);
+	l->plenb = strnlen(l->prompt, MSG_MAX);
 	l->plenu8 = u8Len(l->prompt);
 	l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
 	l->history_index = 0;
