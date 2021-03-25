@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.2.5"
+#define VERSION "0.2.6"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
@@ -24,6 +24,7 @@ static char  cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int   conn;                      /* connection socket */
 static int   verb = 0;                  /* verbose output */
 static int   sasl = 0;                  /* SASL method */
+static int   isu8 = 0;                  /* UTF-8 flag */
 static char *host = "irc.freenode.net"; /* host address */
 static char *port = "6667";             /* port */
 static char *chan = NULL;               /* channel(s) */
@@ -59,10 +60,14 @@ struct State {
 	char  *prompt;     /* Prompt to display. */
 	char  *buf;        /* Edited line buffer. */
 	size_t buflen;     /* Edited line buffer size. */
-	size_t plen;       /* Prompt length. */
-	size_t pos;        /* Current cursor position. */
-	size_t oldpos;     /* Previous refresh cursor position. */
-	size_t len;        /* Current edited line length. */
+	size_t plenb;       /* Prompt length. */
+	size_t plenu8;       /* Prompt length. */
+	size_t posb;        /* Current cursor position. */
+	size_t posu8;        /* Current cursor position. */
+	size_t oldposb;     /* Previous refresh cursor position. */
+	size_t oldposu8;     /* Previous refresh cursor position. */
+	size_t lenb;        /* Current edited line length. */
+	size_t lenu8;        /* Current edited line length. */
 	size_t cols;       /* Number of columns in terminal. */
 	int history_index; /* Current line in the edit history */
 };
@@ -168,6 +173,98 @@ static int getColumns(int ifd, int ofd) {
 	}
 }
 
+static void bufPosMove(struct State *l, ssize_t dest, ssize_t src, size_t size) {
+	memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
+}
+
+static void bufPosMoveEnd(struct State *l, ssize_t dest, ssize_t src) {
+	bufPosMove(l, dest, src, l->lenb - (l->posb + src) + 1);
+}
+
+static int u8CharStart(char c) {
+	int ret = 1;
+	if (isu8 != 0) {
+		ret = (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0;
+	}
+	return ret;
+}
+
+static int u8CharSize(char c) {
+	int ret = 1;
+	if(isu8 != 0) {
+		int size = 0;
+		while (c & (0x80 >> size)) {
+			size++;
+		}
+		ret = (size != 0) ? size : 1;
+	}
+	return ret;
+}
+
+static size_t u8Len(const char *s) {
+	size_t lenu8 = 0;
+	while (*s != '\0') {
+		lenu8 += u8CharStart(*(s++));
+	}
+	return lenu8;
+}
+
+static size_t u8Prev(const char *s, size_t posb) {
+	if (posb != 0) {
+		do {
+			posb--;
+		} while ((posb > 0) && !u8CharStart(s[posb]));
+	}
+	return posb;
+}
+
+static size_t u8Next(const char *s, size_t posb) {
+	if (s[posb] != '\0') {
+		do {
+			posb++;
+		} while((s[posb] != '\0') && !u8CharStart(s[posb]));
+	}
+	return posb;
+}
+
+static int setIsu8_C(int ifd, int ofd) {
+	if (isu8) {
+		return 0;
+	}
+	if (write(ofd, "\r", 1) != 1) {
+		return -1;
+	}
+	if (getCursorPosition(ifd, ofd) != 1) {
+		return -1;
+	}
+	const char* testChars[] = {
+		"\xe1\xbb\xa4",
+		NULL
+	};
+	for (const char** it = testChars; *it; it++){
+		if (write(ofd, *it, strlen(*it)) != (ssize_t) strlen(*it)) {
+			return -1;
+		}
+		int pos = getCursorPosition(ifd, ofd);
+		if (write(ofd, "\r", 1) != 1) {
+			return -1;
+		}
+		for (int i = 1; i < pos; i++) {
+			if (write(ofd, " ", 1) != 1) {
+				return -1;
+			}
+		}
+		if (write(ofd, "\r", 1) != 1) {
+			return -1;
+		}
+		if (pos != 2) {
+			return 0;
+		}
+	}
+	isu8 = 1;
+	return 0;
+ }
+
 static void abInit(struct abuf *ab) {
 	ab->b = NULL;
 	ab->len = 0;
@@ -189,57 +286,66 @@ static void abFree(struct abuf *ab) {
 
 static void refreshLine(struct State *l) {
 	char seq[64];
-	size_t plen = strlen(l->prompt) + 2;
+	size_t plenu8 = l->plenu8 + 2;
 	int fd = STDOUT_FILENO;
 	char *buf = l->buf;
-	size_t len = l->len;
-	size_t pos = l->pos;
+	size_t lenb = l->lenb;
+	size_t lenu8 = l->lenu8;
+	size_t posu8 = l->posu8;
 	struct abuf ab;
 	l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
-	while ((plen + pos) >= l->cols) {
-		buf++;
-		len--;
-		pos--;
+	while ((plenu8 + posu8) >= l->cols) {
+		size_t movedBy = u8Next(buf, 0);
+		buf += movedBy;
+		lenb += movedBy;
+		lenu8--;
+		posu8--;
 	}
-	while ((plen + len) > l->cols) {
-		len--;
+	while ((plenu8 + lenu8) > l->cols) {
+		lenu8--;
+		lenb = u8Prev(buf, lenb);
 	}
-
 	abInit(&ab);
 	snprintf(seq, sizeof(seq), "\r");
 	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
-	abAppend(&ab,l->prompt, strnlen(l->prompt, MSG_MAX));
+	abAppend(&ab,l->prompt, l->plenb);
 	abAppend(&ab, "> ", 2);
-	abAppend(&ab, buf, len);
+	abAppend(&ab, buf, lenb);
 	snprintf(seq, sizeof(seq), "\x1b[0K");
 	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
-	snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(pos + plen));
+	if (posu8 + plenu8) {
+		snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(posu8 + plenu8));
+	} else {
+		snprintf(seq, sizeof(seq), "\r");
+	}
 	abAppend(&ab, seq, strlen(seq));
 	if (write(fd, ab.b, ab.len) == -1) {}
 	abFree(&ab);
 }
 
-static int editInsert(struct State *l, char c) {
-	if (l->len < l->buflen) {
-		if (l->len == l->pos) {
-			l->buf[l->pos] = c;
-			l->pos++;
-			l->len++;
-			l->buf[l->len] = '\0';
-			if ((l->plen + l->len) < l->cols) {
-				char d = c;
-				if (write(STDOUT_FILENO, &d, 1) == -1) {
+static int editInsert(struct State *l, char *c) {
+	size_t clenb = strlen(c);
+	if ((l->lenb + clenb) < l->buflen) {
+		if (l->lenu8 == l->posu8) {
+			strcpy(l->buf + l->posb, c);
+			l->posu8++;
+			l->lenu8++;
+			l->posb += clenb;
+			l->lenb += clenb;
+			if ((l->plenu8 + l->lenu8) < l->cols) {
+				if (write(STDOUT_FILENO, c, clenb) == -1) {
 					return -1;
 				}
 			} else {
 				refreshLine(l);
 			}
 		} else {
-			memmove(l->buf + l->pos + 1,l->buf + l->pos,l->len - l->pos);
-			l->buf[l->pos] = c;
-			l->len++;
-			l->pos++;
-			l->buf[l->len] = '\0';
+			bufPosMoveEnd(l, clenb, 0);
+			memmove(l->buf + l->posb, c, clenb);
+			l->posu8++;
+			l->lenu8++;
+			l->posb += clenb;
+			l->lenb += clenb;
 			refreshLine(l);
 		}
 	}
@@ -247,85 +353,104 @@ static int editInsert(struct State *l, char c) {
 }
 
 static void editMoveLeft(struct State *l) {
-	if (l->pos > 0) {
-		l->pos--;
+	if (l->posb > 0) {
+		l->posb = u8Prev(l->buf, l->posb);
+		l->posu8--;
 		refreshLine(l);
 	}
 }
 
 static void editMoveRight(struct State *l) {
-	if (l->pos != l->len) {
-		l->pos++;
+	if (l->posu8 != l->lenu8) {
+		l->posb = u8Next(l->buf, l->posb);
+		l->posu8++;
 		refreshLine(l);
 	}
 }
 
 static void editMoveHome(struct State *l) {
-	if (l->pos != 0) {
-		l->pos = 0;
+	if (l->posb != 0) {
+		l->posb = 0;
+		l->posu8 = 0;
 		refreshLine(l);
 	}
 }
 
 static void editMoveEnd(struct State *l) {
-	if (l->pos != l->len) {
-		l->pos = l->len;
+	if (l->posu8 != l->lenu8) {
+		l->posb = l->lenb;
+		l->posu8 = l->lenu8;
 		refreshLine(l);
 	}
 }
 
 static void editDelete(struct State *l) {
-	if ((l->len > 0) && (l->pos < l->len)) {
-		memmove(l->buf + l->pos, l->buf + l->pos + 1, l->len - l->pos - 1);
-		l->len--;
-		l->buf[l->len] = '\0';
+	if ((l->lenu8 > 0) && (l->posu8 < l->lenu8)) {
+		size_t this_size = u8Next(l->buf, l->posb) - l->posb;
+		bufPosMoveEnd(l, 0, this_size);
+		l->lenb -= this_size;
+		l->lenu8--;
 		refreshLine(l);
 	}
 }
 
 static void editBackspace(struct State *l) {
-	if ((l->pos > 0) && (l->len > 0)) {
-		memmove(l->buf + l->pos - 1, l->buf + l->pos, l->len - l->pos);
-		l->pos--;
-		l->len--;
-		l->buf[l->len] = '\0';
+	if ((l->posu8 > 0) && (l->lenu8 > 0)) {
+		size_t prev_size = l->posb - u8Prev(l->buf, l->posb);
+		bufPosMoveEnd(l, (ssize_t)-prev_size, 0);
+		l->posb -= prev_size;
+		l->lenb -= prev_size;
+		l->posu8--;
+		l->lenu8--;
 		refreshLine(l);
 	}
 }
 
 static void editDeletePrevWord(struct State *l) {
-	size_t old_pos = l->pos;
-	while ((l->pos > 0) && (l->buf[l->pos - 1] == ' ')) {
-		l->pos--;
+	size_t old_posb = l->posb;
+	size_t old_posu8 = l->posu8;
+	while ((l->posb > 0) && (l->buf[l->posb - 1] == ' ')) {
+		l->posb--;
+		l->posu8--;
 	}
-	while ((l->pos > 0) && (l->buf[l->pos - 1] != ' ')) {
-		l->pos--;
+	while ((l->posb > 0) && (l->buf[l->posb - 1] != ' ')) {
+		if (u8CharStart(l->buf[l->posb - 1])) {
+			l->posu8--;
+		}
+		l->posb--;
 	}
-	size_t diff = old_pos - l->pos;
-	memmove(l->buf + l->pos, l->buf + old_pos, l->len - old_pos + 1);
-	l->len -= diff;
+	size_t diffb = old_posb - l->posb;
+	size_t diffu8 = old_posu8 - l->posu8;
+	bufPosMoveEnd(l, 0, diffb);
+	l->lenb -= diffb;
+	l->lenu8 -= diffu8;
 	refreshLine(l);
 }
 
 static void editDeleteWholeLine(struct State *l) {
 	l->buf[0] = '\0';
-	l->pos = l->len = 0;
+	l->posb = l->lenb = l->posu8 = l->lenu8 = 0;
 	refreshLine(l);
 }
 
 static void editDeleteLineToEnd(struct State *l) {
-	l->buf[l->pos] = '\0';
-	l->len = l->pos;
+	l->buf[l->posb] = '\0';
+	l->lenb = l->posb;
+	l->lenu8 = l->posu8;
 	refreshLine(l);
 }
 
 static void editSwapCharWithPrev(struct State *l) {
-	if (l->pos > 0 && l->pos < l->len) {
-		int aux = l->buf[l->pos - 1];
-		l->buf[l->pos - 1] = l->buf[l->pos];
-		l->buf[l->pos] = aux;
-		if (l->pos != (l->len - 1)) {
-			l->pos++;
+	if (l->posu8 > 0 && l->posu8 < l->lenu8) {
+		char aux[8];
+		ssize_t prev_size = l->posb - u8Prev(l->buf, l->posb);
+		ssize_t this_size = u8Next(l->buf, l->posb) - l->posb;
+		memmove(aux, l->buf + l->posb, this_size);
+		bufPosMove(l, -prev_size + this_size, -prev_size, prev_size);
+		memmove(l->buf + l->posb - prev_size, aux, this_size);
+		if (l->posu8 != l->lenu8-1){
+			l->posu8++;
+			l->posb += this_size;
 		}
 		refreshLine(l);
 	}
@@ -345,7 +470,8 @@ static void editHistory(struct State *l, int dir) {
 		}
 		strncpy(l->buf, history[history_len - (1 + l->history_index)], l->buflen);
 		l->buf[l->buflen - 1] = '\0';
-		l->len = l->pos = strlen(l->buf);
+		l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
+		l->lenu8 = l->posu8 = u8Len(l->buf);
 		refreshLine(l);
 	}
 }
@@ -416,11 +542,12 @@ static void editEscSequence(struct State *l, char seq[3]) {
 
 static int edit(struct State *l) {
 	char c, seq[3];
+	int ret = 0;
 	ssize_t nread = read(STDIN_FILENO, &c, 1);
 	if (nread <= 0) {
-		return 1;
-	}
-	switch(c) {
+		ret = 1;
+	} else {
+		switch(c) {
 		case 13: editEnter();          return 1; /* enter */
 		case 3: errno = EAGAIN;       return -1; /* ctrl-c */
 		case 127:                                /* backspace */
@@ -435,26 +562,42 @@ static int edit(struct State *l) {
 		case 14: editHistory(l, 0);       break; /* Ctrl+n */
 		case 16: editHistory(l, 1);       break; /* Ctrl+p */
 		case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
+		case 27: editEscSequence(l, seq); break; /* escape sequence */
 		case 4:                                  /* ctrl-d */
-			if (l->len > 0) {
+			if (l->lenu8 > 0) {
 				editDelete(l);
 			} else {
 				history_len--;
 				free(history[history_len]);
-				return -1;
+				ret = -1;
 			}
 			break;
-		case 27: editEscSequence(l, seq); break; /* escape sequence */
-		default: if (editInsert(l, c)) return -1; break;
+		default:
+			if (u8CharStart(c)) {
+				char aux[8];
+				aux[0] = c;
+				int size = u8CharSize(c);
+				for (int i = 1; i < size; i++) {
+					nread = read(STDIN_FILENO, aux + i, 1);
+					if ((aux[i] & 0xC0) != 0x80) {
+						break;
+					}
+				}
+				aux[size] = '\0';
+				if (editInsert(l, aux)) {
+					ret = -1;
+				}
+			}
+			break;
+		}
 	}
-	return 0;
+	return ret;
 }
 
 static void stateReset(struct State *l) {
-	l->plen = strlen(l->prompt);
-	l->oldpos = 0;
-	l->pos = 0;
-	l->len = 0;
+	l->plenb = strnlen(l->prompt, MSG_MAX);
+	l->plenu8 = u8Len(l->prompt);
+	l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
 	l->history_index = 0;
 	l->buf[0] = '\0';
 	l->buflen--;
@@ -830,6 +973,9 @@ int main(int argc, char **argv) {
 	stateReset(&l);
 	int rc, editReturnFlag = 0;
 	if (enableRawMode(STDIN_FILENO) == -1) {
+		return 1;
+	}
+	if (setIsu8_C(STDIN_FILENO, STDOUT_FILENO) == -1) {
 		return 1;
 	}
 	for (;;) {
