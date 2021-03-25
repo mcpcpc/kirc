@@ -542,11 +542,12 @@ static void editEscSequence(struct State *l, char seq[3]) {
 
 static int edit(struct State *l) {
 	char c, seq[3];
+	int ret = 0;
 	ssize_t nread = read(STDIN_FILENO, &c, 1);
 	if (nread <= 0) {
-		return 1;
-	}
-	switch(c) {
+		ret = 1;
+	} else {
+		switch(c) {
 		case 13: editEnter();          return 1; /* enter */
 		case 3: errno = EAGAIN;       return -1; /* ctrl-c */
 		case 127:                                /* backspace */
@@ -568,7 +569,7 @@ static int edit(struct State *l) {
 			} else {
 				history_len--;
 				free(history[history_len]);
-				return -1;
+				ret = -1;
 			}
 			break;
 		default:
@@ -578,14 +579,19 @@ static int edit(struct State *l) {
 				int size = u8CharSize(c);
 				for (int i = 1; i < size; i++) {
 					nread = read(STDIN_FILENO, aux + i, 1);
-					if ((aux[i] & 0xC0) != 0x80) break;
+					if ((aux[i] & 0xC0) != 0x80) {
+						break;
+					}
 				}
 				aux[size] = '\0';
-				if (editInsert(l, aux)) return -1;
+				if (editInsert(l, aux)) {
+					ret = -1;
+				}
 			}
 			break;
+		}
 	}
-	return 0;
+	return ret;
 }
 
 static void stateReset(struct State *l) {
@@ -969,7 +975,9 @@ int main(int argc, char **argv) {
 	if (enableRawMode(STDIN_FILENO) == -1) {
 		return 1;
 	}
-	if (setIsu8_C(STDIN_FILENO, STDOUT_FILENO) == -1) return 1;
+	if (setIsu8_C(STDIN_FILENO, STDOUT_FILENO) == -1) {
+		return 1;
+	}
 	for (;;) {
 		if (poll(fds, 2, -1) != -1) {
 			if (fds[0].revents & POLLIN) {
