@@ -1,5 +1,9 @@
 /* See LICENSE file for license details. */
 #define _POSIX_C_SOURCE 200809L
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+# include <sys/types.h>
+# include <sys/socket.h>
+#endif
 #include <stdarg.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -14,7 +18,7 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.2.6"
+#define VERSION "0.2.7"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
