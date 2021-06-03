@@ -1,6 +1,6 @@
 /* See LICENSE file for license details. */
 #define _POSIX_C_SOURCE 200809L
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 # include <sys/types.h>
 # include <sys/socket.h>
 #endif
