@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
 #define VERSION "0.2.7"
