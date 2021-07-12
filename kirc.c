@@ -23,6 +23,7 @@
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
+#define TIMEOUT 10
 
 static char  cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int   conn;                      /* connection socket */
@@ -664,6 +665,9 @@ static int initConnection(void) {
 		return -1;
 	}
 	struct addrinfo *p;
+	struct timeval timeout;
+	timeout.tv_sec = TIMEOUT;
+	imeout.tv_usec = 0;
 	for (p = res; p != NULL; p = p->ai_next) {
 		if ((conn = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
 			perror("socket");
