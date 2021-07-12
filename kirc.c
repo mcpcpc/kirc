@@ -682,6 +682,10 @@ static int initConnection(void) {
 		break;
 	}
 	freeaddrinfo(res);
+	if (setsockopt(conn, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(struct timeval)) < 0) {
+		perror("setsockopt");
+		return -1;
+	}
 	if (p == NULL) {
 		fputs("Failed to connect\n", stderr);
 		return -1;
