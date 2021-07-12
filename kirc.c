@@ -668,7 +668,7 @@ static int initConnection(void) {
 	struct addrinfo *p;
 	struct timeval timeout;
 	timeout.tv_sec = TIMEOUT;
-	imeout.tv_usec = 0;
+	timeout.tv_usec = 0;
 	for (p = res; p != NULL; p = p->ai_next) {
 		if ((conn = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
 			perror("socket");
