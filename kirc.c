@@ -18,7 +18,7 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.2.8"
+#define VERSION "0.2.9"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
@@ -303,7 +303,7 @@ static void refreshLine(struct State *l) {
 		posu8--;
 	}
 	while (txtlenb < lenb && ch++ < l->cols)
-		txtlenb += u8Next(buf, 0);
+		txtlenb += u8Next(buf + txtlenb, 0);
 	abInit(&ab);
 	snprintf(seq, sizeof(seq), "\r");
 	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
