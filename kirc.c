@@ -18,7 +18,7 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.2.7"
+#define VERSION "0.2.8"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
@@ -294,27 +294,22 @@ static void refreshLine(struct State *l) {
 	int fd = STDOUT_FILENO;
 	char *buf = l->buf;
 	size_t lenb = l->lenb;
-	size_t lenu8 = l->lenu8;
 	size_t posu8 = l->posu8;
+	size_t ch = plenu8, txtlenb = 0;
 	struct abuf ab;
 	l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
 	while ((plenu8 + posu8) >= l->cols) {
-		size_t movedBy = u8Next(buf, 0);
-		buf += movedBy;
-		lenb += movedBy;
-		lenu8--;
+		buf += u8Next(buf, 0);
 		posu8--;
 	}
-	while ((plenu8 + lenu8) > l->cols) {
-		lenu8--;
-		lenb = u8Prev(buf, lenb);
-	}
+	while (txtlenb < lenb && ch++ < l->cols)
+		txtlenb += u8Next(buf, 0);
 	abInit(&ab);
 	snprintf(seq, sizeof(seq), "\r");
 	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
-	abAppend(&ab,l->prompt, l->plenb);
+	abAppend(&ab, l->prompt, l->plenb);
 	abAppend(&ab, "> ", 2);
-	abAppend(&ab, buf, lenb);
+	abAppend(&ab, buf, txtlenb);
 	snprintf(seq, sizeof(seq), "\x1b[0K");
 	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
 	if (posu8 + plenu8) {
@@ -322,7 +317,7 @@ static void refreshLine(struct State *l) {
 	} else {
 		snprintf(seq, sizeof(seq), "\r");
 	}
-	abAppend(&ab, seq, strlen(seq));
+	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
 	if (write(fd, ab.b, ab.len) == -1) {}
 	abFree(&ab);
 }
