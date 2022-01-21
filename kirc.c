@@ -917,7 +917,7 @@ static void usage(void) {
 }
 
 static void version(void) {
-	fputs("kirc-" VERSION "Copyright © 2021 Michael Czigler, MIT License\n",
+	fputs("kirc-" VERSION " Copyright © 2021 Michael Czigler, MIT License\n",
 			stdout);
 	exit(0);
 }
