@@ -893,8 +893,13 @@ static void handleUserInput(struct State *l) {
 	case '@' : /* send private message to target channel or user */
 		strtok_r(l->buf, " ", &tok);
 		if (l->buf[1] == '@') {
-			raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
-			printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
+			if (l->buf[2] == '\0') {
+				raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, tok);
+				printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", cdef, tok);
+			} else {
+				raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
+				printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
+			}
 		} else {
 			raw("privmsg %s :%s\r\n", l->buf + 1, tok);
 			printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
