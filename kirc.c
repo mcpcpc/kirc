@@ -18,7 +18,7 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.2.9"
+#define VERSION "0.3.0"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
@@ -917,7 +917,7 @@ static void usage(void) {
 }
 
 static void version(void) {
-	fputs("kirc-" VERSION "Copyright © 2021 Michael Czigler, MIT License\n",
+	fputs("kirc-" VERSION " Copyright © 2021 Michael Czigler, MIT License\n",
 			stdout);
 	exit(0);
 }
