@@ -75,13 +75,19 @@ to specified
 or
 .I <nick>
 .TP
-.BI @@<channel|nick>
+.BI @@<channel|nick> " <message>"
 Send CTCP ACTION containing
 .I <message>
 to specified
 .I <channel>
 or
 .I <nick>
+(if no 
+.I <channel> 
+or 
+.I <nick> 
+is specified, the 
+.I <message> will be sent to the default channel)
 .SH AUTHOR
 Michael Czigler <michaelczigler at icloud dot com>
 .SH BUGS
