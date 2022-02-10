@@ -23,6 +23,7 @@
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
+#define INC_MAX 5
 
 static char  cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
 static int   conn;                      /* connection socket */
@@ -38,7 +39,7 @@ static char *user = NULL;               /* user name */
 static char *auth = NULL;               /* PLAIN SASL token */
 static char *real = NULL;               /* real name */
 static char *olog = NULL;               /* chat log path*/
-static char *inic = NULL;               /* additional server command */
+static char *inic[INC_MAX];             /* additional server commands */
 
 struct Param {
 	char  *prefix;
@@ -923,23 +924,23 @@ static void version(void) {
 }
 
 int main(int argc, char **argv) {
-	int cval;
+	int cval, c = 0;
 	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
 		switch (cval) {
-		case 'v' : version();     break;
-		case 'V' : ++verb;        break;
-		case 'e' : ++sasl;        break;
-		case 's' : host = optarg; break;
-		case 'p' : port = optarg; break;
-		case 'r' : real = optarg; break;
-		case 'u' : user = optarg; break;
-		case 'a' : auth = optarg; break;
-		case 'o' : olog = optarg; break;
-		case 'n' : nick = optarg; break;
-		case 'k' : pass = optarg; break;
-		case 'c' : chan = optarg; break;
-		case 'x' : inic = optarg; break;
-		case '?' : usage();       break;
+		case 'v' : version();          break;
+		case 'V' : ++verb;             break;
+		case 'e' : ++sasl;             break;
+		case 's' : host      = optarg; break;
+		case 'p' : port      = optarg; break;
+		case 'r' : real      = optarg; break;
+		case 'u' : user      = optarg; break;
+		case 'a' : auth      = optarg; break;
+		case 'o' : olog      = optarg; break;
+		case 'n' : nick      = optarg; break;
+		case 'k' : pass      = optarg; break;
+		case 'c' : chan      = optarg; break;
+		case 'x' : inic[c++] = optarg; break;
+		case '?' : usage();            break;
 		}
 	}
 	if (!nick) {
@@ -961,8 +962,8 @@ int main(int argc, char **argv) {
 	if (pass) {
 		raw("PASS %s\r\n", pass);
 	}
-	if (inic) {
-		raw("%s\r\n", inic);
+	for (int i = 0; i < c; i++) {
+		raw("%s\r\n", inic[i]);
 	}
 	struct pollfd fds[2];
 	fds[0].fd = STDIN_FILENO;
