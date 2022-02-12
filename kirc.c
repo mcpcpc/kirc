@@ -940,19 +940,14 @@ static void sendCommands() {
 		clearerr(stdin);
 	}
 
-	char *cmd = strtok(inic, "\n");
-	int len = strlen(cmd);
-	nread -= len + 1;
-	while (cmd && nread) {
+	for (char *cmd = strtok(inic, "\n"); cmd && nread; cmd = strtok(NULL, "\n")) {
+		int len = strnlen(cmd, MSG_MAX + 1);
 		if (len > MSG_MAX) {
 			fputs("additional command exceeds line max\n", stderr);
 		} else {
-			printf("%s\n", cmd);
 			raw("%s\r\n", cmd);
 		}
-		cmd = strtok(NULL, "\n");
-		len = strlen(cmd);
-		nread -= len + 1;
+		nread -= len;
 	}
 	freeinic();
 }
