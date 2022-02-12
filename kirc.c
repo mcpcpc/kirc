@@ -16,7 +16,6 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/ioctl.h>
-#include <limits.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
 #define VERSION "0.3.0"
@@ -57,7 +56,6 @@ struct Param {
 };
 
 static int ttyinfd = STDIN_FILENO;
-static int line_max = LINE_MAX > MSG_MAX ? LINE_MAX : MSG_MAX;
 static struct termios orig;
 static int rawmode = 0;
 static int atexit_registered = 0;
@@ -930,20 +928,20 @@ static void freeinic()
 }
 
 static void sendCommands() {
-	inic = malloc(line_max * CMD_MAX);
+	inic = malloc(MSG_MAX * CMD_MAX);
 	if (!inic) {
 		perror("malloc");
 		exit(1);
 	}
 
-	ssize_t nread = read(STDIN_FILENO, inic, line_max * CMD_MAX);
+	ssize_t nread = read(STDIN_FILENO, inic, MSG_MAX * CMD_MAX);
 	if (nread == -1) {
 		perror("failed to read additional commands");
 		clearerr(stdin);
 	}
 
 	for (char *cmd = strtok(inic, "\n"); cmd; cmd = strtok(NULL, "\n")) {
-		if ((int)strlen(cmd) > line_max) {
+		if ((int)strlen(cmd) > MSG_MAX) {
 			fputs("additional command exceeds line max\n", stderr);
 		} else {
 			raw("%s\r\n", cmd);
