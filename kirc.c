@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <limits.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
 #define VERSION "0.3.0"
@@ -23,23 +24,24 @@
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
-#define INC_MAX 5
+#define CMD_MAX 100
 
-static char  cdef[MSG_MAX] = "?";       /* default PRIVMSG channel */
-static int   conn;                      /* connection socket */
-static int   verb = 0;                  /* verbose output */
-static int   sasl = 0;                  /* SASL method */
-static int   isu8 = 0;                  /* UTF-8 flag */
-static char *host = "irc.libera.chat";  /* host address */
-static char *port = "6667";             /* port */
-static char *chan = NULL;               /* channel(s) */
-static char *nick = NULL;               /* nickname */
-static char *pass = NULL;               /* password */
-static char *user = NULL;               /* user name */
-static char *auth = NULL;               /* PLAIN SASL token */
-static char *real = NULL;               /* real name */
-static char *olog = NULL;               /* chat log path*/
-static char *inic[INC_MAX];             /* additional server commands */
+static char  cdef[MSG_MAX] = "?";      /* default PRIVMSG channel */
+static int   conn;                     /* connection socket */
+static int   verb = 0;                 /* verbose output */
+static int   sasl = 0;                 /* SASL method */
+static int   isu8 = 0;                 /* UTF-8 flag */
+static char *host = "irc.libera.chat"; /* host address */
+static char *port = "6667";            /* port */
+static char *chan = NULL;              /* channel(s) */
+static char *nick = NULL;              /* nickname */
+static char *pass = NULL;              /* password */
+static char *user = NULL;              /* user name */
+static char *auth = NULL;              /* PLAIN SASL token */
+static char *real = NULL;              /* real name */
+static char *olog = NULL;              /* chat log path*/
+static char *inic = NULL;              /* additional server commands */
+static int  cmds  = 0;                 /* indicates additional server commands */
 
 struct Param {
 	char  *prefix;
@@ -54,6 +56,8 @@ struct Param {
 	int nicklen;
 };
 
+static int ttyinfd = STDIN_FILENO;
+static int line_max = LINE_MAX > MSG_MAX ? LINE_MAX : MSG_MAX;
 static struct termios orig;
 static int rawmode = 0;
 static int atexit_registered = 0;
@@ -93,14 +97,14 @@ static void freeHistory(void) {
 }
 
 static void disableRawMode(void) {
-	if (rawmode && tcsetattr(STDIN_FILENO,TCSAFLUSH,&orig) != -1) {
+	if (rawmode && tcsetattr(ttyinfd,TCSAFLUSH,&orig) != -1) {
 		rawmode = 0;
 	}
 	freeHistory();
 }
 
 static int enableRawMode(int fd) {
-	if (!isatty(STDIN_FILENO)) {
+	if (!isatty(ttyinfd)) {
 		goto fatal;
 	}
 	if (!atexit_registered) {
@@ -298,7 +302,7 @@ static void refreshLine(struct State *l) {
 	size_t posu8 = l->posu8;
 	size_t ch = plenu8, txtlenb = 0;
 	struct abuf ab;
-	l->cols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+	l->cols = getColumns(ttyinfd, STDOUT_FILENO);
 	while ((plenu8 + posu8) >= l->cols) {
 		buf += u8Next(buf, 0);
 		posu8--;
@@ -511,12 +515,12 @@ static void editEnter(void) {
 }
 
 static void editEscSequence(struct State *l, char seq[3]) {
-	if (read(STDIN_FILENO, seq, 1) == -1) return;
-	if (read(STDIN_FILENO, seq + 1, 1) == -1) return;
+	if (read(ttyinfd, seq, 1) == -1) return;
+	if (read(ttyinfd, seq + 1, 1) == -1) return;
 	if (seq[0] == '[') { /* ESC [ sequences. */
 		if ((seq[1] >= '0') && (seq[1] <= '9')) {
 			/* Extended escape, read additional byte. */
-			if (read(STDIN_FILENO, seq + 2, 1) == -1) {
+			if (read(ttyinfd, seq + 2, 1) == -1) {
 				return;
 			}
 			if ((seq[2] == '~') && (seq[1] == 3)) {
@@ -543,7 +547,7 @@ static void editEscSequence(struct State *l, char seq[3]) {
 static int edit(struct State *l) {
 	char c, seq[3];
 	int ret = 0;
-	ssize_t nread = read(STDIN_FILENO, &c, 1);
+	ssize_t nread = read(ttyinfd, &c, 1);
 	if (nread <= 0) {
 		ret = 1;
 	} else {
@@ -578,7 +582,7 @@ static int edit(struct State *l) {
 				aux[0] = c;
 				int size = u8CharSize(c);
 				for (int i = 1; i < size; i++) {
-					nread = read(STDIN_FILENO, aux + i, 1);
+					nread = read(ttyinfd, aux + i, 1);
 					if ((aux[i] & 0xC0) != 0x80) {
 						break;
 					}
@@ -804,7 +808,7 @@ static void rawParser(char *string) {
 	p.command =  strtok(p.suffix, "#& ");
 	p.channel =  strtok(NULL, " \r");
 	p.params =   strtok(NULL, ":\r");
-	p.maxcols = getColumns(STDIN_FILENO, STDOUT_FILENO);
+	p.maxcols = getColumns(ttyinfd, STDOUT_FILENO);
 	p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
 	p.offset = 0;
 	if (!strncmp(p.command, "001", 3) && chan != NULL) {
@@ -917,30 +921,70 @@ static void usage(void) {
 	exit(2);
 }
 
+static void freeinic()
+{
+	if (inic) {
+		free(inic);
+		inic = NULL;
+	}
+}
+
+static void sendCommands() {
+	inic = malloc(line_max * CMD_MAX);
+	if (!inic) {
+		perror("malloc");
+		exit(1);
+	}
+
+	ssize_t nread = read(STDIN_FILENO, inic, line_max * CMD_MAX);
+	if (nread == -1) {
+		perror("failed to read additional commands");
+		clearerr(stdin);
+	}
+
+	for (char *cmd = strtok(inic, "\n"); cmd; cmd = strtok(NULL, "\n")) {
+		if ((int)strlen(cmd) > line_max) {
+			fputs("additional command exceeds line max\n", stderr);
+		} else {
+			raw("%s\r\n", cmd);
+		}
+	}
+	freeinic();
+}
+
 static void version(void) {
 	fputs("kirc-" VERSION " Copyright © 2021 Michael Czigler, MIT License\n",
 			stdout);
 	exit(0);
 }
 
+static void opentty()
+{
+	if ((ttyinfd = open("/dev/tty", 0)) == -1) {
+		perror("failed to open /dev/tty");
+		exit(1);
+	}
+}
+
 int main(int argc, char **argv) {
-	int cval, c = 0;
-	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:x:a:evV")) != -1) {
+	opentty();
+	int cval;
+	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
 		switch (cval) {
-		case 'v' : version();          break;
-		case 'V' : ++verb;             break;
-		case 'e' : ++sasl;             break;
-		case 's' : host      = optarg; break;
-		case 'p' : port      = optarg; break;
-		case 'r' : real      = optarg; break;
-		case 'u' : user      = optarg; break;
-		case 'a' : auth      = optarg; break;
-		case 'o' : olog      = optarg; break;
-		case 'n' : nick      = optarg; break;
-		case 'k' : pass      = optarg; break;
-		case 'c' : chan      = optarg; break;
-		case 'x' : inic[c++] = optarg; break;
-		case '?' : usage();            break;
+		case 'v' : version();        break;
+		case 'V' : ++verb;           break;
+		case 'e' : ++sasl;           break;
+		case 's' : host    = optarg; break;
+		case 'p' : port    = optarg; break;
+		case 'r' : real    = optarg; break;
+		case 'u' : user    = optarg; break;
+		case 'a' : auth    = optarg; break;
+		case 'o' : olog    = optarg; break;
+		case 'n' : nick    = optarg; break;
+		case 'k' : pass    = optarg; break;
+		case 'c' : chan    = optarg; break;
+		case 'x' : cmds    = 1;      break;
+		case '?' : usage();          break;
 		}
 	}
 	if (!nick) {
@@ -962,11 +1006,11 @@ int main(int argc, char **argv) {
 	if (pass) {
 		raw("PASS %s\r\n", pass);
 	}
-	for (int i = 0; i < c; i++) {
-		raw("%s\r\n", inic[i]);
+	if (cmds) {
+		sendCommands();
 	}
 	struct pollfd fds[2];
-	fds[0].fd = STDIN_FILENO;
+	fds[0].fd = ttyinfd;
 	fds[1].fd = conn;
 	fds[0].events = POLLIN;
 	fds[1].events = POLLIN;
@@ -977,10 +1021,10 @@ int main(int argc, char **argv) {
 	l.prompt = cdef;
 	stateReset(&l);
 	int rc, editReturnFlag = 0;
-	if (enableRawMode(STDIN_FILENO) == -1) {
+	if (enableRawMode(ttyinfd) == -1) {
 		return 1;
 	}
-	if (setIsu8_C(STDIN_FILENO, STDOUT_FILENO) == -1) {
+	if (setIsu8_C(ttyinfd, STDOUT_FILENO) == -1) {
 		return 1;
 	}
 	for (;;) {
