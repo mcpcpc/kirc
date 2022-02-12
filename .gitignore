@@ -6,3 +6,4 @@ tags
 *.out
 *.log
 *.diff
+.*.swp
