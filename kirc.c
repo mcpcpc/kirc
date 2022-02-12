@@ -928,24 +928,31 @@ static void freeinic()
 }
 
 static void sendCommands() {
-	inic = malloc(MSG_MAX * CMD_MAX);
+	inic = malloc((MSG_MAX + 1) * CMD_MAX);
 	if (!inic) {
 		perror("malloc");
 		exit(1);
 	}
 
-	ssize_t nread = read(STDIN_FILENO, inic, MSG_MAX * CMD_MAX);
+	ssize_t nread = read(STDIN_FILENO, inic, (MSG_MAX + 1) * CMD_MAX);
 	if (nread == -1) {
 		perror("failed to read additional commands");
 		clearerr(stdin);
 	}
 
-	for (char *cmd = strtok(inic, "\n"); cmd; cmd = strtok(NULL, "\n")) {
-		if ((int)strlen(cmd) > MSG_MAX) {
+	char *cmd = strtok(inic, "\n");
+	int len = strlen(cmd);
+	nread -= len + 1;
+	while (cmd && nread) {
+		if (len > MSG_MAX) {
 			fputs("additional command exceeds line max\n", stderr);
 		} else {
+			printf("%s\n", cmd);
 			raw("%s\r\n", cmd);
 		}
+		cmd = strtok(NULL, "\n");
+		len = strlen(cmd);
+		nread -= len + 1;
 	}
 	freeinic();
 }
