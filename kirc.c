@@ -971,20 +971,20 @@ int main(int argc, char **argv) {
 	int cval;
 	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
 		switch (cval) {
-		case 'v' : version();        break;
-		case 'V' : ++verb;           break;
-		case 'e' : ++sasl;           break;
-		case 's' : host    = optarg; break;
-		case 'p' : port    = optarg; break;
-		case 'r' : real    = optarg; break;
-		case 'u' : user    = optarg; break;
-		case 'a' : auth    = optarg; break;
-		case 'o' : olog    = optarg; break;
-		case 'n' : nick    = optarg; break;
-		case 'k' : pass    = optarg; break;
-		case 'c' : chan    = optarg; break;
-		case 'x' : cmds    = 1;      break;
-		case '?' : usage();          break;
+		case 'v' : version();     break;
+		case 'V' : ++verb;        break;
+		case 'e' : ++sasl;        break;
+		case 's' : host = optarg; break;
+		case 'p' : port = optarg; break;
+		case 'r' : real = optarg; break;
+		case 'u' : user = optarg; break;
+		case 'a' : auth = optarg; break;
+		case 'o' : olog = optarg; break;
+		case 'n' : nick = optarg; break;
+		case 'k' : pass = optarg; break;
+		case 'c' : chan = optarg; break;
+		case 'x' : cmds = 1;      break;
+		case '?' : usage();       break;
 		}
 	}
 	if (!nick) {
