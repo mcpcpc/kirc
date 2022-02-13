@@ -971,15 +971,14 @@ static void readcmds(char *cmd)
 	int offset = inic && inic[0] != '\0' ? 1 : 0;
 	int nread = 0;
 	sinc = malloc((MSG_MAX + 1) * CMD_MAX - offset);
+	if (!sinc) {
+		perror("malloc");
+		freecmds();
+		exit(1);
+	}
 
 	/* if stdin has been redirected to, read data into memory */
 	if (!isatty(STDIN_FILENO)) {
-		if (!sinc) {
-			perror("malloc");
-			freecmds();
-			exit(1);
-		}
-
 		FILE *inf = fdopen(STDIN_FILENO, "r");
 		if (inf == NULL) {
 			perror("fdopen");
