@@ -984,7 +984,7 @@ int main(int argc, char **argv) {
 		for (char *tok = strtok(cbuf, "\n"); tok; tok = strtok(NULL, "\n")) {
 			raw("%s\r\n", tok);
 		}
-		if (inic && inic[0] != '\0' && (inic[0] != '-' || inic[1] == '\0')) {
+		if (inic) {
 			raw("%s\r\n", inic);
 		}
 	}
