@@ -39,9 +39,9 @@ static char *user = NULL;              /* user name */
 static char *auth = NULL;              /* PLAIN SASL token */
 static char *real = NULL;              /* real name */
 static char *olog = NULL;              /* chat log path*/
-/* static char *inic = NULL;              /1* additional server commands *1/ */
+static char *inic = NULL;              /* additional server command */
 static int  cmds  = 0;                 /* indicates additional server commands */
-static char cbuf[CBUF_SIZ];             /* additional server commands */
+static char cbuf[CBUF_SIZ];            /* additional stdin server commands */
 
 struct Param {
 	char  *prefix;
@@ -939,19 +939,19 @@ int main(int argc, char **argv) {
 	int cval;
 	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
 		switch (cval) {
-		case 'v' : version();     break;
-		case 'V' : ++verb;        break;
-		case 'e' : ++sasl;        break;
-		case 's' : host = optarg; break;
-		case 'p' : port = optarg; break;
-		case 'r' : real = optarg; break;
-		case 'u' : user = optarg; break;
-		case 'a' : auth = optarg; break;
-		case 'o' : olog = optarg; break;
-		case 'n' : nick = optarg; break;
-		case 'k' : pass = optarg; break;
-		case 'c' : chan = optarg; break;
-		case 'x' : cmds = 1;      break;
+		case 'v' : version();                     break;
+		case 'V' : ++verb;                        break;
+		case 'e' : ++sasl;                        break;
+		case 's' : host = optarg;                 break;
+		case 'p' : port = optarg;                 break;
+		case 'r' : real = optarg;                 break;
+		case 'u' : user = optarg;                 break;
+		case 'a' : auth = optarg;                 break;
+		case 'o' : olog = optarg;                 break;
+		case 'n' : nick = optarg;                 break;
+		case 'k' : pass = optarg;                 break;
+		case 'c' : chan = optarg;                 break;
+		case 'x' : cmds = 1; inic = argv[optind]; break;
 		case '?' : usage();       break;
 		}
 	}
@@ -983,6 +983,9 @@ int main(int argc, char **argv) {
 	if (cmds > 0) {
 		for (char *tok = strtok(cbuf, "\n"); tok; tok = strtok(NULL, "\n")) {
 			raw("%s\r\n", tok);
+		}
+		if (inic && inic[0] != '\0' && (inic[0] != '-' || inic[1] == '\0')) {
+			raw("%s\r\n", inic);
 		}
 	}
 	struct pollfd fds[2];
