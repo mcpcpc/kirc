@@ -23,7 +23,7 @@
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
-#define CMD_MAX 100
+#define CBUF_SIZ 1024
 
 static char  cdef[MSG_MAX] = "?";      /* default PRIVMSG channel */
 static int   conn;                     /* connection socket */
@@ -39,9 +39,9 @@ static char *user = NULL;              /* user name */
 static char *auth = NULL;              /* PLAIN SASL token */
 static char *real = NULL;              /* real name */
 static char *olog = NULL;              /* chat log path*/
-static char *inic = NULL;              /* additional server commands */
-static char *sinc = NULL;              /* additional stdin server commands */
+/* static char *inic = NULL;              /1* additional server commands *1/ */
 static int  cmds  = 0;                 /* indicates additional server commands */
+static char cbuf[CBUF_SIZ];             /* additional server commands */
 
 struct Param {
 	char  *prefix;
@@ -920,96 +920,6 @@ static void usage(void) {
 	exit(2);
 }
 
-static void freecmds()
-{
-	if (inic) {
-		free(inic);
-		inic = NULL;
-	}
-	if (sinc) {
-		free(sinc);
-		sinc = NULL;
-	}
-}
-
-static void sendCommands() {
-	if (inic) {
-		if (strnlen(inic, MSG_MAX + 1) > MSG_MAX) {
-			fputs("additional command exceeds message max\n", stderr);
-		} else {
-			raw("%s\r\n", inic);
-		}
-	}
-
-	for (char *cmd = strtok(sinc, "\n"); cmd; cmd = strtok(NULL, "\n")) {
-		int len = strnlen(cmd, MSG_MAX + 1);
-		if (len > MSG_MAX) {
-			fputs("additional command exceeds line max\n", stderr);
-		} else {
-			raw("%s\r\n", cmd);
-		}
-	}
-	freecmds();
-}
-
-static void readcmds(char *cmd)
-{
-	cmds = 1;
-
-	/* test whether argv[optind] in a non-option argument and valid */
-	if (cmd && (cmd[0] != '-' || cmd[1] == '\0') && cmd[0] != '\0') {
-		inic = strdup(cmd);
-		if (!inic) {
-			perror("strdup");
-			exit(1);
-		}
-	}
-
-	/* if a command was supplied to -x as an argument (inic) we can only process
-	 * CMD_MAX - 1 more additional commands
-	 */
-	int offset = inic && inic[0] != '\0' ? 1 : 0;
-	int nread = 0;
-	sinc = malloc((MSG_MAX + 1) * CMD_MAX - offset);
-	if (!sinc) {
-		perror("malloc");
-		freecmds();
-		exit(1);
-	}
-
-	/* if stdin has been redirected to, read data into memory */
-	if (!isatty(STDIN_FILENO)) {
-		FILE *inf = fdopen(STDIN_FILENO, "r");
-		if (inf == NULL) {
-			perror("fdopen");
-			fclose(inf);
-			freecmds();
-			exit(1);
-		}
-
-		nread = fread(sinc, MSG_MAX + 1, CMD_MAX - offset, inf);
-		if (nread == -1) {
-			perror("failed to read additional commands");
-			fclose(inf);
-			freecmds();
-			exit(1);
-		}
-
-		if (fclose(inf) != 0) {
-			perror("fclose");
-			freecmds();
-			exit(1);
-		}
-	}
-
-	/* if no valid input was found for -x */
-	if (!inic && nread <= 0) {
-		fputs("option requires an argument -- 'x'\n", stderr);
-		freecmds();
-		exit(1);
-	}
-}
-
 static void version(void) {
 	fputs("kirc-" VERSION " Copyright © 2021 Michael Czigler, MIT License\n",
 			stdout);
@@ -1029,20 +939,26 @@ int main(int argc, char **argv) {
 	int cval;
 	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
 		switch (cval) {
-		case 'v' : version();              break;
-		case 'V' : ++verb;                 break;
-		case 'e' : ++sasl;                 break;
-		case 's' : host = optarg;          break;
-		case 'p' : port = optarg;          break;
-		case 'r' : real = optarg;          break;
-		case 'u' : user = optarg;          break;
-		case 'a' : auth = optarg;          break;
-		case 'o' : olog = optarg;          break;
-		case 'n' : nick = optarg;          break;
-		case 'k' : pass = optarg;          break;
-		case 'c' : chan = optarg;          break;
-		case 'x' : readcmds(argv[optind]); break;
-		case '?' : usage();                break;
+		case 'v' : version();     break;
+		case 'V' : ++verb;        break;
+		case 'e' : ++sasl;        break;
+		case 's' : host = optarg; break;
+		case 'p' : port = optarg; break;
+		case 'r' : real = optarg; break;
+		case 'u' : user = optarg; break;
+		case 'a' : auth = optarg; break;
+		case 'o' : olog = optarg; break;
+		case 'n' : nick = optarg; break;
+		case 'k' : pass = optarg; break;
+		case 'c' : chan = optarg; break;
+		case 'x' : cmds = 1;      break;
+		case '?' : usage();       break;
+		}
+	}
+	if (cmds > 0) {
+		int flag = 0;
+		for (int i = 0; i < CBUF_SIZ && flag > -1; i++) {
+			flag = read(STDIN_FILENO, &cbuf[i], 1);
 		}
 	}
 	if (!nick) {
@@ -1064,8 +980,10 @@ int main(int argc, char **argv) {
 	if (pass) {
 		raw("PASS %s\r\n", pass);
 	}
-	if (cmds) {
-		sendCommands();
+	if (cmds > 0) {
+		for (char *tok = strtok(cbuf, "\n"); tok; tok = strtok(NULL, "\n")) {
+			raw("%s\r\n", tok);
+		}
 	}
 	struct pollfd fds[2];
 	fds[0].fd = ttyinfd;
