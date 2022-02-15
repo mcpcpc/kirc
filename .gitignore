@@ -2,3 +2,8 @@ kirc
 *.a
 *.o
 *.txt
+tags
+*.out
+*.log
+*.diff
+.*.swp
