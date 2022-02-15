@@ -29,8 +29,7 @@ Command Aliases
 	@<channel|nick> <message>  send PRIVMSG to a specified channel or nick.
 	@@<channel|nick> <message> send CTCP ACTION message to a specified channel or 
 				   nick (if no channel or nick is specified, the 
-				   message will be sent to the default channel.
-				   the default channel).
+				   message will be sent to the default channel).
 	/<command>                 send command to the IRC server (see RFC 2812).
 	/#<channel>                assign new default message channel.
 
