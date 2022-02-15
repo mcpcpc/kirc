@@ -19,8 +19,7 @@ Usage
 Consult `man kirc` for a full list and explanation of available arguments.
 
 	kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname]
-	     [-u username] [-k password] [-a token] [-x command] [-o logfile]
-	     [-e|v|V]
+	     [-u username] [-k password] [-a token] [-o logfile] [-e|x|v|V]
 
 Command Aliases
 ---------------
