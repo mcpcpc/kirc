@@ -15,7 +15,7 @@ kirc \- KISS for IRC
 .SH DESCRIPTION
 .B kirc
 is an extremely fast and simple IRC client designed with portability in mind.
-This client reads from stdin and prints to stdout, so all traffic can
+This client reads from STDIN and prints to STDOUT, so all traffic can
 multiplexed and text parsed or modified using external commands. All highlighted
 text and color can be controlled with ANSI escape sequences.
 .SH OPTIONS
@@ -48,7 +48,7 @@ Specifies SASL PLAIN mechanism authentication token
 Specifies SASL EXTERNAL mechanism
 .TP
 .BI \-x
-Reads from STDIN and passes each line (limited by '\n') as a command to the IRC
+Reads from STDIN and passes each line (delimited by "\\n") as a command to the IRC
 server after the initial connection.
 .TP
 .BI \-v
