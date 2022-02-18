@@ -916,12 +916,12 @@ static void handleUserInput(struct State *l) {
 
 static void usage(void) {
 	fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
-[-u username] [-k password] [-a token] [-x command] [-o path] [-e] [-v] [-V]\n", stderr);
+[-u username] [-k password] [-a token] [-o path] [-e] [-x] [-v] [-V]\n", stderr);
 	exit(2);
 }
 
 static void version(void) {
-	fputs("kirc-" VERSION " Copyright © 2021 Michael Czigler, MIT License\n",
+	fputs("kirc-" VERSION " Copyright © 2022 Michael Czigler, MIT License\n",
 			stdout);
 	exit(0);
 }
