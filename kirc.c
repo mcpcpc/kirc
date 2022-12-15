@@ -112,13 +112,13 @@ get_columns(int ifd, int ofd)
 }
 
 static void
-buffer_position_move(struct State *l, ssize_t dest, ssize_t src, size_t size)
+buffer_position_move(state l, ssize_t dest, ssize_t src, size_t size)
 {
 	memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
 }
 
 static void
-buffer_position_move_end(struct State *l, ssize_t dest, ssize_t src)
+buffer_position_move_end(state l, ssize_t dest, ssize_t src)
 {
 	buffer_position_move(l, dest, src, l->lenb - (l->posb + src) + 1);
 }
@@ -245,7 +245,7 @@ ab_free(struct abuf *ab)
 }
 
 static void
-refresh_line(struct State *l)
+refresh_line(state l)
 {
 	char seq[64];
 	size_t plenu8 = l->plenu8 + 2;
@@ -281,7 +281,7 @@ refresh_line(struct State *l)
 }
 
 static int
-edit_insert(struct State *l, char *c)
+edit_insert(state l, char *c)
 {
 	size_t clenb = strlen(c);
 	if ((l->lenb + clenb) < l->buflen) {
@@ -312,7 +312,7 @@ edit_insert(struct State *l, char *c)
 }
 
 static void
-edit_move_left(struct State *l)
+edit_move_left(state l)
 {
 	if (l->posb > 0) {
 		l->posb = u8_previous(l->buf, l->posb);
@@ -322,7 +322,7 @@ edit_move_left(struct State *l)
 }
 
 static void
-edit_move_right(struct State *l)
+edit_move_right(state l)
 {
 	if (l->posu8 != l->lenu8) {
 		l->posb = u8_next(l->buf, l->posb);
@@ -332,7 +332,7 @@ edit_move_right(struct State *l)
 }
 
 static void
-edit_move_home(struct State *l)
+edit_move_home(state l)
 {
 	if (l->posb != 0) {
 		l->posb = 0;
@@ -342,7 +342,7 @@ edit_move_home(struct State *l)
 }
 
 static void
-edit_move_end(struct State *l)
+edit_move_end(state l)
 {
 	if (l->posu8 != l->lenu8) {
 		l->posb = l->lenb;
@@ -352,7 +352,7 @@ edit_move_end(struct State *l)
 }
 
 static void
-edit_delete(struct State *l)
+edit_delete(state l)
 {
 	if ((l->lenu8 > 0) && (l->posu8 < l->lenu8)) {
 		size_t this_size = u8_next(l->buf, l->posb) - l->posb;
@@ -364,7 +364,7 @@ edit_delete(struct State *l)
 }
 
 static void
-edit_backspace(struct State *l)
+edit_backspace(state l)
 {
 	if ((l->posu8 > 0) && (l->lenu8 > 0)) {
 		size_t prev_size = l->posb - u8_previous(l->buf, l->posb);
@@ -378,7 +378,7 @@ edit_backspace(struct State *l)
 }
 
 static void
-edit_delete_previous_word(struct State *l)
+edit_delete_previous_word(state l)
 {
 	size_t old_posb = l->posb;
 	size_t old_posu8 = l->posu8;
@@ -401,7 +401,7 @@ edit_delete_previous_word(struct State *l)
 }
 
 static void
-edit_delete_whole_line(struct State *l)
+edit_delete_whole_line(state l)
 {
 	l->buf[0] = '\0';
 	l->posb = l->lenb = l->posu8 = l->lenu8 = 0;
@@ -409,7 +409,7 @@ edit_delete_whole_line(struct State *l)
 }
 
 static void
-edit_delete_line_to_end(struct State *l)
+edit_delete_line_to_end(state l)
 {
 	l->buf[l->posb] = '\0';
 	l->lenb = l->posb;
@@ -418,7 +418,7 @@ edit_delete_line_to_end(struct State *l)
 }
 
 static void
-edit_swap_character_w_previous(struct State *l)
+edit_swap_character_w_previous(state l)
 {
 	if (l->posu8 > 0 && l->posu8 < l->lenu8) {
 		char aux[8];
@@ -436,7 +436,7 @@ edit_swap_character_w_previous(struct State *l)
 }
 
 static void
-edit_history(struct State *l, int dir)
+edit_history(state l, int dir)
 {
 	if (history_len > 1) {
 		free(history[history_len - (1 + l->history_index)]);
@@ -496,7 +496,7 @@ edit_enter(void)
 }
 
 static void
-edit_escape_sequence(struct State *l, char seq[3])
+edit_escape_sequence(state l, char seq[3])
 {
 	if (read(ttyinfd, seq, 1) == -1) return;
 	if (read(ttyinfd, seq + 1, 1) == -1) return;
@@ -528,7 +528,7 @@ edit_escape_sequence(struct State *l, char seq[3])
 }
 
 static int
-edit(struct State *l)
+edit(state l)
 {
 	char c, seq[3];
 	int ret = 0;
@@ -584,7 +584,7 @@ edit(struct State *l)
 }
 
 static void
-state_reset(struct State *l)
+state_reset(state l)
 {
 	l->plenb = strnlen(l->prompt, MSG_MAX);
 	l->plenu8 = u8_length(l->prompt);
@@ -892,7 +892,7 @@ handle_server_message(void)
 }
 
 static void
-handle_user_input(struct State *l)
+handle_user_input(state l)
 {
 	if (l->buf == NULL) {
 		return;
@@ -1020,10 +1020,11 @@ main(int argc, char **argv)
 	fds[0].events = POLLIN;
 	fds[1].events = POLLIN;
 	char usrin[MSG_MAX];
-	struct State l;
-	l.buf = usrin;
-	l.buflen = MSG_MAX;
-	l.prompt = cdef;
+	state_t l = {
+		.buf = usrin,
+		.buflen = MSG_MAX,
+		.prompt = cdef
+	};
 	state_reset(&l);
 	int rc, editReturnFlag = 0;
 	if (enable_raw_mode(ttyinfd) == -1) {

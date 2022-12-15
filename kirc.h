@@ -67,7 +67,7 @@ typedef struct PARAMETERS {
 	int nicklen;
 } param_t, *param;
 
-struct State {
+typedef struct STATE {
 	char  *prompt; /* Prompt to display. */
 	char  *buf; /* Edited line buffer. */
 	size_t buflen; /* Edited line buffer size. */
@@ -81,7 +81,7 @@ struct State {
 	size_t lenu8; /* Current edited line length. */
 	size_t cols; /* Number of columns in terminal. */
 	int history_index; /* Current line in the edit history */
-};
+} state_t, state;
 
 struct abuf {
 	char *b;
