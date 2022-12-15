@@ -18,14 +18,14 @@
 #include <sys/ioctl.h>
 
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
-#define VERSION "0.3.1"
+#define VERSION "0.3.2"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
 #define CBUF_SIZ 1024
 
-static char  cdef[MSG_MAX] = "?";      /* default PRIVMSG channel */
+static char  cdef[MSG_MAX] = "";      /* default PRIVMSG channel */
 static int   conn;                     /* connection socket */
 static int   verb = 0;                 /* verbose output */
 static int   sasl = 0;                 /* SASL method */
@@ -85,7 +85,9 @@ struct abuf {
 	int len;
 };
 
-static void freeHistory(void) {
+static void
+free_history(void)
+{
 	if (history) {
 		int j;
 		for (j = 0; j < history_len; j++) {
@@ -95,19 +97,23 @@ static void freeHistory(void) {
 	}
 }
 
-static void disableRawMode(void) {
+static void
+disable_raw_mode(void)
+{
 	if (rawmode && tcsetattr(ttyinfd,TCSAFLUSH,&orig) != -1) {
 		rawmode = 0;
 	}
-	freeHistory();
+	free_history();
 }
 
-static int enableRawMode(int fd) {
+static int
+enable_raw_mode(int fd)
+{
 	if (!isatty(ttyinfd)) {
 		goto fatal;
 	}
 	if (!atexit_registered) {
-		atexit(disableRawMode);
+		atexit(disable_raw_mode);
 		atexit_registered = 1;
 	}
 	if (tcgetattr(fd,&orig) == -1) {
@@ -130,7 +136,9 @@ fatal:
 	return -1;
 }
 
-static int getCursorPosition(int ifd, int ofd) {
+static int
+getCursorPosition(int ifd, int ofd)
+{
 	char buf[32];
 	int cols, rows;
 	unsigned int i = 0;
@@ -156,7 +164,9 @@ static int getCursorPosition(int ifd, int ofd) {
 	return cols;
 }
 
-static int getColumns(int ifd, int ofd) {
+static int
+getColumns(int ifd, int ofd)
+{
 	struct winsize ws;
 	if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
 		int start = getCursorPosition(ifd, ofd);
@@ -181,15 +191,21 @@ static int getColumns(int ifd, int ofd) {
 	}
 }
 
-static void bufPosMove(struct State *l, ssize_t dest, ssize_t src, size_t size) {
+static void
+bufPosMove(struct State *l, ssize_t dest, ssize_t src, size_t size)
+{
 	memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
 }
 
-static void bufPosMoveEnd(struct State *l, ssize_t dest, ssize_t src) {
+static void
+bufPosMoveEnd(struct State *l, ssize_t dest, ssize_t src)
+{
 	bufPosMove(l, dest, src, l->lenb - (l->posb + src) + 1);
 }
 
-static int u8CharStart(char c) {
+static int
+u8CharStart(char c)
+{
 	int ret = 1;
 	if (isu8 != 0) {
 		ret = (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0;
@@ -197,7 +213,9 @@ static int u8CharStart(char c) {
 	return ret;
 }
 
-static int u8CharSize(char c) {
+static int
+u8CharSize(char c)
+{
 	int ret = 1;
 	if(isu8 != 0) {
 		int size = 0;
@@ -209,7 +227,9 @@ static int u8CharSize(char c) {
 	return ret;
 }
 
-static size_t u8Len(const char *s) {
+static size_t
+u8Len(const char *s)
+{
 	size_t lenu8 = 0;
 	while (*s != '\0') {
 		lenu8 += u8CharStart(*(s++));
@@ -217,7 +237,9 @@ static size_t u8Len(const char *s) {
 	return lenu8;
 }
 
-static size_t u8Prev(const char *s, size_t posb) {
+static size_t
+u8Prev(const char *s, size_t posb)
+{
 	if (posb != 0) {
 		do {
 			posb--;
@@ -226,7 +248,9 @@ static size_t u8Prev(const char *s, size_t posb) {
 	return posb;
 }
 
-static size_t u8Next(const char *s, size_t posb) {
+static size_t
+u8Next(const char *s, size_t posb)
+{
 	if (s[posb] != '\0') {
 		do {
 			posb++;
@@ -235,7 +259,9 @@ static size_t u8Next(const char *s, size_t posb) {
 	return posb;
 }
 
-static int setIsu8_C(int ifd, int ofd) {
+static int
+setIsu8_C(int ifd, int ofd)
+{
 	if (isu8) {
 		return 0;
 	}
@@ -273,12 +299,16 @@ static int setIsu8_C(int ifd, int ofd) {
 	return 0;
  }
 
-static void abInit(struct abuf *ab) {
+static void
+abInit(struct abuf *ab)
+{
 	ab->b = NULL;
 	ab->len = 0;
 }
 
-static void abAppend(struct abuf *ab, const char *s, int len) {
+static void
+abAppend(struct abuf *ab, const char *s, int len)
+{
 	char *new = realloc(ab->b, ab->len + len);
 	if (new == NULL) {
 		return;
@@ -288,11 +318,15 @@ static void abAppend(struct abuf *ab, const char *s, int len) {
 	ab->len += len;
 }
 
-static void abFree(struct abuf *ab) {
+static void
+abFree(struct abuf *ab)
+{
 	free(ab->b);
 }
 
-static void refreshLine(struct State *l) {
+static void
+refreshLine(struct State *l)
+{
 	char seq[64];
 	size_t plenu8 = l->plenu8 + 2;
 	int fd = STDOUT_FILENO;
@@ -326,7 +360,9 @@ static void refreshLine(struct State *l) {
 	abFree(&ab);
 }
 
-static int editInsert(struct State *l, char *c) {
+static int
+editInsert(struct State *l, char *c)
+{
 	size_t clenb = strlen(c);
 	if ((l->lenb + clenb) < l->buflen) {
 		if (l->lenu8 == l->posu8) {
@@ -355,7 +391,9 @@ static int editInsert(struct State *l, char *c) {
 	return 0;
 }
 
-static void editMoveLeft(struct State *l) {
+static void
+editMoveLeft(struct State *l)
+{
 	if (l->posb > 0) {
 		l->posb = u8Prev(l->buf, l->posb);
 		l->posu8--;
@@ -363,7 +401,9 @@ static void editMoveLeft(struct State *l) {
 	}
 }
 
-static void editMoveRight(struct State *l) {
+static void
+editMoveRight(struct State *l)
+{
 	if (l->posu8 != l->lenu8) {
 		l->posb = u8Next(l->buf, l->posb);
 		l->posu8++;
@@ -371,7 +411,9 @@ static void editMoveRight(struct State *l) {
 	}
 }
 
-static void editMoveHome(struct State *l) {
+static void
+editMoveHome(struct State *l)
+{
 	if (l->posb != 0) {
 		l->posb = 0;
 		l->posu8 = 0;
@@ -379,7 +421,9 @@ static void editMoveHome(struct State *l) {
 	}
 }
 
-static void editMoveEnd(struct State *l) {
+static void
+editMoveEnd(struct State *l)
+{
 	if (l->posu8 != l->lenu8) {
 		l->posb = l->lenb;
 		l->posu8 = l->lenu8;
@@ -387,7 +431,9 @@ static void editMoveEnd(struct State *l) {
 	}
 }
 
-static void editDelete(struct State *l) {
+static void
+editDelete(struct State *l)
+{
 	if ((l->lenu8 > 0) && (l->posu8 < l->lenu8)) {
 		size_t this_size = u8Next(l->buf, l->posb) - l->posb;
 		bufPosMoveEnd(l, 0, this_size);
@@ -397,7 +443,9 @@ static void editDelete(struct State *l) {
 	}
 }
 
-static void editBackspace(struct State *l) {
+static void
+editBackspace(struct State *l)
+{
 	if ((l->posu8 > 0) && (l->lenu8 > 0)) {
 		size_t prev_size = l->posb - u8Prev(l->buf, l->posb);
 		bufPosMoveEnd(l, (ssize_t)-prev_size, 0);
@@ -409,7 +457,9 @@ static void editBackspace(struct State *l) {
 	}
 }
 
-static void editDeletePrevWord(struct State *l) {
+static void
+editDeletePrevWord(struct State *l)
+{
 	size_t old_posb = l->posb;
 	size_t old_posu8 = l->posu8;
 	while ((l->posb > 0) && (l->buf[l->posb - 1] == ' ')) {
@@ -430,20 +480,26 @@ static void editDeletePrevWord(struct State *l) {
 	refreshLine(l);
 }
 
-static void editDeleteWholeLine(struct State *l) {
+static void
+editDeleteWholeLine(struct State *l)
+{
 	l->buf[0] = '\0';
 	l->posb = l->lenb = l->posu8 = l->lenu8 = 0;
 	refreshLine(l);
 }
 
-static void editDeleteLineToEnd(struct State *l) {
+static void
+editDeleteLineToEnd(struct State *l)
+{
 	l->buf[l->posb] = '\0';
 	l->lenb = l->posb;
 	l->lenu8 = l->posu8;
 	refreshLine(l);
 }
 
-static void editSwapCharWithPrev(struct State *l) {
+static void
+editSwapCharWithPrev(struct State *l)
+{
 	if (l->posu8 > 0 && l->posu8 < l->lenu8) {
 		char aux[8];
 		ssize_t prev_size = l->posb - u8Prev(l->buf, l->posb);
@@ -459,7 +515,9 @@ static void editSwapCharWithPrev(struct State *l) {
 	}
 }
 
-static void editHistory(struct State *l, int dir) {
+static void
+editHistory(struct State *l, int dir)
+{
 	if (history_len > 1) {
 		free(history[history_len - (1 + l->history_index)]);
 		history[history_len - (1 + l->history_index)] = strdup(l->buf);
@@ -479,7 +537,9 @@ static void editHistory(struct State *l, int dir) {
 	}
 }
 
-static int historyAdd(const char *line) {
+static int
+historyAdd(const char *line)
+{
 	char *linecopy;
 	if (history_max_len == 0) {
 		return 0;
@@ -508,12 +568,16 @@ static int historyAdd(const char *line) {
 	return 1;
 }
 
-static void editEnter(void) {
+static void
+editEnter(void)
+{
 	history_len--;
 	free(history[history_len]);
 }
 
-static void editEscSequence(struct State *l, char seq[3]) {
+static void
+editEscSequence(struct State *l, char seq[3])
+{
 	if (read(ttyinfd, seq, 1) == -1) return;
 	if (read(ttyinfd, seq + 1, 1) == -1) return;
 	if (seq[0] == '[') { /* ESC [ sequences. */
@@ -543,7 +607,9 @@ static void editEscSequence(struct State *l, char seq[3]) {
 	}
 }
 
-static int edit(struct State *l) {
+static int
+edit(struct State *l)
+{
 	char c, seq[3];
 	int ret = 0;
 	ssize_t nread = read(ttyinfd, &c, 1);
@@ -597,7 +663,9 @@ static int edit(struct State *l) {
 	return ret;
 }
 
-static void stateReset(struct State *l) {
+static void
+stateReset(struct State *l)
+{
 	l->plenb = strnlen(l->prompt, MSG_MAX);
 	l->plenu8 = u8Len(l->prompt);
 	l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
@@ -607,7 +675,9 @@ static void stateReset(struct State *l) {
 	historyAdd("");
 }
 
-static char *ctime_now(char buf[26]) {
+static char *
+ctime_now(char buf[26])
+{
 	struct tm tm_;
 	time_t now = time(NULL);
 	if (!asctime_r(localtime_r (&now, &tm_), buf)) {
@@ -617,7 +687,9 @@ static char *ctime_now(char buf[26]) {
 	return buf;
 }
 
-static void logAppend(char *str, char *path) {
+static void
+logAppend(char *str, char *path)
+{
 	FILE *out;
 	char buf[26];
 	if ((out = fopen(path, "a")) == NULL) {
@@ -629,7 +701,9 @@ static void logAppend(char *str, char *path) {
 	fclose(out);
 }
 
-static void raw(char *fmt, ...) {
+static void
+raw(char *fmt, ...)
+{
 	va_list ap;
 	char *cmd_str = malloc(MSG_MAX);
 	if (!cmd_str) {
@@ -652,7 +726,9 @@ static void raw(char *fmt, ...) {
 	free(cmd_str);
 }
 
-static int initConnection(void) {
+static int
+initConnection(void)
+{
 	int gai_status;
 	struct addrinfo *res, hints = {
 		.ai_family = AF_UNSPEC,
@@ -687,7 +763,9 @@ static int initConnection(void) {
 	return 0;
 }
 
-static void messageWrap(struct Param *p) {
+static void
+messageWrap(struct Param *p)
+{
 	if (!p->message) {
 		return;
 	}
@@ -706,30 +784,40 @@ static void messageWrap(struct Param *p) {
 	}
 }
 
-static void paramPrintNick(struct Param *p) {
+static void
+paramPrintNick(struct Param *p)
+{
 	printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
 	printf("--> \x1b[35;1m%s\x1b[0m", p->message);
 }
 
-static void paramPrintPart(struct Param *p) {
+static void
+paramPrintPart(struct Param *p)
+{
 	printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
 		printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 	}
 }
 
-static void paramPrintQuit(struct Param *p) {
+static void
+paramPrintQuit(struct Param *p)
+{
 	printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
 
-static void paramPrintJoin(struct Param *p) {
+static void
+paramPrintJoin(struct Param *p)
+{
 	printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
 		printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
 	}
 }
 
-static void handleCTCP(const char *nickname, char *message) {
+static void
+handleCTCP(const char *nickname, char *message)
+{
 	if (message[0] != '\001' && strncmp(message, "ACTION", 6)) {
 		return;
 	}
@@ -748,7 +836,9 @@ static void handleCTCP(const char *nickname, char *message) {
 	}
 }
 
-static void paramPrintPriv(struct Param *p) {
+static void
+paramPrintPriv(struct Param *p)
+{
 	int s = 0;
 	if (strnlen(p->nickname, MSG_MAX) <= (size_t) p->nicklen) {
 		s = p->nicklen - strnlen(p->nickname, MSG_MAX);
@@ -770,7 +860,9 @@ static void paramPrintPriv(struct Param *p) {
 	}
 }
 
-static void paramPrintChan(struct Param *p) {
+static void
+paramPrintChan(struct Param *p)
+{
 	int s = 0;
 	if (strnlen(p->nickname, MSG_MAX) <= (size_t) p->nicklen) {
 		s = p->nicklen - strnlen(p->nickname, MSG_MAX);
@@ -782,7 +874,9 @@ static void paramPrintChan(struct Param *p) {
 	}
 }
 
-static void rawParser(char *string) {
+static void
+rawParser(char *string)
+{
 	if (!strncmp(string, "PING", 4)) {
 		string[1] = 'O';
 		raw("%s\r\n", string);
@@ -836,7 +930,9 @@ static void rawParser(char *string) {
 static char message_buffer[MSG_MAX + 1];
 static size_t message_end = 0;
 
-static int handleServerMessage(void) {
+static int
+handleServerMessage(void)
+{
 	for (;;) {
 		ssize_t nread = read(conn, &message_buffer[message_end],
 				MSG_MAX - message_end);
@@ -874,7 +970,9 @@ static int handleServerMessage(void) {
 	}
 }
 
-static void handleUserInput(struct State *l) {
+static void
+handleUserInput(struct State *l)
+{
 	if (l->buf == NULL) {
 		return;
 	}
@@ -914,19 +1012,24 @@ static void handleUserInput(struct State *l) {
 	}
 }
 
-static void usage(void) {
+static void
+usage(void)
+{
 	fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-o path] [-e] [-x] [-v] [-V]\n", stderr);
 	exit(2);
 }
 
-static void version(void) {
+static void
+version(void)
+{
 	fputs("kirc-" VERSION " Copyright © 2022 Michael Czigler, MIT License\n",
 			stdout);
 	exit(0);
 }
 
-static void opentty()
+static void
+opentty()
 {
 	if ((ttyinfd = open("/dev/tty", 0)) == -1) {
 		perror("failed to open /dev/tty");
@@ -934,25 +1037,27 @@ static void opentty()
 	}
 }
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv)
+{
 	opentty();
 	int cval;
 	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
 		switch (cval) {
-		case 'v' : version();                     break;
-		case 'V' : ++verb;                        break;
-		case 'e' : ++sasl;                        break;
-		case 's' : host = optarg;                 break;
-		case 'p' : port = optarg;                 break;
-		case 'r' : real = optarg;                 break;
-		case 'u' : user = optarg;                 break;
-		case 'a' : auth = optarg;                 break;
-		case 'o' : olog = optarg;                 break;
-		case 'n' : nick = optarg;                 break;
-		case 'k' : pass = optarg;                 break;
-		case 'c' : chan = optarg;                 break;
+		case 'v' : version(); break;
+		case 'V' : ++verb; break;
+		case 'e' : ++sasl; break;
+		case 's' : host = optarg; break;
+		case 'p' : port = optarg; break;
+		case 'r' : real = optarg; break;
+		case 'u' : user = optarg; break;
+		case 'a' : auth = optarg; break;
+		case 'o' : olog = optarg; break;
+		case 'n' : nick = optarg; break;
+		case 'k' : pass = optarg; break;
+		case 'c' : chan = optarg; break;
 		case 'x' : cmds = 1; inic = argv[optind]; break;
-		case '?' : usage();       break;
+		case '?' : usage(); break;
 		}
 	}
 	if (cmds > 0) {
@@ -1000,7 +1105,7 @@ int main(int argc, char **argv) {
 	l.prompt = cdef;
 	stateReset(&l);
 	int rc, editReturnFlag = 0;
-	if (enableRawMode(ttyinfd) == -1) {
+	if (enable_raw_mode(ttyinfd) == -1) {
 		return 1;
 	}
 	if (setIsu8_C(ttyinfd, STDOUT_FILENO) == -1) {
