@@ -1,7 +1,6 @@
 .POSIX:
 ALL_WARNING = -Wall -Wextra -pedantic
 ALL_LDFLAGS = $(LDFLAGS)
-ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS) -std=c99 $(ALL_WARNING)
 PREFIX = /usr/local
 LDLIBS = -lm
 BINDIR = $(PREFIX)/bin
@@ -17,8 +16,7 @@ install: all
 	chmod 644 $(DESTDIR)$(MANDIR)/man1/kirc.1
 kirc: kirc.o
 	$(CC) $(ALL_LDFLAGS) -o kirc kirc.o $(LDLIBS)
-kirc.o: kirc.c
-	$(CC) $(ALL_CFLAGS) -c kirc.c
+kirc.o: kirc.c kirc.h
 clean:
 	rm -f kirc *.o
 uninstall:
