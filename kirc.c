@@ -57,7 +57,7 @@ fatal:
 }
 
 static int
-getCursorPosition(int ifd, int ofd)
+get_cursor_position(int ifd, int ofd)
 {
 	char buf[32];
 	int cols, rows;
@@ -85,18 +85,18 @@ getCursorPosition(int ifd, int ofd)
 }
 
 static int
-getColumns(int ifd, int ofd)
+get_columns(int ifd, int ofd)
 {
 	struct winsize ws;
 	if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-		int start = getCursorPosition(ifd, ofd);
+		int start = get_cursor_position(ifd, ofd);
 		if (start == -1) {
 			return 80;
 		}
 		if (write(ofd,"\x1b[999C",6) != 6) {
 			return 80;
 		}
-		int cols = getCursorPosition(ifd, ofd);
+		int cols = get_cursor_position(ifd, ofd);
 		if (cols == -1) {
 			return 80;
 		}
@@ -112,19 +112,19 @@ getColumns(int ifd, int ofd)
 }
 
 static void
-bufPosMove(struct State *l, ssize_t dest, ssize_t src, size_t size)
+buffer_position_move(struct State *l, ssize_t dest, ssize_t src, size_t size)
 {
 	memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
 }
 
 static void
-bufPosMoveEnd(struct State *l, ssize_t dest, ssize_t src)
+buffer_position_move_end(struct State *l, ssize_t dest, ssize_t src)
 {
-	bufPosMove(l, dest, src, l->lenb - (l->posb + src) + 1);
+	buffer_position_move(l, dest, src, l->lenb - (l->posb + src) + 1);
 }
 
 static int
-u8CharStart(char c)
+u8_character_start(char c)
 {
 	int ret = 1;
 	if (isu8 != 0) {
@@ -134,7 +134,7 @@ u8CharStart(char c)
 }
 
 static int
-u8CharSize(char c)
+u8_character_size(char c)
 {
 	int ret = 1;
 	if(isu8 != 0) {
@@ -148,33 +148,33 @@ u8CharSize(char c)
 }
 
 static size_t
-u8Len(const char *s)
+u8_length(const char *s)
 {
 	size_t lenu8 = 0;
 	while (*s != '\0') {
-		lenu8 += u8CharStart(*(s++));
+		lenu8 += u8_character_start(*(s++));
 	}
 	return lenu8;
 }
 
 static size_t
-u8Prev(const char *s, size_t posb)
+u8_previous(const char *s, size_t posb)
 {
 	if (posb != 0) {
 		do {
 			posb--;
-		} while ((posb > 0) && !u8CharStart(s[posb]));
+		} while ((posb > 0) && !u8_character_start(s[posb]));
 	}
 	return posb;
 }
 
 static size_t
-u8Next(const char *s, size_t posb)
+u8_next(const char *s, size_t posb)
 {
 	if (s[posb] != '\0') {
 		do {
 			posb++;
-		} while((s[posb] != '\0') && !u8CharStart(s[posb]));
+		} while((s[posb] != '\0') && !u8_character_start(s[posb]));
 	}
 	return posb;
 }
@@ -188,7 +188,7 @@ setIsu8_C(int ifd, int ofd)
 	if (write(ofd, "\r", 1) != 1) {
 		return -1;
 	}
-	if (getCursorPosition(ifd, ofd) != 1) {
+	if (get_cursor_position(ifd, ofd) != 1) {
 		return -1;
 	}
 	const char* testChars[] = {
@@ -199,7 +199,7 @@ setIsu8_C(int ifd, int ofd)
 		if (write(ofd, *it, strlen(*it)) != (ssize_t) strlen(*it)) {
 			return -1;
 		}
-		int pos = getCursorPosition(ifd, ofd);
+		int pos = get_cursor_position(ifd, ofd);
 		if (write(ofd, "\r", 1) != 1) {
 			return -1;
 		}
@@ -220,14 +220,14 @@ setIsu8_C(int ifd, int ofd)
  }
 
 static void
-abInit(struct abuf *ab)
+ab_initialize(struct abuf *ab)
 {
 	ab->b = NULL;
 	ab->len = 0;
 }
 
 static void
-abAppend(struct abuf *ab, const char *s, int len)
+ab_append(struct abuf *ab, const char *s, int len)
 {
 	char *new = realloc(ab->b, ab->len + len);
 	if (new == NULL) {
@@ -239,13 +239,13 @@ abAppend(struct abuf *ab, const char *s, int len)
 }
 
 static void
-abFree(struct abuf *ab)
+ab_free(struct abuf *ab)
 {
 	free(ab->b);
 }
 
 static void
-refreshLine(struct State *l)
+refresh_line(struct State *l)
 {
 	char seq[64];
 	size_t plenu8 = l->plenu8 + 2;
@@ -255,33 +255,33 @@ refreshLine(struct State *l)
 	size_t posu8 = l->posu8;
 	size_t ch = plenu8, txtlenb = 0;
 	struct abuf ab;
-	l->cols = getColumns(ttyinfd, STDOUT_FILENO);
+	l->cols = get_columns(ttyinfd, STDOUT_FILENO);
 	while ((plenu8 + posu8) >= l->cols) {
-		buf += u8Next(buf, 0);
+		buf += u8_next(buf, 0);
 		posu8--;
 	}
 	while (txtlenb < lenb && ch++ < l->cols)
-		txtlenb += u8Next(buf + txtlenb, 0);
-	abInit(&ab);
+		txtlenb += u8_next(buf + txtlenb, 0);
+	ab_initialize(&ab);
 	snprintf(seq, sizeof(seq), "\r");
-	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
-	abAppend(&ab, l->prompt, l->plenb);
-	abAppend(&ab, "> ", 2);
-	abAppend(&ab, buf, txtlenb);
+	ab_append(&ab, seq, strnlen(seq, MSG_MAX));
+	ab_append(&ab, l->prompt, l->plenb);
+	ab_append(&ab, "> ", 2);
+	ab_append(&ab, buf, txtlenb);
 	snprintf(seq, sizeof(seq), "\x1b[0K");
-	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
+	ab_append(&ab, seq, strnlen(seq, MSG_MAX));
 	if (posu8 + plenu8) {
 		snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(posu8 + plenu8));
 	} else {
 		snprintf(seq, sizeof(seq), "\r");
 	}
-	abAppend(&ab, seq, strnlen(seq, MSG_MAX));
+	ab_append(&ab, seq, strnlen(seq, MSG_MAX));
 	if (write(fd, ab.b, ab.len) == -1) {}
-	abFree(&ab);
+	ab_free(&ab);
 }
 
 static int
-editInsert(struct State *l, char *c)
+edit_insert(struct State *l, char *c)
 {
 	size_t clenb = strlen(c);
 	if ((l->lenb + clenb) < l->buflen) {
@@ -296,89 +296,89 @@ editInsert(struct State *l, char *c)
 					return -1;
 				}
 			} else {
-				refreshLine(l);
+				refresh_line(l);
 			}
 		} else {
-			bufPosMoveEnd(l, clenb, 0);
+			buffer_position_move_end(l, clenb, 0);
 			memmove(l->buf + l->posb, c, clenb);
 			l->posu8++;
 			l->lenu8++;
 			l->posb += clenb;
 			l->lenb += clenb;
-			refreshLine(l);
+			refresh_line(l);
 		}
 	}
 	return 0;
 }
 
 static void
-editMoveLeft(struct State *l)
+edit_move_left(struct State *l)
 {
 	if (l->posb > 0) {
-		l->posb = u8Prev(l->buf, l->posb);
+		l->posb = u8_previous(l->buf, l->posb);
 		l->posu8--;
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editMoveRight(struct State *l)
+edit_move_right(struct State *l)
 {
 	if (l->posu8 != l->lenu8) {
-		l->posb = u8Next(l->buf, l->posb);
+		l->posb = u8_next(l->buf, l->posb);
 		l->posu8++;
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editMoveHome(struct State *l)
+edit_move_home(struct State *l)
 {
 	if (l->posb != 0) {
 		l->posb = 0;
 		l->posu8 = 0;
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editMoveEnd(struct State *l)
+edit_move_end(struct State *l)
 {
 	if (l->posu8 != l->lenu8) {
 		l->posb = l->lenb;
 		l->posu8 = l->lenu8;
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editDelete(struct State *l)
+edit_delete(struct State *l)
 {
 	if ((l->lenu8 > 0) && (l->posu8 < l->lenu8)) {
-		size_t this_size = u8Next(l->buf, l->posb) - l->posb;
-		bufPosMoveEnd(l, 0, this_size);
+		size_t this_size = u8_next(l->buf, l->posb) - l->posb;
+		buffer_position_move_end(l, 0, this_size);
 		l->lenb -= this_size;
 		l->lenu8--;
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editBackspace(struct State *l)
+edit_backspace(struct State *l)
 {
 	if ((l->posu8 > 0) && (l->lenu8 > 0)) {
-		size_t prev_size = l->posb - u8Prev(l->buf, l->posb);
-		bufPosMoveEnd(l, (ssize_t)-prev_size, 0);
+		size_t prev_size = l->posb - u8_previous(l->buf, l->posb);
+		buffer_position_move_end(l, (ssize_t)-prev_size, 0);
 		l->posb -= prev_size;
 		l->lenb -= prev_size;
 		l->posu8--;
 		l->lenu8--;
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editDeletePrevWord(struct State *l)
+edit_delete_previous_word(struct State *l)
 {
 	size_t old_posb = l->posb;
 	size_t old_posu8 = l->posu8;
@@ -387,56 +387,56 @@ editDeletePrevWord(struct State *l)
 		l->posu8--;
 	}
 	while ((l->posb > 0) && (l->buf[l->posb - 1] != ' ')) {
-		if (u8CharStart(l->buf[l->posb - 1])) {
+		if (u8_character_start(l->buf[l->posb - 1])) {
 			l->posu8--;
 		}
 		l->posb--;
 	}
 	size_t diffb = old_posb - l->posb;
 	size_t diffu8 = old_posu8 - l->posu8;
-	bufPosMoveEnd(l, 0, diffb);
+	buffer_position_move_end(l, 0, diffb);
 	l->lenb -= diffb;
 	l->lenu8 -= diffu8;
-	refreshLine(l);
+	refresh_line(l);
 }
 
 static void
-editDeleteWholeLine(struct State *l)
+edit_delete_whole_line(struct State *l)
 {
 	l->buf[0] = '\0';
 	l->posb = l->lenb = l->posu8 = l->lenu8 = 0;
-	refreshLine(l);
+	refresh_line(l);
 }
 
 static void
-editDeleteLineToEnd(struct State *l)
+edit_delete_line_to_end(struct State *l)
 {
 	l->buf[l->posb] = '\0';
 	l->lenb = l->posb;
 	l->lenu8 = l->posu8;
-	refreshLine(l);
+	refresh_line(l);
 }
 
 static void
-editSwapCharWithPrev(struct State *l)
+edit_swap_character_w_previous(struct State *l)
 {
 	if (l->posu8 > 0 && l->posu8 < l->lenu8) {
 		char aux[8];
-		ssize_t prev_size = l->posb - u8Prev(l->buf, l->posb);
-		ssize_t this_size = u8Next(l->buf, l->posb) - l->posb;
+		ssize_t prev_size = l->posb - u8_previous(l->buf, l->posb);
+		ssize_t this_size = u8_next(l->buf, l->posb) - l->posb;
 		memmove(aux, l->buf + l->posb, this_size);
-		bufPosMove(l, -prev_size + this_size, -prev_size, prev_size);
+		buffer_position_move(l, -prev_size + this_size, -prev_size, prev_size);
 		memmove(l->buf + l->posb - prev_size, aux, this_size);
 		if (l->posu8 != l->lenu8-1){
 			l->posu8++;
 			l->posb += this_size;
 		}
-		refreshLine(l);
+		refresh_line(l);
 	}
 }
 
 static void
-editHistory(struct State *l, int dir)
+edit_history(struct State *l, int dir)
 {
 	if (history_len > 1) {
 		free(history[history_len - (1 + l->history_index)]);
@@ -452,13 +452,13 @@ editHistory(struct State *l, int dir)
 		strncpy(l->buf, history[history_len - (1 + l->history_index)], l->buflen);
 		l->buf[l->buflen - 1] = '\0';
 		l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
-		l->lenu8 = l->posu8 = u8Len(l->buf);
-		refreshLine(l);
+		l->lenu8 = l->posu8 = u8_length(l->buf);
+		refresh_line(l);
 	}
 }
 
 static int
-historyAdd(const char *line)
+history_add(const char *line)
 {
 	char *linecopy;
 	if (history_max_len == 0) {
@@ -489,14 +489,14 @@ historyAdd(const char *line)
 }
 
 static void
-editEnter(void)
+edit_enter(void)
 {
 	history_len--;
 	free(history[history_len]);
 }
 
 static void
-editEscSequence(struct State *l, char seq[3])
+edit_escape_sequence(struct State *l, char seq[3])
 {
 	if (read(ttyinfd, seq, 1) == -1) return;
 	if (read(ttyinfd, seq + 1, 1) == -1) return;
@@ -507,22 +507,22 @@ editEscSequence(struct State *l, char seq[3])
 				return;
 			}
 			if ((seq[2] == '~') && (seq[1] == 3)) {
-				editDelete(l);	/* Delete key. */
+				edit_delete(l); /* Delete key. */
 			}
 		} else {
 			switch(seq[1]) {
-				case 'A': editHistory(l, 1); break; /* Up */
-				case 'B': editHistory(l, 0); break; /* Down */
-				case 'C': editMoveRight(l);  break; /* Right */
-				case 'D': editMoveLeft(l);   break; /* Left */
-				case 'H': editMoveHome(l);   break; /* Home */
-				case 'F': editMoveEnd(l);	break; /* End*/
+				case 'A': edit_history(l, 1); break; /* Up */
+				case 'B': edit_history(l, 0); break; /* Down */
+				case 'C': edit_move_right(l); break; /* Right */
+				case 'D': edit_move_left(l); break; /* Left */
+				case 'H': edit_move_home(l); break; /* Home */
+				case 'F': edit_move_end(l); break; /* End*/
 			}
 		}
 	} else if (seq[0] == 'O') { /* ESC O sequences. */
 		switch(seq[1]) {
-			case 'H': editMoveHome(l); break; /* Home */
-			case 'F': editMoveEnd(l);  break; /* End*/
+			case 'H': edit_move_home(l); break; /* Home */
+			case 'F': edit_move_end(l); break; /* End*/
 		}
 	}
 }
@@ -537,24 +537,24 @@ edit(struct State *l)
 		ret = 1;
 	} else {
 		switch(c) {
-		case 13: editEnter();          return 1; /* enter */
-		case 3: errno = EAGAIN;       return -1; /* ctrl-c */
-		case 127:                                /* backspace */
-		case 8:  editBackspace(l);        break; /* ctrl-h */
-		case 2:  editMoveLeft(l);         break; /* ctrl-b */
-		case 6:  editMoveRight(l);        break; /* ctrl-f */
-		case 1:  editMoveHome(l);         break; /* Ctrl+a */
-		case 5:  editMoveEnd(l);          break; /* ctrl+e */
-		case 23: editDeletePrevWord(l);   break; /* ctrl+w */
-		case 21: editDeleteWholeLine(l);  break; /* Ctrl+u */
-		case 11: editDeleteLineToEnd(l);  break; /* Ctrl+k */
-		case 14: editHistory(l, 0);       break; /* Ctrl+n */
-		case 16: editHistory(l, 1);       break; /* Ctrl+p */
-		case 20: editSwapCharWithPrev(l); break; /* ctrl-t */
-		case 27: editEscSequence(l, seq); break; /* escape sequence */
-		case 4:                                  /* ctrl-d */
+		case 13: edit_enter(); return 1; /* enter */
+		case 3: errno = EAGAIN; return -1; /* ctrl-c */
+		case 127: /* backspace */
+		case 8:  edit_backspace(l); break; /* ctrl-h */
+		case 2:  edit_move_left(l); break; /* ctrl-b */
+		case 6:  edit_move_right(l); break; /* ctrl-f */
+		case 1:  edit_move_home(l); break; /* Ctrl+a */
+		case 5:  edit_move_end(l); break; /* ctrl+e */
+		case 23: edit_delete_previous_word(l); break; /* ctrl+w */
+		case 21: edit_delete_whole_line(l); break; /* Ctrl+u */
+		case 11: edit_delete_line_to_end(l); break; /* Ctrl+k */
+		case 14: edit_history(l, 0); break; /* Ctrl+n */
+		case 16: edit_history(l, 1); break; /* Ctrl+p */
+		case 20: edit_swap_character_w_previous(l); break; /* ctrl-t */
+		case 27: edit_escape_sequence(l, seq); break; /* escape sequence */
+		case 4: /* ctrl-d */
 			if (l->lenu8 > 0) {
-				editDelete(l);
+				edit_delete(l);
 			} else {
 				history_len--;
 				free(history[history_len]);
@@ -562,10 +562,10 @@ edit(struct State *l)
 			}
 			break;
 		default:
-			if (u8CharStart(c)) {
+			if (u8_character_start(c)) {
 				char aux[8];
 				aux[0] = c;
-				int size = u8CharSize(c);
+				int size = u8_character_size(c);
 				for (int i = 1; i < size; i++) {
 					nread = read(ttyinfd, aux + i, 1);
 					if ((aux[i] & 0xC0) != 0x80) {
@@ -573,7 +573,7 @@ edit(struct State *l)
 					}
 				}
 				aux[size] = '\0';
-				if (editInsert(l, aux)) {
+				if (edit_insert(l, aux)) {
 					ret = -1;
 				}
 			}
@@ -584,15 +584,15 @@ edit(struct State *l)
 }
 
 static void
-stateReset(struct State *l)
+state_reset(struct State *l)
 {
 	l->plenb = strnlen(l->prompt, MSG_MAX);
-	l->plenu8 = u8Len(l->prompt);
+	l->plenu8 = u8_length(l->prompt);
 	l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
 	l->history_index = 0;
 	l->buf[0] = '\0';
 	l->buflen--;
-	historyAdd("");
+	history_add("");
 }
 
 static char *
@@ -608,7 +608,7 @@ ctime_now(char buf[26])
 }
 
 static void
-logAppend(char *str, char *path)
+log_append(char *str, char *path)
 {
 	FILE *out;
 	char buf[26];
@@ -637,7 +637,7 @@ raw(char *fmt, ...)
 		printf("<< %s", cmd_str);
 	}
 	if (olog) {
-		logAppend(cmd_str, olog);
+		log_append(cmd_str, olog);
 	}
 	if (write(conn, cmd_str, strnlen(cmd_str, MSG_MAX)) < 0) {
 		perror("write");
@@ -647,7 +647,7 @@ raw(char *fmt, ...)
 }
 
 static int
-initConnection(void)
+connection_initialize(void)
 {
 	int gai_status;
 	struct addrinfo *res, hints = {
@@ -684,7 +684,7 @@ initConnection(void)
 }
 
 static void
-messageWrap(struct Param *p)
+message_wrap(struct Param *p)
 {
 	if (!p->message) {
 		return;
@@ -705,14 +705,14 @@ messageWrap(struct Param *p)
 }
 
 static void
-paramPrintNick(struct Param *p)
+param_print_nick(struct Param *p)
 {
 	printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
 	printf("--> \x1b[35;1m%s\x1b[0m", p->message);
 }
 
 static void
-paramPrintPart(struct Param *p)
+param_print_part(struct Param *p)
 {
 	printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
@@ -721,13 +721,13 @@ paramPrintPart(struct Param *p)
 }
 
 static void
-paramPrintQuit(struct Param *p)
+param_print_quit(struct Param *p)
 {
 	printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
 
 static void
-paramPrintJoin(struct Param *p)
+param_print_join(struct Param *p)
 {
 	printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
@@ -736,7 +736,7 @@ paramPrintJoin(struct Param *p)
 }
 
 static void
-handleCTCP(const char *nickname, char *message)
+handle_ctcp(const char *nickname, char *message)
 {
 	if (message[0] != '\001' && strncmp(message, "ACTION", 6)) {
 		return;
@@ -757,14 +757,14 @@ handleCTCP(const char *nickname, char *message)
 }
 
 static void
-paramPrintPriv(struct Param *p)
+param_print_private(struct Param *p)
 {
 	int s = 0;
 	if (strnlen(p->nickname, MSG_MAX) <= (size_t) p->nicklen) {
 		s = p->nicklen - strnlen(p->nickname, MSG_MAX);
 	}
 	if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
-		handleCTCP(p->nickname, p->message);
+		handle_ctcp(p->nickname, p->message);
 		printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
 	} else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
 		printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
@@ -781,7 +781,7 @@ paramPrintPriv(struct Param *p)
 }
 
 static void
-paramPrintChan(struct Param *p)
+param_print_channel(struct Param *p)
 {
 	int s = 0;
 	if (strnlen(p->nickname, MSG_MAX) <= (size_t) p->nicklen) {
@@ -795,7 +795,7 @@ paramPrintChan(struct Param *p)
 }
 
 static void
-rawParser(char *string)
+raw_parser(char *string)
 {
 	if (!strncmp(string, "PING", 4)) {
 		string[1] = 'O';
@@ -810,7 +810,7 @@ rawParser(char *string)
 		printf(">> %s", string);
 	}
 	if (olog) {
-		logAppend(string, olog);
+		log_append(string, olog);
 	}
 	char *tok;
 	struct Param p;
@@ -821,7 +821,7 @@ rawParser(char *string)
 	p.command =  strtok(p.suffix, "#& ");
 	p.channel =  strtok(NULL, " \r");
 	p.params =   strtok(NULL, ":\r");
-	p.maxcols = getColumns(ttyinfd, STDOUT_FILENO);
+	p.maxcols = get_columns(ttyinfd, STDOUT_FILENO);
 	p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
 	p.offset = 0;
 	if (!strncmp(p.command, "001", 3) && chan != NULL) {
@@ -830,19 +830,19 @@ rawParser(char *string)
 			raw("JOIN #%s\r\n", tok);
 		} return;
 	} else if (!strncmp(p.command, "QUIT", 4)) {
-		paramPrintQuit(&p);
+		param_print_quit(&p);
 	} else if (!strncmp(p.command, "PART", 4)) {
-		paramPrintPart(&p);
+		param_print_part(&p);
 	} else if (!strncmp(p.command, "JOIN", 4)) {
-		paramPrintJoin(&p);
+		param_print_join(&p);
 	} else if (!strncmp(p.command, "NICK", 4)) {
-		paramPrintNick(&p);
+		param_print_nick(&p);
 	} else if (!strncmp(p.command, "PRIVMSG", 7)) {
-		paramPrintPriv(&p);
-		messageWrap(&p);
+		param_print_private(&p);
+		message_wrap(&p);
 	} else {
-		paramPrintChan(&p);
-		messageWrap(&p);
+		param_print_channel(&p);
+		message_wrap(&p);
 	}
 	printf("\x1b[0m\r\n");
 }
@@ -851,7 +851,7 @@ static char message_buffer[MSG_MAX + 1];
 static size_t message_end = 0;
 
 static int
-handleServerMessage(void)
+handle_server_message(void)
 {
 	for (;;) {
 		ssize_t nread = read(conn, &message_buffer[message_end],
@@ -876,7 +876,7 @@ handleServerMessage(void)
 					&& message_buffer[i] == '\n') {
 				char saved_char = message_buffer[i + 1];
 				message_buffer[i + 1] = '\0';
-				rawParser(message_buffer);
+				raw_parser(message_buffer);
 				message_buffer[i + 1] = saved_char;
 				memmove(&message_buffer, &message_buffer[i + 1],
 						message_end - i - 1);
@@ -891,7 +891,7 @@ handleServerMessage(void)
 }
 
 static void
-handleUserInput(struct State *l)
+handle_user_input(struct State *l)
 {
 	if (l->buf == NULL) {
 		return;
@@ -949,7 +949,7 @@ version(void)
 }
 
 static void
-opentty()
+open_tty()
 {
 	if ((ttyinfd = open("/dev/tty", 0)) == -1) {
 		perror("failed to open /dev/tty");
@@ -960,7 +960,7 @@ opentty()
 int
 main(int argc, char **argv)
 {
-	opentty();
+	open_tty();
 	int cval;
 	while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
 		switch (cval) {
@@ -990,7 +990,7 @@ main(int argc, char **argv)
 		fputs("Nick not specified\n", stderr);
 		usage();
 	}
-	if (initConnection() != 0) {
+	if (connection_initialize() != 0) {
 		return 1;
 	}
 	if (auth || sasl) {
@@ -1023,7 +1023,7 @@ main(int argc, char **argv)
 	l.buf = usrin;
 	l.buflen = MSG_MAX;
 	l.prompt = cdef;
-	stateReset(&l);
+	state_reset(&l);
 	int rc, editReturnFlag = 0;
 	if (enable_raw_mode(ttyinfd) == -1) {
 		return 1;
@@ -1036,24 +1036,24 @@ main(int argc, char **argv)
 			if (fds[0].revents & POLLIN) {
 				editReturnFlag = edit(&l);
 				if (editReturnFlag > 0) {
-					historyAdd(l.buf);
-					handleUserInput(&l);
-					stateReset(&l);
+					history_add(l.buf);
+					handle_user_input(&l);
+					state_reset(&l);
 				} else if (editReturnFlag < 0) {
 				   printf("\r\n");
 				   return 0;
 				}
-				refreshLine(&l);
+				refresh_line(&l);
 			}
 			if (fds[1].revents & POLLIN) {
-				rc = handleServerMessage();
+				rc = handle_server_message();
 				if (rc != 0) {
 					if (rc == -2) {
 						return 1;
 					}
 					return 0;
 				}
-				refreshLine(&l);
+				refresh_line(&l);
 			}
 		} else {
 			if (errno == EAGAIN) {
