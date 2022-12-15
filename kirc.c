@@ -684,7 +684,7 @@ connection_initialize(void)
 }
 
 static void
-message_wrap(struct Param *p)
+message_wrap(param p)
 {
 	if (!p->message) {
 		return;
@@ -705,14 +705,14 @@ message_wrap(struct Param *p)
 }
 
 static void
-param_print_nick(struct Param *p)
+param_print_nick(param p)
 {
 	printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
 	printf("--> \x1b[35;1m%s\x1b[0m", p->message);
 }
 
 static void
-param_print_part(struct Param *p)
+param_print_part(param p)
 {
 	printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
@@ -721,13 +721,13 @@ param_print_part(struct Param *p)
 }
 
 static void
-param_print_quit(struct Param *p)
+param_print_quit(param p)
 {
 	printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
 
 static void
-param_print_join(struct Param *p)
+param_print_join(param p)
 {
 	printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 	if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
@@ -757,7 +757,7 @@ handle_ctcp(const char *nickname, char *message)
 }
 
 static void
-param_print_private(struct Param *p)
+param_print_private(param p)
 {
 	int s = 0;
 	if (strnlen(p->nickname, MSG_MAX) <= (size_t) p->nicklen) {
@@ -781,7 +781,7 @@ param_print_private(struct Param *p)
 }
 
 static void
-param_print_channel(struct Param *p)
+param_print_channel(param p)
 {
 	int s = 0;
 	if (strnlen(p->nickname, MSG_MAX) <= (size_t) p->nicklen) {
@@ -813,17 +813,18 @@ raw_parser(char *string)
 		log_append(string, olog);
 	}
 	char *tok;
-	struct Param p;
-	p.prefix =   strtok(string, " ") + 1;
-	p.suffix =   strtok(NULL, ":");
-	p.message =  strtok(NULL, "\r");
-	p.nickname = strtok(p.prefix, "!");
-	p.command =  strtok(p.suffix, "#& ");
-	p.channel =  strtok(NULL, " \r");
-	p.params =   strtok(NULL, ":\r");
-	p.maxcols = get_columns(ttyinfd, STDOUT_FILENO);
-	p.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3);
-	p.offset = 0;
+	param_t p = {
+		.prefix = strtok(string, " ") + 1,
+		.suffix = strtok(NULL, ":"),
+		.message = strtok(NULL, "\r"),
+		.nickname = strtok(p.prefix, "!"),
+		.command = strtok(p.suffix, "#& "),
+		.channel = strtok(NULL, " \r"),
+		.params = strtok(NULL, ":\r"),
+		.maxcols = get_columns(ttyinfd, STDOUT_FILENO),
+		.nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3),
+		.offset = 0
+	};
 	if (!strncmp(p.command, "001", 3) && chan != NULL) {
 		for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
 			strcpy(cdef, tok);

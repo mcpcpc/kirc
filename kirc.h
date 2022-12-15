@@ -54,7 +54,7 @@ static int history_max_len = HIS_MAX;
 static int history_len = 0;
 static char **history = NULL;
 
-struct Param {
+typedef struct PARAMETERS {
 	char  *prefix;
 	char  *suffix;
 	char  *message;
@@ -65,7 +65,7 @@ struct Param {
 	size_t offset;
 	size_t maxcols;
 	int nicklen;
-};
+} param_t, *param;
 
 struct State {
 	char  *prompt; /* Prompt to display. */
