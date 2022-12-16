@@ -624,7 +624,7 @@ log_append(char *str, char *path)
 		}                                            
 		*str++;                                      
 	};
-	fwrite('\n', sizeof(char), 1, out);
+	fwrite("\n", sizeof(char), 1, out);
 	fclose(out);
 }
 
