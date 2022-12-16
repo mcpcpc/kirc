@@ -1022,8 +1022,8 @@ main(int argc, char **argv)
 		}
 	}
 	struct pollfd fds[2] = {
-		{.fd = ttyinfd, .fd = conn},
-		{.events = POLLIN, .events = POLLIN}
+		{.fd = ttyinfd, .events = POLLIN},
+		{.fd = conn, .events = POLLIN}
 	};
 	char usrin[MSG_MAX];
 	state_t l = {
