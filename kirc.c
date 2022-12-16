@@ -619,12 +619,15 @@ log_append(char *str, char *path)
 	ctime_now(buf);	
 	fprintf(out, "%s:", buf, str);
 	while(*str != '\0') {                                
-        if (*str >= 32 && *str < 127) {              
-			fwrite(str, sizeof(char), 1, out);   
-		}                                            
-		*str++;                                      
+        	if (*str >= 32 && *str < 127) {
+			fwrite(str, sizeof(char), 1, out);
+		} else if (*str == 3 || *str == 4) {
+			*str++;
+		} else if (*str == '\n') {
+		f	write("\n", sizeof(char), 1, out);
+		} 
+		*str++;                    
 	};
-	fwrite("\n", sizeof(char), 1, out);
 	fclose(out);
 }
 
