@@ -617,7 +617,7 @@ log_append(char *str, char *path)
 		exit(1);
 	}
 	ctime_now(buf);	
-	fprintf(out, "%s:%s", buf, str);
+	fprintf(out, "%s:", buf, str);
 	while(*str != '\0') {                                
         if (*str >= 32 && *str < 127) {              
 			fwrite(str, sizeof(char), 1, out);   
