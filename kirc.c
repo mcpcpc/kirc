@@ -624,7 +624,7 @@ log_append(char *str, char *path)
 		} else if (*str == 3 || *str == 4) {
 			*str++;
 		} else if (*str == '\n') {
-		f	write("\n", sizeof(char), 1, out);
+		f	fwrite("\n", sizeof(char), 1, out);
 		} 
 		*str++;                    
 	};
