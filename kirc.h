@@ -43,7 +43,7 @@ static char *auth = NULL; /* PLAIN SASL token */
 static char *real = NULL; /* real name */
 static char *olog = NULL; /* chat log path*/
 static char *inic = NULL; /* additional server command */
-static int  cmds  = 0; /* indicates additional server commands */
+static int   cmds = 0; /* indicates additional server commands */
 static char cbuf[CBUF_SIZ]; /* additional stdin server commands */
 
 static int ttyinfd = STDIN_FILENO;
@@ -64,7 +64,7 @@ typedef struct PARAMETERS {
 	char  *params;
 	size_t offset;
 	size_t maxcols;
-	int nicklen;
+	int    nicklen;
 } param_t, *param;
 
 typedef struct STATE {
@@ -80,7 +80,7 @@ typedef struct STATE {
 	size_t lenb; /* Current edited line length. */
 	size_t lenu8; /* Current edited line length. */
 	size_t cols; /* Number of columns in terminal. */
-	int history_index; /* Current line in the edit history */
+	int    history_index; /* Current line in the edit history */
 } state_t, *state;
 
 struct abuf {

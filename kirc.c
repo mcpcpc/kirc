@@ -1021,11 +1021,10 @@ main(int argc, char **argv)
 			raw("%s\r\n", inic);
 		}
 	}
-	struct pollfd fds[2];
-	fds[0].fd = ttyinfd;
-	fds[1].fd = conn;
-	fds[0].events = POLLIN;
-	fds[1].events = POLLIN;
+	struct pollfd fds[2] = {
+		{.fd = ttyinfd, .fd = conn},
+		{.events = POLLIN, .events = POLLIN}
+	};
 	char usrin[MSG_MAX];
 	state_t l = {
 		.buf = usrin,
@@ -1049,8 +1048,8 @@ main(int argc, char **argv)
 					handle_user_input(&l);
 					state_reset(&l);
 				} else if (editReturnFlag < 0) {
-				   printf("\r\n");
-				   return 0;
+					puts("\r\n");
+					return 0;
 				}
 				refresh_line(&l);
 			}
