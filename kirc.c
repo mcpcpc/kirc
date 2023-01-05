@@ -2,7 +2,7 @@
 
 /*
  * SPDX-License-Identifier: MIT
- * Copyright (C) 2022 Michael Czigler
+ * Copyright (C) 2023 Michael Czigler
  */
 
 static void free_history(void)
