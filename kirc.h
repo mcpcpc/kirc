@@ -2,12 +2,14 @@
 #define __KIRC_H
 
 #define _POSIX_C_SOURCE 200809L
-#define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING"
+#define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING DCC"
 #define VERSION "0.3.2"
 #define MSG_MAX 512
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
+#define FNM_MAX 256
+#define DWL_MAX 4
 #define CBUF_SIZ 1024
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -26,7 +28,10 @@
 #include <poll.h>
 #include <errno.h>
 #include <termios.h>
+#include <limits.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 static char cdef[MSG_MAX] = ""; /* default PRIVMSG channel */
 static int conn;                /* connection socket */

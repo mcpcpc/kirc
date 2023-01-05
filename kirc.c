@@ -631,16 +631,16 @@ static void log_append(char *str, char *path)
         exit(1);
     }
     ctime_now(buf);
-    fprintf(out, "%s:", buf, str);
+    fprintf(out, "%s:", buf);
     while (*str != '\0') {
         if (*str >= 32 && *str < 127) {
             fwrite(str, sizeof(char), 1, out);
         } else if (*str == 3 || *str == 4) {
-            *str++;
+            str++;
         } else if (*str == '\n') {
             fwrite("\n", sizeof(char), 1, out);
         }
-        *str++;
+        str++;
     };
     fclose(out);
 }
@@ -752,23 +752,105 @@ static void param_print_join(param p)
     }
 }
 
-static void handle_ctcp(const char *nickname, char *message)
+static unsigned long long htonll(unsigned long long x) {
+    union { int i; char c; } u = { 1 };
+    return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
+}
+
+/* TODO: since we don't have config files how do we configure a download directory? */
+static void handle_dcc(param p)
 {
-    if (message[0] != '\001' && strncmp(message, "ACTION", 6)) {
+    const char *message = p->message + 5;
+    if (!strncmp(message, "SEND", 4)) {
+        char filename[FNM_MAX];
+        size_t file_size = 0;
+        unsigned ip_addr = 0;
+        unsigned short port = 0;
+
+        /* TODO: resumption of downloads */
+
+        /* TODO: the file size parameter is optional so this isn't strictly correct.
+           furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
+           addresses as well as ipv4 ones; however, i have yet to see that in the wild
+           from what i can tell other general purpose irc clients like irssi don't try
+           handle that case either.
+        */
+        if (sscanf(message, "SEND \"%255[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+            if (sscanf(message, "SEND %255s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+                /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
+                printf("error reading dcc message: '%s'\r\n", message);
+                return;
+            }
+        }
+
+        /* TODO: at this point we should make sure that the filename is actually a filename
+           and not a file path. furthermore, we should it would be helpful to give the user
+           the option to rename to the file.
+        */
+
+        struct sockaddr_in sockaddr = (struct sockaddr_in){
+            .sin_family = AF_INET,
+            .sin_addr = (struct in_addr){htonl(ip_addr)},
+            .sin_port = htons(port),
+        };
+
+        /* TODO: error handling */
+        int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock_fd < 0) {
+          perror("socket");
+          exit(1);
+        }
+
+        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+          perror("connect");
+          close(sock_fd);
+          exit(1);
+        }
+
+        int file_fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        if (file_fd < 0) {
+          perror("open");
+          close(sock_fd);
+          exit(1);
+        }
+
+        char *buf = calloc(BUFSIZ, sizeof(char));
+        size_t total_bytes = 0;
+        unsigned ack_is_64 = file_size > UINT_MAX;
+        unsigned ack_shift = (1 - ack_is_64) * 32;
+
+        for (ssize_t n = 0; (n = read(sock_fd, buf, BUFSIZ));) {
+            total_bytes += n;
+            unsigned long long ack = htonll(total_bytes << ack_shift);
+            write(sock_fd, &ack, ack_is_64 ? 8 : 4);
+            write(file_fd, buf, n);
+        }
+
+        shutdown(sock_fd, SHUT_RDWR);
+        close(file_fd);
+        close(sock_fd);
+    }
+}
+
+static void handle_ctcp(param p)
+{
+    if (p->message[0] != '\001' && strncmp(p->message, "ACTION", 6)) {
         return;
     }
-    message++;
+    const char *message = p->message + 1;
     if (!strncmp(message, "VERSION", 7)) {
-        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
+        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", p->nickname);
     } else if (!strncmp(message, "TIME", 7)) {
         char buf[26];
         if (!ctime_now(buf)) {
-            raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
+            raw("NOTICE %s :\001TIME %s\001\r\n", p->nickname, buf);
         }
     } else if (!strncmp(message, "CLIENTINFO", 10)) {
-        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
+        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", p->nickname);
     } else if (!strncmp(message, "PING", 4)) {
-        raw("NOTICE %s :\001%s\r\n", nickname, message);
+        raw("NOTICE %s :\001%s\r\n", p->nickname, message);
+    } else if (!strncmp(message, "DCC", 3)) {
+        handle_dcc(p);
     }
 }
 
@@ -779,7 +861,7 @@ static void param_print_private(param p)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     }
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
-        handle_ctcp(p->nickname, p->message);
+        handle_ctcp(p);
         printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
     } else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
