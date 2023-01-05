@@ -752,11 +752,6 @@ static void param_print_join(param p)
     }
 }
 
-static unsigned long long htonll(unsigned long long x) {
-    union { int i; char c; } u = { 1 };
-    return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
-}
-
 /* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
 {
@@ -783,6 +778,19 @@ static void handle_dcc(param p)
             }
         }
 
+        int slot = -1;
+        /* check for an open slot */
+        for (int i = 0; i < CON_MAX; i++) {
+            if (dcc_sessions.sock_fds[i].fd < 0) {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot < 0) {
+            return;
+        }
+
         /* TODO: at this point we should make sure that the filename is actually a filename
            and not a file path. furthermore, we should it would be helpful to give the user
            the option to rename to the file.
@@ -797,38 +805,30 @@ static void handle_dcc(param p)
         /* TODO: error handling */
         int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (sock_fd < 0) {
-          perror("socket");
-          exit(1);
+            perror("socket");
+            exit(1);
         }
 
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-          perror("connect");
-          close(sock_fd);
-          exit(1);
+            perror("connect");
+            close(sock_fd);
+            exit(1);
         }
+
+        int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+        fcntl(sock_fd, F_SETFL, flags);
 
         int file_fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if (file_fd < 0) {
-          perror("open");
-          close(sock_fd);
-          exit(1);
+            perror("open");
+            close(sock_fd);
+            exit(1);
         }
 
-        char *buf = calloc(BUFSIZ, sizeof(char));
-        size_t total_bytes = 0;
-        unsigned ack_is_64 = file_size > UINT_MAX;
-        unsigned ack_shift = (1 - ack_is_64) * 32;
-
-        for (ssize_t n = 0; (n = read(sock_fd, buf, BUFSIZ));) {
-            total_bytes += n;
-            unsigned long long ack = htonll(total_bytes << ack_shift);
-            write(sock_fd, &ack, ack_is_64 ? 8 : 4);
-            write(file_fd, buf, n);
-        }
-
-        shutdown(sock_fd, SHUT_RDWR);
-        close(file_fd);
-        close(sock_fd);
+        dcc_sessions.sock_fds[slot].fd = sock_fd;
+        dcc_sessions.file_fds[slot] = file_fd;
+        dcc_sessions.file_size[slot] = file_size;
+        dcc_sessions.bytes_read[slot] = 0;
     }
 }
 
@@ -1029,6 +1029,11 @@ static void handle_user_input(state l)
     }
 }
 
+static unsigned long long htonll(unsigned long long x) {
+    union { int i; char c; } u = { 1 };
+    return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
+}
+
 static void usage(void)
 {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
@@ -1053,6 +1058,7 @@ static void open_tty()
 
 int main(int argc, char **argv)
 {
+    char buf[BUFSIZ];
     open_tty();
     int cval;
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
@@ -1135,10 +1141,14 @@ int main(int argc, char **argv)
             raw("%s\r\n", inic);
         }
     }
-    struct pollfd fds[2] = {
-        {.fd = ttyinfd,.events = POLLIN},
-        {.fd = conn,.events = POLLIN}
-    };
+    for (int i = 0; i < CON_MAX; i++) {
+        dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
+        dcc_sessions.file_fds[i] = -1;
+        dcc_sessions.file_size[i] = 0;
+        dcc_sessions.bytes_read[i] = 0;
+    }
+    dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};
+    dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
     char usrin[MSG_MAX];
     state_t l = {
         .buf = usrin,
@@ -1154,8 +1164,8 @@ int main(int argc, char **argv)
         return 1;
     }
     for (;;) {
-        if (poll(fds, 2, -1) != -1) {
-            if (fds[0].revents & POLLIN) {
+        if (poll(dcc_sessions.sock_fds, CON_MAX + 2, -1) != -1) {
+            if (dcc_sessions.sock_fds[CON_MAX + 0].revents & POLLIN) {
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
                     history_add(l.buf);
@@ -1167,7 +1177,7 @@ int main(int argc, char **argv)
                 }
                 refresh_line(&l);
             }
-            if (fds[1].revents & POLLIN) {
+            if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
                 rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) {
@@ -1176,6 +1186,30 @@ int main(int argc, char **argv)
                     return 0;
                 }
                 refresh_line(&l);
+            }
+
+            /* TODO: implicitly assumes that the size reported was the correct size */
+            for (int i = 0; i < CON_MAX; i++) {
+                if (dcc_sessions.sock_fds[i].revents & POLLIN) {
+                    int n = read(dcc_sessions.sock_fds[i].fd, buf, BUFSIZ);
+                    if (n > 0) {
+                        dcc_sessions.bytes_read[i] += n;
+                        write(dcc_sessions.file_fds[i], buf, n);
+                    }
+
+                    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
+                        unsigned ack_is_64 = dcc_sessions.file_size[i] > UINT_MAX;
+                        unsigned ack_shift = (1 - ack_is_64) * 32;
+                        unsigned long long ack = htonll(dcc_sessions.bytes_read[i] << ack_shift);
+                        write(dcc_sessions.sock_fds[i].fd, &ack, ack_is_64 ? 8 : 4);
+                        if (dcc_sessions.bytes_read[i] == dcc_sessions.file_size[i]) {
+                            shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
+                            close(dcc_sessions.sock_fds[i].fd);
+                            close(dcc_sessions.file_fds[i]);
+                            dcc_sessions.sock_fds[i].fd = -1;
+                        }
+                    }
+                }
             }
         } else {
             if (errno == EAGAIN) {
