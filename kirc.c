@@ -936,6 +936,7 @@ static void handle_user_input(state l)
             raw("%s\r\n", l->buf + 1);
             printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         }
+    	}
         break;
     case '@':                  /* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
