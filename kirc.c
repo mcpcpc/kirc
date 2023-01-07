@@ -1021,7 +1021,7 @@ int main(int argc, char **argv)
             break;
         case 'c':
             chan = optarg;
-	    strncpy(cdef, chan, strlen(chan));
+	    strcpy(cdef, chan);
             break;
         case 'x':
             cmds = 1;
