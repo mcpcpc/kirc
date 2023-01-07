@@ -998,7 +998,7 @@ static void handle_user_input(state l)
     }
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
-    case '/':	/* send system command */
+    case '/':			/* send system command */
 	if(l->buf[1]=='/'){
                 raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
                 printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
@@ -1020,7 +1020,7 @@ static void handle_user_input(state l)
             printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         }
         break;
-    case '@':                  /* send private message to target channel or user */
+    case '@':			/* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
         if (l->buf[1] == '@') {
             if (l->buf[2] == '\0') {
@@ -1036,7 +1036,7 @@ static void handle_user_input(state l)
             printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
         }
         break;
-    default:                   /*  send private message to default channel */
+    default:			/*  send private message to default channel */
         raw("privmsg #%s :%s\r\n", cdef, l->buf);
         printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
     }
@@ -1111,7 +1111,7 @@ int main(int argc, char **argv)
             break;
         case 'c':
             chan = optarg;
-	    strncpy(cdef,chan,strlen(chan));
+	    strcpy(cdef, chan);
             break;
         case 'x':
             cmds = 1;
