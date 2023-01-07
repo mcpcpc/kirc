@@ -984,6 +984,7 @@ static void open_tty()
 
 int main(int argc, char **argv)
 {
+    int check = 0;
     open_tty();
     int cval;
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
@@ -1023,6 +1024,7 @@ int main(int argc, char **argv)
             break;
         case 'c':
             chan = optarg;
+	    check = 1;
             break;
         case 'x':
             cmds = 1;
@@ -1076,6 +1078,8 @@ int main(int argc, char **argv)
         .buflen = MSG_MAX,
         .prompt = cdef
     };
+    if(check)
+	l.prompt=chan;
     state_reset(&l);
     int rc, editReturnFlag = 0;
     if (enable_raw_mode(ttyinfd) == -1) {
