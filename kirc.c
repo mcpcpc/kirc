@@ -916,8 +916,7 @@ static void handle_user_input(state l)
     }
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
-    case '/':{
-		/* send system command */
+    case '/':			/* send system command */
 	    if(l->buf[1]=='/'){
             raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
             printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
@@ -936,7 +935,6 @@ static void handle_user_input(state l)
             raw("%s\r\n", l->buf + 1);
             printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         }
-    	}
         break;
     case '@':                  /* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
@@ -984,7 +982,6 @@ static void open_tty()
 
 int main(int argc, char **argv)
 {
-    int check = 0;
     open_tty();
     int cval;
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
@@ -1024,7 +1021,7 @@ int main(int argc, char **argv)
             break;
         case 'c':
             chan = optarg;
-	    check = 1;
+	    strncpy(cdef, chan, strlen(chan));
             break;
         case 'x':
             cmds = 1;
@@ -1078,8 +1075,6 @@ int main(int argc, char **argv)
         .buflen = MSG_MAX,
         .prompt = cdef
     };
-    if(check)
-	l.prompt=chan;
     state_reset(&l);
     int rc, editReturnFlag = 0;
     if (enable_raw_mode(ttyinfd) == -1) {
