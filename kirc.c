@@ -1054,8 +1054,21 @@ static void handle_user_input(state l)
 		    }
 		}
 	} else
+        if(l->buf[1]=='/'){
+            raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
+	    }else
+	    if(!strncmp(l->buf+1, "MSG", 3)||!strncmp(l->buf+1, "msg", 3)){
+		    strtok_r(l->buf + 5, " ", &tok);
+		    if(*(tok+strlen(tok)+1))
+		        *(tok+strlen(tok))=' ';
+		    raw("privmsg %s :%s\r\n", l->buf + 5, tok);
+		    printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5, tok);
+	}else
         if (l->buf[1] == '#') {
             strcpy(cdef, l->buf + 2);
+	    chan = cdef;
+	    strcpy(l->prompt, chan);
             printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
         } else {
             raw("%s\r\n", l->buf + 1);
