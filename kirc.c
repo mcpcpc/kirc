@@ -1054,6 +1054,14 @@ static void handle_user_input(state l)
 		    }
 		}
 	} else
+        if (l->buf[1] == '#') {
+            strcpy(cdef, l->buf + 2);
+            printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
+        } else {
+            raw("%s\r\n", l->buf + 1);
+            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        }
+        break;
     case '@':			/* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
         if (l->buf[1] == '@') {
