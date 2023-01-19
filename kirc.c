@@ -631,16 +631,16 @@ static void log_append(char *str, char *path)
         exit(1);
     }
     ctime_now(buf);
-    fprintf(out, "%s:", buf, str);
+    fprintf(out, "%s:", buf);
     while (*str != '\0') {
         if (*str >= 32 && *str < 127) {
             fwrite(str, sizeof(char), 1, out);
         } else if (*str == 3 || *str == 4) {
-            *str++;
+            str++;
         } else if (*str == '\n') {
             fwrite("\n", sizeof(char), 1, out);
         }
-        *str++;
+        str++;
     };
     fclose(out);
 }
@@ -752,23 +752,105 @@ static void param_print_join(param p)
     }
 }
 
-static void handle_ctcp(const char *nickname, char *message)
+/* TODO: since we don't have config files how do we configure a download directory? */
+static void handle_dcc(param p)
 {
-    if (message[0] != '\001' && strncmp(message, "ACTION", 6)) {
+    const char *message = p->message + 5;
+    if (!strncmp(message, "SEND", 4)) {
+        char filename[FNM_MAX];
+        size_t file_size = 0;
+        unsigned ip_addr = 0;
+        unsigned short port = 0;
+
+        /* TODO: resumption of downloads */
+
+        /* TODO: the file size parameter is optional so this isn't strictly correct.
+           furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
+           addresses as well as ipv4 ones; however, i have yet to see that in the wild
+           from what i can tell other general purpose irc clients like irssi don't try
+           handle that case either.
+        */
+        if (sscanf(message, "SEND \"%255[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+            if (sscanf(message, "SEND %255s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+                /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
+                printf("error reading dcc message: '%s'\r\n", message);
+                return;
+            }
+        }
+
+        int slot = -1;
+        /* check for an open slot */
+        for (int i = 0; i < CON_MAX; i++) {
+            if (dcc_sessions.sock_fds[i].fd < 0) {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot < 0) {
+            return;
+        }
+
+        /* TODO: at this point we should make sure that the filename is actually a filename
+           and not a file path. furthermore, we should it would be helpful to give the user
+           the option to rename to the file.
+        */
+
+        struct sockaddr_in sockaddr = (struct sockaddr_in){
+            .sin_family = AF_INET,
+            .sin_addr = (struct in_addr){htonl(ip_addr)},
+            .sin_port = htons(port),
+        };
+
+        /* TODO: error handling */
+        int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock_fd < 0) {
+            perror("socket");
+            exit(1);
+        }
+
+        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+            perror("connect");
+            close(sock_fd);
+            exit(1);
+        }
+
+        int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+        fcntl(sock_fd, F_SETFL, flags);
+
+        int file_fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        if (file_fd < 0) {
+            perror("open");
+            close(sock_fd);
+            exit(1);
+        }
+
+        dcc_sessions.sock_fds[slot].fd = sock_fd;
+        dcc_sessions.file_fds[slot] = file_fd;
+        dcc_sessions.file_size[slot] = file_size;
+        dcc_sessions.bytes_read[slot] = 0;
+    }
+}
+
+static void handle_ctcp(param p)
+{
+    if (p->message[0] != '\001' && strncmp(p->message, "ACTION", 6)) {
         return;
     }
-    message++;
+    const char *message = p->message + 1;
     if (!strncmp(message, "VERSION", 7)) {
-        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", nickname);
+        raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", p->nickname);
     } else if (!strncmp(message, "TIME", 7)) {
         char buf[26];
         if (!ctime_now(buf)) {
-            raw("NOTICE %s :\001TIME %s\001\r\n", nickname, buf);
+            raw("NOTICE %s :\001TIME %s\001\r\n", p->nickname, buf);
         }
     } else if (!strncmp(message, "CLIENTINFO", 10)) {
-        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", nickname);
+        raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", p->nickname);
     } else if (!strncmp(message, "PING", 4)) {
-        raw("NOTICE %s :\001%s\r\n", nickname, message);
+        raw("NOTICE %s :\001%s\r\n", p->nickname, message);
+    } else if (!strncmp(message, "DCC", 3)) {
+        handle_dcc(p);
     }
 }
 
@@ -779,7 +861,7 @@ static void param_print_private(param p)
         s = p->nicklen - strnlen(p->nickname, MSG_MAX);
     }
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
-        handle_ctcp(p->nickname, p->message);
+        handle_ctcp(p);
         printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
     } else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
@@ -917,107 +999,111 @@ static void handle_user_input(state l)
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
     case '/':			/* send system command */
-		if(!strncmp(l->buf + 1, "JOIN", 4)||!strncmp(l->buf + 1, "join", 4)){
-	    	if(!strchr(l->buf, '#')){
-			printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-			printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
-			return;
-	    	}
-	    	chan = strchr(l->buf, '#');
-			chan ++;
-			strcpy(l->prompt, chan);
-			raw("join #%s\r\n", chan);
-			printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-			printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
-	    	return;
-		}
-		if(!strncmp(l->buf + 1, "PART", 4)||!strncmp(l->buf + 1, "part", 4)){
-	    	tok = strchr(l->buf, '#');
-	    	if(strlen(l->buf) == 5){
-        		raw("part #%s\r\n", chan);
-				printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-        		printf("\x1b[35mLeft #%s!\r\n", chan);
+	if(!strncmp(l->buf + 1, "JOIN", 4)||!strncmp(l->buf + 1, "join", 4)){
+	    if(!strchr(l->buf, '#')){
+		printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+		printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+		return;
+	    }
+	    chan = strchr(l->buf, '#');
+	    chan ++;
+	    strcpy(l->prompt, chan);
+	    raw("join #%s\r\n", chan);
+	    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+	    printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
+	    return;
+	}
+	if(!strncmp(l->buf + 1, "PART", 4)||!strncmp(l->buf + 1, "part", 4)){
+	    tok = strchr(l->buf, '#');
+	    if(strlen(l->buf) == 5){
+        	raw("part #%s\r\n", chan);
+		printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        	printf("\x1b[35mLeft #%s!\r\n", chan);
             	printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
             	chan = NULL;
             	strcpy(l->prompt, "");
-				return;
-	    	}
-			if(tok){
-            	raw("part %s\r\n", tok);
-            	printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-            	printf("\x1b[35mLeft %s!\r\n", tok);
-            	printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-            	chan = NULL;
-            	strcpy(l->prompt, "");
-				return;
-			}
-			int ok = 1;
-			tok = l->buf + 5;
-			while(*tok){
-				if(*tok!=' '){
-			    	ok = 0;
-			    	break;
-				}
-				tok ++;
-			}
-			if(ok){
-				chan = l->prompt;
-            	raw("part #%s\r\n", chan);
-            	printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-            	printf("\x1b[35mLeft #%s!\r\n", chan);
-            	printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-            	chan = NULL;
-            	strcpy(l->prompt, "");
-				return;
-			}
-			printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-			printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
-			return;
-		}
+		return;
+	    }
+	    if(tok){
+                raw("part %s\r\n", tok);
+                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+                printf("\x1b[35mLeft %s!\r\n", tok);
+                printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
+                chan = NULL;
+                strcpy(l->prompt, "");
+	        return;
+	    }
+	    int ok = 1;
+	    tok = l->buf + 5;
+	    while(*tok){
+	        if(*tok!=' '){
+		    ok = 0;
+		    break;
+	        }
+	        tok ++;
+	    }
+	    if(ok){
+	        chan = l->prompt;
+                raw("part #%s\r\n", chan);
+                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+                printf("\x1b[35mLeft #%s!\r\n", chan);
+                printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
+                chan = NULL;
+                strcpy(l->prompt, "");
+	        return;
+	    }
+	    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+	    printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+	    return;
+	}
     	if(l->buf[1]=='/'){
-	    	raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
-	    	printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
-			return;
-		}
-		if(!strncmp(l->buf+1, "MSG", 3)||!strncmp(l->buf+1, "msg", 3)){
-	    	strtok_r(l->buf + 5, " ", &tok);
-	    	if(*(tok+strlen(tok)+1))
-				*(tok+strlen(tok))=' ';
-	    	raw("privmsg %s :%s\r\n", l->buf + 5, tok);
-	    	if(strncmp(l->buf + 5, "NickServ", 8))
-				printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5, tok);
-			return;
-		}
+	    raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
+	    printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
+	    return;
+	}
+	if(!strncmp(l->buf+1, "MSG", 3)||!strncmp(l->buf+1, "msg", 3)){
+	    strtok_r(l->buf + 5, " ", &tok);
+	    if(*(tok+strlen(tok)+1))
+		*(tok+strlen(tok))=' ';
+	    raw("privmsg %s :%s\r\n", l->buf + 5, tok);
+	    if(strncmp(l->buf + 5, "NickServ", 8))
+		printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5, tok);
+	    return;
+	}
     	if (l->buf[1] == '#') {
-        	strcpy(cdef, l->buf + 2);
-	    	chan = cdef;
-	    	strcpy(l->prompt, chan);
-        	printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
-			return;
+            strcpy(cdef, l->buf + 2);
+	    chan = cdef;
+	    strcpy(l->prompt, chan);
+            printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
+	    return;
     	}
     	raw("%s\r\n", l->buf + 1);
     	printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-		return;
+	return;
     case '@':			/* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
         if (l->buf[1] == '@') {
             if (l->buf[2] == '\0') {
                 raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, tok);
                 printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", cdef, tok);
-				return;
+		return;
             }
             raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
             printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2,tok);
-			return;
+	    return;
         }
         raw("privmsg %s :%s\r\n", l->buf + 1, tok);
         printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
-		return;
+	return;
     default:			/*  send private message to default channel */
         raw("privmsg #%s :%s\r\n", cdef, l->buf);
         printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
-		return;
-	}
+	return;
+    }
+}
+static unsigned long long htonll(unsigned long long x) {
+    union { int i; char c; } u = { 1 };
+    return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
 }
 
 static void usage(void)
@@ -1044,6 +1130,7 @@ static void open_tty()
 
 int main(int argc, char **argv)
 {
+    char buf[BUFSIZ];
     open_tty();
     int cval;
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
@@ -1127,10 +1214,14 @@ int main(int argc, char **argv)
             raw("%s\r\n", inic);
         }
     }
-    struct pollfd fds[2] = {
-        {.fd = ttyinfd,.events = POLLIN},
-        {.fd = conn,.events = POLLIN}
-    };
+    for (int i = 0; i < CON_MAX; i++) {
+        dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
+        dcc_sessions.file_fds[i] = -1;
+        dcc_sessions.file_size[i] = 0;
+        dcc_sessions.bytes_read[i] = 0;
+    }
+    dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};
+    dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
     char usrin[MSG_MAX];
     state_t l = {
         .buf = usrin,
@@ -1146,8 +1237,8 @@ int main(int argc, char **argv)
         return 1;
     }
     for (;;) {
-        if (poll(fds, 2, -1) != -1) {
-            if (fds[0].revents & POLLIN) {
+        if (poll(dcc_sessions.sock_fds, CON_MAX + 2, -1) != -1) {
+            if (dcc_sessions.sock_fds[CON_MAX + 0].revents & POLLIN) {
                 editReturnFlag = edit(&l);
                 if (editReturnFlag > 0) {
                     history_add(l.buf);
@@ -1159,7 +1250,7 @@ int main(int argc, char **argv)
                 }
                 refresh_line(&l);
             }
-            if (fds[1].revents & POLLIN) {
+            if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
                 rc = handle_server_message();
                 if (rc != 0) {
                     if (rc == -2) {
@@ -1168,6 +1259,30 @@ int main(int argc, char **argv)
                     return 0;
                 }
                 refresh_line(&l);
+            }
+
+            /* TODO: implicitly assumes that the size reported was the correct size */
+            for (int i = 0; i < CON_MAX; i++) {
+                if (dcc_sessions.sock_fds[i].revents & POLLIN) {
+                    int n = read(dcc_sessions.sock_fds[i].fd, buf, BUFSIZ);
+                    if (n > 0) {
+                        dcc_sessions.bytes_read[i] += n;
+                        write(dcc_sessions.file_fds[i], buf, n);
+                    }
+
+                    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
+                        unsigned ack_is_64 = dcc_sessions.file_size[i] > UINT_MAX;
+                        unsigned ack_shift = (1 - ack_is_64) * 32;
+                        unsigned long long ack = htonll(dcc_sessions.bytes_read[i] << ack_shift);
+                        write(dcc_sessions.sock_fds[i].fd, &ack, ack_is_64 ? 8 : 4);
+                        if (dcc_sessions.bytes_read[i] == dcc_sessions.file_size[i]) {
+                            shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
+                            close(dcc_sessions.sock_fds[i].fd);
+                            close(dcc_sessions.file_fds[i]);
+                            dcc_sessions.sock_fds[i].fd = -1;
+                        }
+                    }
+                }
             }
         } else {
             if (errno == EAGAIN) {
