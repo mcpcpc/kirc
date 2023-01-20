@@ -9,7 +9,7 @@
 #define NIC_MAX 26
 #define HIS_MAX 100
 #define FNM_MAX 256
-#define CON_MAX 4
+#define CON_MAX 6
 #define CBUF_SIZ 1024
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -98,6 +98,7 @@ static struct {
     int file_fds[CON_MAX];
     size_t file_size[CON_MAX];
     size_t bytes_read[CON_MAX];
+    int resume;
 } dcc_sessions = {0};
 
 #endif

@@ -762,13 +762,11 @@ static void handle_dcc(param p)
         unsigned ip_addr = 0;
         unsigned short port = 0;
 
-        /* TODO: resumption of downloads */
-
         /* TODO: the file size parameter is optional so this isn't strictly correct.
            furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
            addresses as well as ipv4 ones; however, i have yet to see that in the wild
-           from what i can tell other general purpose irc clients like irssi don't try
-           handle that case either.
+           and from what i can tell other general purpose irc clients like irssi don't
+           try handle that case either.
         */
         if (sscanf(message, "SEND \"%255[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
             if (sscanf(message, "SEND %255s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
@@ -818,6 +816,7 @@ static void handle_dcc(param p)
         int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
         fcntl(sock_fd, F_SETFL, flags);
 
+        /* TODO: resumption of downloads */
         int file_fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if (file_fd < 0) {
             perror("open");
@@ -1195,6 +1194,9 @@ int main(int argc, char **argv)
                     if (n > 0) {
                         dcc_sessions.bytes_read[i] += n;
                         write(dcc_sessions.file_fds[i], buf, n);
+                    } else if (n == -1) {
+                        perror("read");
+                        return 1;
                     }
 
                     if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
@@ -1212,7 +1214,7 @@ int main(int argc, char **argv)
                 }
             }
         } else {
-            if (errno == EAGAIN) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             }
             perror("poll");
