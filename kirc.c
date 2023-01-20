@@ -981,11 +981,12 @@ static void handle_user_input(state l)
 	}
 	if(!strncmp(l->buf+1, "MSG", 3)||!strncmp(l->buf+1, "msg", 3)){
 	    strtok_r(l->buf + 5, " ", &tok);
-	    if(*(tok+strlen(tok)+1))
-		*(tok+strlen(tok))=' ';
-	    raw("privmsg %s :%s\r\n", l->buf + 5, tok);
-	    if(strncmp(l->buf + 5, "NickServ", 8))
-		printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5, tok);
+            int offset = 0;
+            while(*(l->buf + 5 + offset) == ' ')
+		offset ++;
+            raw("privmsg %s :%s\r\n", l->buf + 5 + offset, tok);
+	    if(strncmp(l->buf + 5 + offset, "NickServ", 8))
+		printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
 	    return;
 	}
     	if (l->buf[1] == '#') {
