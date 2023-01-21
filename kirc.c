@@ -1,9 +1,12 @@
-#include "kirc.h"
-
 /*
  * SPDX-License-Identifier: MIT
  * Copyright (C) 2023 Michael Czigler
  */
+
+#include "kirc.h"
+
+#define STR_(a) #a
+#define STR(a) STR_(a)
 
 static void free_history(void)
 {
@@ -756,7 +759,7 @@ static void param_print_join(param p)
 static void handle_dcc(param p)
 {
     const char *message = p->message + 5;
-    char filename[FNM_MAX];
+    char filename[FNM_MAX + 1];
     size_t file_size = 0;
     unsigned ip_addr = 0;
     unsigned short port = 0;
@@ -771,7 +774,8 @@ static void handle_dcc(param p)
     }
 
     if (slot < 0) {
-        /* TODO: send cancel here */
+        /* TODO: should we send cancel here or should we just let the
+           bots keep trying to send a request until it times out? */
         return;
     }
 
@@ -782,9 +786,8 @@ static void handle_dcc(param p)
            and from what i can tell other general purpose irc clients like irssi don't
            try handle that case either. */
 
-        /* TODO: the current value of FNM_MAX is hard coded into these strings */
-        if (sscanf(message, "SEND \"%255[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-            if (sscanf(message, "SEND %255s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+        if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+            if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
                 /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
                 printf("error reading dcc message: '%s'\r\n", message);
                 return;
@@ -802,24 +805,27 @@ static void handle_dcc(param p)
 
         int sock_fd = -1;
         int file_resume = 0;
-        int file_fd = open(filename, flags);
         size_t bytes_read = 0;
+        int file_fd = open(filename, flags);
 
-        if ((file_resume = file_fd > 0)) {
+        if (file_fd > 0) {
             struct stat statbuf = {0};
-            if (fstat(file_fd, &statbuf) < 0) {
-                goto try_create;
+            if (!fstat(file_fd, &statbuf)) {
+                bytes_read = statbuf.st_size;
+                file_resume = 1;
+                goto init_slot;
+            } else {
+                close(file_fd);
             }
-            bytes_read = statbuf.st_size;
-            goto end;
-        } else if (errno == ENOENT) {
-try_create:
+        }
+
+        if (!file_resume) {
             file_fd = open(filename, flags | O_CREAT, mode);
         }
 
         if (file_fd < 0) {
             perror("open");
-            exit(errno);
+            exit(1);
         }
 
         struct sockaddr_in sockaddr = (struct sockaddr_in){
@@ -850,7 +856,7 @@ try_create:
             exit(1);
         }
 
-end:
+init_slot:
         dcc_sessions.sock_fds[slot].fd = sock_fd;
         dcc_sessions.slots[slot] = (struct dcc_connection) {
             .bytes_read = bytes_read,
@@ -1115,6 +1121,77 @@ static void slot_clear(size_t i) {
     dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
 }
 
+/* TODO: implicitly assumes that the size reported was the correct size */
+/* TODO: should we just close the file and keep on running if we get
+   an error we can recover from? */
+static void slot_process(char *buf, size_t buf_len, size_t i) {
+    const char *err_str = "";
+    if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
+        return;
+    }
+
+    if (dcc_sessions.slots[i].resume) {
+        /* write(int fd, const void *buf, size_t n); */
+        printf("PRIVMSG %s :DCC RESUME %s %d %zu\r\n",
+               dcc_sessions.slots[i].bot,
+               dcc_sessions.slots[i].file,
+               0,
+               dcc_sessions.slots[i].bytes_read
+        );
+        /* PRIVMSG mybotDCC :^ADCC RESUME <file> <port> <pos>^A */
+        /* PRIVMSG <nick> :DCC ACCEPT <file> <port> <pos> */
+        /* dcc_sessions.slots[i].resume = 0; */
+        return;
+    }
+
+    int n = read(dcc_sessions.sock_fds[i].fd, buf, buf_len);
+    if (n < 0) {
+        err_str = "read";
+        goto handle_err;
+    }
+
+    if (n) {
+        dcc_sessions.slots[i].bytes_read += n;
+        if (write(dcc_sessions.slots[i].file_fd, buf, n) < 0) {
+            err_str = "write";
+            goto handle_err;
+        }
+    }
+
+    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
+        int sock_fd = dcc_sessions.sock_fds[i].fd;
+        size_t file_size = dcc_sessions.slots[i].file_size;
+        size_t bytes_read = dcc_sessions.slots[i].bytes_read;
+        unsigned ack_is_64 = file_size > UINT_MAX;
+        unsigned ack_shift = (1 - ack_is_64) * 32;
+        unsigned long long ack = htonll(bytes_read << ack_shift);
+        if (write(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
+            err_str = "write";
+            goto handle_err;
+        }
+        if (bytes_read == file_size) {
+            shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
+            close(dcc_sessions.sock_fds[i].fd);
+            close(dcc_sessions.slots[i].file_fd);
+            slot_clear(i);
+        }
+    }
+
+    return;
+handle_err:
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        return;
+    } else if (errno == ECONNRESET) {
+        shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
+        close(dcc_sessions.sock_fds[i].fd);
+        close(dcc_sessions.slots[i].file_fd);
+        slot_clear(i);
+    } else {
+        perror(err_str);
+        exit(1);
+    }
+}
+
 int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
@@ -1244,57 +1321,8 @@ int main(int argc, char **argv)
                 refresh_line(&l);
             }
 
-            /* TODO: implicitly assumes that the size reported was the correct size */
-            /* TODO: should we just close the file and keep on running if we get
-               an error we can recover from? */
-
             for (int i = 0; i < CON_MAX; i++) {
-                if (dcc_sessions.sock_fds[i].revents & POLLIN) {
-                    int n = read(dcc_sessions.sock_fds[i].fd, buf, sizeof(buf));
-                    if (n > 0) {
-                        dcc_sessions.slots[i].bytes_read += n;
-                        if (write(dcc_sessions.slots[i].file_fd, buf, n) < 0) {
-                            goto conn_reset;
-                        }
-                    } else if (n == -1) {
-                        perror("read");
-                        if (errno == ECONNRESET) {
-                            goto conn_reset ;
-                        }
-                        return 1;
-                    }
-
-                    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
-                        int sock_fd = dcc_sessions.sock_fds[i].fd;
-                        size_t file_size = dcc_sessions.slots[i].file_size;
-                        size_t bytes_read = dcc_sessions.slots[i].bytes_read;
-                        unsigned ack_is_64 = file_size > UINT_MAX;
-                        unsigned ack_shift = (1 - ack_is_64) * 32;
-                        unsigned long long ack = htonll(bytes_read << ack_shift);
-                        if (write(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
-                            goto conn_reset ;
-                        }
-                        if (bytes_read == file_size) {
-                            shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
-                            close(dcc_sessions.sock_fds[i].fd);
-                            close(dcc_sessions.slots[i].file_fd);
-                            slot_clear(i);
-                        }
-                    }
-                }
-                continue;
-conn_reset:
-                if (errno == ECONNRESET) {
-                    shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
-                    close(dcc_sessions.sock_fds[i].fd);
-                    close(dcc_sessions.slots[i].file_fd);
-                    slot_clear(i);
-                } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    continue;
-                } else {
-                    perror("write");
-                    exit(1);
-                }
+                slot_process(buf, sizeof(buf), i);
             }
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {

@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (C) 2023 Michael Czigler
+ */
+
 #ifndef __KIRC_H
 #define __KIRC_H
 
@@ -8,7 +13,7 @@
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
-#define FNM_MAX 256
+#define FNM_MAX 255
 #define CON_MAX 6
 #define CBUF_SIZ 1024
 
@@ -95,7 +100,7 @@ struct abuf {
 };
 
 struct dcc_connection {
-    char file[FNM_MAX];
+    char file[FNM_MAX + 1];
     char *chan;
     char *bot;
     size_t bytes_read;
