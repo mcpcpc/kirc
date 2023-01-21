@@ -110,8 +110,7 @@ static int get_columns(int ifd, int ofd)
     }
 }
 
-static void
-buffer_position_move(state l, ssize_t dest, ssize_t src, size_t size)
+static void buffer_position_move(state l, ssize_t dest, ssize_t src, size_t size)
 {
     memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
 }
@@ -283,80 +282,87 @@ static int edit_insert(state l, char *c)
                 if (write(STDOUT_FILENO, c, clenb) == -1) {
                     return -1;
                 }
-            } else {
-                refresh_line(l);
+                return 0;
             }
-        } else {
-            buffer_position_move_end(l, clenb, 0);
-            memmove(l->buf + l->posb, c, clenb);
-            l->posu8++;
-            l->lenu8++;
-            l->posb += clenb;
-            l->lenb += clenb;
             refresh_line(l);
+            return 0;
         }
+        buffer_position_move_end(l, clenb, 0);
+        memmove(l->buf + l->posb, c, clenb);
+        l->posu8++;
+        l->lenu8++;
+        l->posb += clenb;
+        l->lenb += clenb;
+        refresh_line(l);
     }
     return 0;
 }
 
 static void edit_move_left(state l)
 {
-    if (l->posb > 0) {
-        l->posb = u8_previous(l->buf, l->posb);
-        l->posu8--;
-        refresh_line(l);
+    if (l->posb <= 0){
+        return;
     }
+    l->posb = u8_previous(l->buf, l->posb);
+    l->posu8--;
+    refresh_line(l);
+    return;
 }
 
 static void edit_move_right(state l)
 {
-    if (l->posu8 != l->lenu8) {
-        l->posb = u8_next(l->buf, l->posb);
-        l->posu8++;
-        refresh_line(l);
+    if (l->posu8 == l->lenu8) {
+        return;
     }
+    l->posb = u8_next(l->buf, l->posb);
+    l->posu8++;
+    refresh_line(l);
 }
 
 static void edit_move_home(state l)
 {
-    if (l->posb != 0) {
-        l->posb = 0;
-        l->posu8 = 0;
-        refresh_line(l);
+    if (l->posb == 0) {
+        return;
     }
+    l->posb = 0;
+    l->posu8 = 0;
+    refresh_line(l);
 }
 
 static void edit_move_end(state l)
 {
-    if (l->posu8 != l->lenu8) {
-        l->posb = l->lenb;
-        l->posu8 = l->lenu8;
-        refresh_line(l);
+    if (l->posu8 == l->lenu8) {
+        return;
     }
+    l->posb = l->lenb;
+    l->posu8 = l->lenu8;
+    refresh_line(l);
 }
 
 static void edit_delete(state l)
 {
-    if ((l->lenu8 > 0) && (l->posu8 < l->lenu8)) {
-        size_t this_size = u8_next(l->buf, l->posb) - l->posb;
-        buffer_position_move_end(l, 0, this_size);
-        l->lenb -= this_size;
-        l->lenu8--;
-        refresh_line(l);
+    if ((l->lenu8 <= 0) || (l->posu8 >= l->lenu8)) {
+        return;
     }
+    size_t this_size = u8_next(l->buf, l->posb) - l->posb;
+    buffer_position_move_end(l, 0, this_size);
+    l->lenb -= this_size;
+    l->lenu8--;
+    refresh_line(l);
 }
 
 static void edit_backspace(state l)
 {
-    if ((l->posu8 > 0) && (l->lenu8 > 0)) {
-        size_t prev_size = l->posb - u8_previous(l->buf, l->posb);
-        buffer_position_move_end(l, (ssize_t) - prev_size, 0);
-        l->posb -= prev_size;
-        l->lenb -= prev_size;
-        l->posu8--;
-        l->lenu8--;
-        refresh_line(l);
+    if ((l->posu8 <= 0) || (l->lenu8 <= 0)) {
+        return;
     }
+    size_t prev_size = l->posb - u8_previous(l->buf, l->posb);
+    buffer_position_move_end(l, (ssize_t) - prev_size, 0);
+    l->posb -= prev_size;
+    l->lenb -= prev_size;
+    l->posu8--;
+    l->lenu8--;
+    refresh_line(l);
 }
 
 static void edit_delete_previous_word(state l)
@@ -398,41 +404,43 @@ static void edit_delete_line_to_end(state l)
 
 static void edit_swap_character_w_previous(state l)
 {
-    if (l->posu8 > 0 && l->posu8 < l->lenu8) {
-        char aux[8];
-        ssize_t prev_size = l->posb - u8_previous(l->buf, l->posb);
-        ssize_t this_size = u8_next(l->buf, l->posb) - l->posb;
-        memmove(aux, l->buf + l->posb, this_size);
-        buffer_position_move(l, -prev_size + this_size, -prev_size, prev_size);
-        memmove(l->buf + l->posb - prev_size, aux, this_size);
-        if (l->posu8 != l->lenu8 - 1) {
-            l->posu8++;
-            l->posb += this_size;
-        }
-        refresh_line(l);
+    if (l->posu8 <= 0 || l->posu8 >= l->lenu8) {
+        return;
     }
+    char aux[8];
+    ssize_t prev_size = l->posb - u8_previous(l->buf, l->posb);
+    ssize_t this_size = u8_next(l->buf, l->posb) - l->posb;
+    memmove(aux, l->buf + l->posb, this_size);
+    buffer_position_move(l, -prev_size + this_size, -prev_size, prev_size);
+    memmove(l->buf + l->posb - prev_size, aux, this_size);
+    if (l->posu8 != l->lenu8 - 1) {
+        l->posu8++;
+        l->posb += this_size;
+    }
+    refresh_line(l);
 }
 
 static void edit_history(state l, int dir)
 {
-    if (history_len > 1) {
-        free(history[history_len - (1 + l->history_index)]);
-        history[history_len - (1 + l->history_index)] = strdup(l->buf);
-        l->history_index += (dir == 1) ? 1 : -1;
-        if (l->history_index < 0) {
-            l->history_index = 0;
-            return;
-        } else if (l->history_index >= history_len) {
-            l->history_index = history_len - 1;
-            return;
-        }
-        strncpy(l->buf, history[history_len - (1 + l->history_index)],
-                l->buflen);
-        l->buf[l->buflen - 1] = '\0';
-        l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
-        l->lenu8 = l->posu8 = u8_length(l->buf);
-        refresh_line(l);
+    if (history_len <= 1) {
+        return;
     }
+    free(history[history_len - (1 + l->history_index)]);
+    history[history_len - (1 + l->history_index)] = strdup(l->buf);
+    l->history_index += (dir == 1) ? 1 : -1;
+    if (l->history_index < 0) {
+        l->history_index = 0;
+        return;
+    }
+    if (l->history_index >= history_len) {
+        l->history_index = history_len - 1;
+        return;
+    }
+    strncpy(l->buf, history[history_len - (1 + l->history_index)],l->buflen);
+    l->buf[l->buflen - 1] = '\0';
+    l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
+    l->lenu8 = l->posu8 = u8_length(l->buf);
+    refresh_line(l);
 }
 
 static int history_add(const char *line)
@@ -486,36 +494,38 @@ static void edit_escape_sequence(state l, char seq[3])
             if ((seq[2] == '~') && (seq[1] == 3)) {
                 edit_delete(l); /* Delete key. */
             }
-        } else {
-            switch (seq[1]) {
+            return;
+        }
+        switch (seq[1]) {
             case 'A':
                 edit_history(l, 1);
-                break;          /* Up */
+                return;          /* Up */
             case 'B':
                 edit_history(l, 0);
-                break;          /* Down */
+                return;          /* Down */
             case 'C':
                 edit_move_right(l);
-                break;          /* Right */
+                return;          /* Right */
             case 'D':
                 edit_move_left(l);
-                break;          /* Left */
+                return;          /* Left */
             case 'H':
                 edit_move_home(l);
-                break;          /* Home */
+                return;          /* Home */
             case 'F':
                 edit_move_end(l);
-                break;          /* End */
-            }
+                return;;          /* End */
         }
-    } else if (seq[0] == 'O') { /* ESC O sequences. */
+        return;
+    }
+    if (seq[0] == 'O') { /* ESC O sequences. */
         switch (seq[1]) {
         case 'H':
             edit_move_home(l);
-            break;              /* Home */
+            return;              /* Home */
         case 'F':
             edit_move_end(l);
-            break;              /* End */
+            return;;              /* End */
         }
     }
 }
@@ -917,17 +927,25 @@ static void handle_ctcp(param p)
     const char *message = p->message + 1;
     if (!strncmp(message, "VERSION", 7)) {
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", p->nickname);
-    } else if (!strncmp(message, "TIME", 7)) {
+        return;
+    }
+    if (!strncmp(message, "TIME", 7)) {
         char buf[26];
         if (!ctime_now(buf)) {
             raw("NOTICE %s :\001TIME %s\001\r\n", p->nickname, buf);
         }
-    } else if (!strncmp(message, "CLIENTINFO", 10)) {
+        return;
+    }
+    if (!strncmp(message, "CLIENTINFO", 10)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", p->nickname);
-    } else if (!strncmp(message, "PING", 4)) {
+        return;
+    }if (!strncmp(message, "PING", 4)) {
         raw("NOTICE %s :\001%s\r\n", p->nickname, message);
-    } else if (!strncmp(message, "DCC", 3)) {
+        return;
+    }
+    if (!strncmp(message, "DCC", 3)) {
         handle_dcc(p);
+        return;
     }
 }
 
@@ -1003,21 +1021,31 @@ static void raw_parser(char *string)
             raw("JOIN #%s\r\n", tok);
         }
         return;
-    } else if (!strncmp(p.command, "QUIT", 4)) {
+    }
+    if (!strncmp(p.command, "QUIT", 4)) {
         param_print_quit(&p);
-    } else if (!strncmp(p.command, "PART", 4)) {
+        printf("\x1b[0m\r\n");
+        return;
+    }if (!strncmp(p.command, "PART", 4)) {
         param_print_part(&p);
-    } else if (!strncmp(p.command, "JOIN", 4)) {
+        printf("\x1b[0m\r\n");
+        return;
+    }if (!strncmp(p.command, "JOIN", 4)) {
         param_print_join(&p);
-    } else if (!strncmp(p.command, "NICK", 4)) {
+        printf("\x1b[0m\r\n");
+        return;
+    }if (!strncmp(p.command, "NICK", 4)) {
         param_print_nick(&p);
-    } else if (!strncmp(p.command, "PRIVMSG", 7)) {
+        printf("\x1b[0m\r\n");
+        return;
+    }if (!strncmp(p.command, "PRIVMSG", 7)) {
         param_print_private(&p);
         message_wrap(&p);
-    } else {
-        param_print_channel(&p);
-        message_wrap(&p);
+        printf("\x1b[0m\r\n");
+        return;
     }
+    param_print_channel(&p);
+    message_wrap(&p);
     printf("\x1b[0m\r\n");
 }
 
@@ -1051,8 +1079,7 @@ static int handle_server_message(void)
                 message_buffer[i + 1] = '\0';
                 raw_parser(message_buffer);
                 message_buffer[i + 1] = saved_char;
-                memmove(&message_buffer, &message_buffer[i + 1],
-                        message_end - i - 1);
+                memmove(&message_buffer, &message_buffer[i + 1], message_end - i - 1);
                 message_end = message_end - i - 1;
                 i = 0;
             }
