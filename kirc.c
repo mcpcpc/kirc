@@ -756,18 +756,33 @@ static void param_print_join(param p)
 static void handle_dcc(param p)
 {
     const char *message = p->message + 5;
-    if (!strncmp(message, "SEND", 4)) {
-        char filename[FNM_MAX];
-        size_t file_size = 0;
-        unsigned ip_addr = 0;
-        unsigned short port = 0;
+    char filename[FNM_MAX];
+    size_t file_size = 0;
+    unsigned ip_addr = 0;
+    unsigned short port = 0;
 
+    int slot = -1;
+    /* check for an open slot */
+    for (int i = 0; i < CON_MAX; i++) {
+        if (dcc_sessions.sock_fds[i].fd < 0) {
+            slot = i;
+            break;
+        }
+    }
+
+    if (slot < 0) {
+        /* TODO: send cancel here */
+        return;
+    }
+
+    if (!strncmp(message, "SEND", 4)) {        
         /* TODO: the file size parameter is optional so this isn't strictly correct.
            furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
            addresses as well as ipv4 ones; however, i have yet to see that in the wild
            and from what i can tell other general purpose irc clients like irssi don't
            try handle that case either.
         */
+        /* TODO: the current value of FNM_MAX is hard coded into these strings */
         if (sscanf(message, "SEND \"%255[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
             if (sscanf(message, "SEND %255s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
                 /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
@@ -776,57 +791,71 @@ static void handle_dcc(param p)
             }
         }
 
-        int slot = -1;
-        /* check for an open slot */
-        for (int i = 0; i < CON_MAX; i++) {
-            if (dcc_sessions.sock_fds[i].fd < 0) {
-                slot = i;
-                break;
-            }
-        }
-
-        if (slot < 0) {
-            return;
-        }
-
         /* TODO: at this point we should make sure that the filename is actually a filename
            and not a file path. furthermore, we should it would be helpful to give the user
            the option to rename to the file.
         */
 
+#if 0
+        /* TODO: resumption of downloads */
+        int flags = O_WRONLY | O_APPEND;
+        int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+        int file_fd = open(filename, flags);
+        int resume = file_fd > 0;
+        if (errno == EACCES) {
+            file_fd = open(filename, flags | O_CREAT, mode);
+        }
+
+        if (file_fd < 0) {
+            perror("open");
+            exit(1);
+        }
+#else
+        int flags = O_WRONLY | O_CREAT;
+
+        int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+        int file_fd = open(filename, flags, mode);
+        int resume = 0;
+
+        if (file_fd < 0) {
+            perror("open");
+            exit(1);
+        }
+#endif
         struct sockaddr_in sockaddr = (struct sockaddr_in){
             .sin_family = AF_INET,
             .sin_addr = (struct in_addr){htonl(ip_addr)},
             .sin_port = htons(port),
         };
 
-        /* TODO: error handling */
         int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (sock_fd < 0) {
+            close(file_fd);
             perror("socket");
             exit(1);
         }
 
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-            perror("connect");
             close(sock_fd);
+            close(file_fd);
+            perror("connect");
             exit(1);
         }
 
-        int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
-        fcntl(sock_fd, F_SETFL, flags);
-
-        /* TODO: resumption of downloads */
-        int file_fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-        if (file_fd < 0) {
-            perror("open");
+        flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+        if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
             close(sock_fd);
+            close(file_fd);
+            perror("fcntl");
             exit(1);
         }
 
         dcc_sessions.sock_fds[slot].fd = sock_fd;
         dcc_sessions.file_fds[slot] = file_fd;
         dcc_sessions.file_size[slot] = file_size;
+        dcc_sessions.file_resume[slot] = resume;
         dcc_sessions.bytes_read[slot] = 0;
     }
 }
@@ -1144,6 +1173,7 @@ int main(int argc, char **argv)
         dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
         dcc_sessions.file_fds[i] = -1;
         dcc_sessions.file_size[i] = 0;
+        dcc_sessions.file_resume[i] = 0;
         dcc_sessions.bytes_read[i] = 0;
     }
     dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};

@@ -15,8 +15,9 @@ install: all
 	chmod 755 $(DESTDIR)$(BINDIR)/kirc
 	chmod 644 $(DESTDIR)$(MANDIR)/man1/kirc.1
 kirc: kirc.o
-	$(CC) $(ALL_LDFLAGS) -o kirc kirc.o $(LDLIBS)
+	$(CC) $(ALL_LDFLAGS) -o $@ $< $(LDLIBS)
 kirc.o: kirc.c kirc.h
+	$(CC) $(ALL_WARNING) -o $@ -c $<
 clean:
 	rm -f kirc *.o
 uninstall:
