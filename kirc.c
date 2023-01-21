@@ -436,7 +436,7 @@ static void edit_history(state l, int dir)
         l->history_index = history_len - 1;
         return;
     }
-    strncpy(l->buf, history[history_len - (1 + l->history_index)],l->buflen);
+    strcpy(l->buf, history[history_len - (1 + l->history_index)]);
     l->buf[l->buflen - 1] = '\0';
     l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
     l->lenu8 = l->posu8 = u8_length(l->buf);
