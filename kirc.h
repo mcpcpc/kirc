@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (C) 2023 Michael Czigler
+ */
+
 #ifndef __KIRC_H
 #define __KIRC_H
 
@@ -8,7 +13,7 @@
 #define CHA_MAX 200
 #define NIC_MAX 26
 #define HIS_MAX 100
-#define FNM_MAX 256
+#define FNM_MAX 255
 #define CON_MAX 10
 #define CBUF_SIZ 1024
 
@@ -30,6 +35,7 @@
 #include <termios.h>
 #include <limits.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -38,8 +44,8 @@ static int conn;                /* connection socket */
 static int verb = 0;            /* verbose output */
 static int sasl = 0;            /* SASL method */
 static int isu8 = 0;            /* UTF-8 flag */
-static char *host = "irc.libera.chat";  /* host address */
-static char *port = "6667";     /* port */
+static const char *host = "irc.libera.chat";  /* host address */
+static const char *port = "6667";     /* port */
 static char *chan = NULL;       /* channel(s) */
 static char *nick = NULL;       /* nickname */
 static char *pass = NULL;       /* password */
@@ -93,11 +99,17 @@ struct abuf {
     int len;
 };
 
+struct dcc_connection {
+    char filename[FNM_MAX + 1];
+    struct sockaddr_in sin;
+    size_t bytes_read;
+    size_t file_size;
+    int file_fd;
+};
+
 static struct {
     struct pollfd sock_fds[CON_MAX + 2];
-    int file_fds[CON_MAX];
-    size_t file_size[CON_MAX];
-    size_t bytes_read[CON_MAX];
+    struct dcc_connection slots[CON_MAX];
 } dcc_sessions = {0};
 
 #endif

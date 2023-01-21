@@ -1,9 +1,12 @@
-#include "kirc.h"
-
 /*
  * SPDX-License-Identifier: MIT
  * Copyright (C) 2023 Michael Czigler
  */
+
+#include "kirc.h"
+
+#define STR_(a) #a
+#define STR(a) STR_(a)
 
 static void free_history(void)
 {
@@ -752,36 +755,121 @@ static void param_print_join(param p)
     }
 }
 
+static void print_error(char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    printf("\r\x1b[31merror: ");
+    vprintf(fmt, ap);
+    printf("\x1b[0m\r\n");
+    va_end(ap);
+}
+
+
 /* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
 {
     const char *message = p->message + 5;
-    if (!strncmp(message, "SEND", 4)) {
-        char filename[FNM_MAX];
-        size_t file_size = 0;
-        unsigned ip_addr = 0;
-        unsigned short port = 0;
+    char filename[FNM_MAX + 1];
+    size_t file_size = 0;
+    unsigned ip_addr = 0;
+    unsigned short port = 0;
 
-        /* TODO: resumption of downloads */
+    int slot = -1;
+    int file_fd = -1;
+
+    if (!strncmp(message, "SEND", 4)) {
+        for (int i = 0; i < CON_MAX; i++) {
+            if (dcc_sessions.slots[i].file_fd < 0) {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot < 0) {
+            raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            return;
+        }
 
         /* TODO: the file size parameter is optional so this isn't strictly correct.
            furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
            addresses as well as ipv4 ones; however, i have yet to see that in the wild
-           from what i can tell other general purpose irc clients like irssi don't try
-           handle that case either.
-        */
-        if (sscanf(message, "SEND \"%255[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-            if (sscanf(message, "SEND %255s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-                /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
-                printf("error reading dcc message: '%s'\r\n", message);
+           and from what i can tell other general purpose irc clients like irssi don't
+           try handle that case either. */
+
+        if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+            if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
+                print_error("unable to parse DCC message '%s'", message);
                 return;
             }
         }
 
-        int slot = -1;
-        /* check for an open slot */
+        /* TODO: at this point we should make sure that the filename is actually a filename
+           and not a file path. furthermore, we should it would be helpful to give the user
+           the option to rename to the file.
+        */
+
+        int flags = O_WRONLY | O_APPEND;
+        int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+        int file_resume = 0;
+        size_t bytes_read = 0;
+        file_fd = open(filename, flags);
+
+        if (file_fd > 0) {
+            struct stat statbuf = {0};
+            if (!fstat(file_fd, &statbuf)) {
+                bytes_read = statbuf.st_size;
+                file_resume = 1;
+                goto check_open;
+            } else {
+                close(file_fd);
+            }
+        }
+
+        if (!file_resume) {
+            file_fd = open(filename, flags | O_CREAT, mode);
+        }
+
+check_open:
+        if (file_fd < 0) {
+            perror("open");
+            exit(1);
+        }
+
+        if (file_size == bytes_read) {
+            raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            return;
+        }
+
+        dcc_sessions.slots[slot] = (struct dcc_connection) {
+            .bytes_read = bytes_read,
+            .file_size = file_size,
+            .file_fd = file_fd,
+        };
+
+        strcpy(dcc_sessions.slots[slot].filename, filename);
+        dcc_sessions.slots[slot].sin  = (struct sockaddr_in){
+            .sin_family = AF_INET,
+            .sin_addr = (struct in_addr){htonl(ip_addr)},
+            .sin_port = htons(port),
+        };
+
+        if (file_resume) {
+            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
+                p->nickname, filename, port, bytes_read);
+            return;
+        }
+    } else if (!strncmp(message, "ACCEPT", 6)) {
+        if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, &port, &file_size) != 3) {
+            if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, &port, &file_size) != 3) {
+                print_error("unable to parse DCC message '%s'", message);
+                return;
+            }
+        }
+
         for (int i = 0; i < CON_MAX; i++) {
-            if (dcc_sessions.sock_fds[i].fd < 0) {
+            if (!strncmp(dcc_sessions.slots[i].filename, filename,FNM_MAX)) {
                 slot = i;
                 break;
             }
@@ -791,45 +879,34 @@ static void handle_dcc(param p)
             return;
         }
 
-        /* TODO: at this point we should make sure that the filename is actually a filename
-           and not a file path. furthermore, we should it would be helpful to give the user
-           the option to rename to the file.
-        */
-
-        struct sockaddr_in sockaddr = (struct sockaddr_in){
-            .sin_family = AF_INET,
-            .sin_addr = (struct in_addr){htonl(ip_addr)},
-            .sin_port = htons(port),
-        };
-
-        /* TODO: error handling */
-        int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (sock_fd < 0) {
-            perror("socket");
-            exit(1);
-        }
-
-        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-            perror("connect");
-            close(sock_fd);
-            exit(1);
-        }
-
-        int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
-        fcntl(sock_fd, F_SETFL, flags);
-
-        int file_fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-        if (file_fd < 0) {
-            perror("open");
-            close(sock_fd);
-            exit(1);
-        }
-
-        dcc_sessions.sock_fds[slot].fd = sock_fd;
-        dcc_sessions.file_fds[slot] = file_fd;
-        dcc_sessions.file_size[slot] = file_size;
-        dcc_sessions.bytes_read[slot] = 0;
+        file_fd = dcc_sessions.slots[slot].file_fd;
+    } else {
+        return;
     }
+
+    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock_fd < 0) {
+        close(file_fd);
+        perror("socket");
+        exit(1);
+    }
+
+    struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
+    if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("connect");
+        exit(1);
+    }
+
+    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("fcntl");
+        exit(1);
+    }
+    dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
 static void handle_ctcp(param p)
@@ -1120,6 +1197,72 @@ static void open_tty()
     }
 }
 
+static void slot_clear(size_t i) {
+    memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
+    dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
+    dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
+}
+
+/* TODO: implicitly assumes that the size reported was the correct size */
+/* TODO: should we just close the file and keep on running if we get
+   an error we can recover from? */
+static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
+    const char *err_str = "";
+    int sock_fd = dcc_sessions.sock_fds[i].fd;
+    int file_fd = dcc_sessions.slots[i].file_fd;
+
+    if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
+        return;
+    }
+
+    int n = read(sock_fd, buf, buf_len);
+    if (n < 0) {
+        err_str = "read";
+        goto handle_err;
+    }
+
+    if (n) {
+        dcc_sessions.slots[i].bytes_read += n;
+        if (write(file_fd, buf, n) < 0) {
+            err_str = "write";
+            goto handle_err;
+        }
+    }
+
+    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
+        size_t file_size = dcc_sessions.slots[i].file_size;
+        size_t bytes_read = dcc_sessions.slots[i].bytes_read;
+        unsigned ack_is_64 = file_size > UINT_MAX;
+        unsigned ack_shift = (1 - ack_is_64) * 32;
+        unsigned long long ack = htonll(bytes_read << ack_shift);
+        if (write(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
+            err_str = "write";
+            goto handle_err;
+        }
+        if (bytes_read == file_size) {
+            shutdown(sock_fd, SHUT_RDWR);
+            close(sock_fd);
+            close(file_fd);
+            slot_clear(i);
+        }
+    }
+
+    refresh_line(l);
+    return;
+handle_err:
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        return;
+    } else if (errno == ECONNRESET) {
+        shutdown(sock_fd, SHUT_RDWR);
+        close(sock_fd);
+        close(file_fd);
+        slot_clear(i);
+    } else {
+        perror(err_str);
+        exit(1);
+    }
+}
+
 int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
@@ -1207,10 +1350,7 @@ int main(int argc, char **argv)
         }
     }
     for (int i = 0; i < CON_MAX; i++) {
-        dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
-        dcc_sessions.file_fds[i] = -1;
-        dcc_sessions.file_size[i] = 0;
-        dcc_sessions.bytes_read[i] = 0;
+        slot_clear(i);
     }
     dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};
     dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
@@ -1253,31 +1393,11 @@ int main(int argc, char **argv)
                 refresh_line(&l);
             }
 
-            /* TODO: implicitly assumes that the size reported was the correct size */
             for (int i = 0; i < CON_MAX; i++) {
-                if (dcc_sessions.sock_fds[i].revents & POLLIN) {
-                    int n = read(dcc_sessions.sock_fds[i].fd, buf, BUFSIZ);
-                    if (n > 0) {
-                        dcc_sessions.bytes_read[i] += n;
-                        write(dcc_sessions.file_fds[i], buf, n);
-                    }
-
-                    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
-                        unsigned ack_is_64 = dcc_sessions.file_size[i] > UINT_MAX;
-                        unsigned ack_shift = (1 - ack_is_64) * 32;
-                        unsigned long long ack = htonll(dcc_sessions.bytes_read[i] << ack_shift);
-                        write(dcc_sessions.sock_fds[i].fd, &ack, ack_is_64 ? 8 : 4);
-                        if (dcc_sessions.bytes_read[i] == dcc_sessions.file_size[i]) {
-                            shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
-                            close(dcc_sessions.sock_fds[i].fd);
-                            close(dcc_sessions.file_fds[i]);
-                            dcc_sessions.sock_fds[i].fd = -1;
-                        }
-                    }
-                }
+                slot_process(&l, buf, sizeof(buf), i);
             }
         } else {
-            if (errno == EAGAIN) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             }
             perror("poll");
