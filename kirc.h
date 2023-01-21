@@ -14,7 +14,7 @@
 #define NIC_MAX 26
 #define HIS_MAX 100
 #define FNM_MAX 255
-#define CON_MAX 6
+#define CON_MAX 10
 #define CBUF_SIZ 1024
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
