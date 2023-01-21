@@ -755,6 +755,17 @@ static void param_print_join(param p)
     }
 }
 
+static void print_error(char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    printf("\r\x1b[31merror: ");
+    vprintf(fmt, ap);
+    printf("\x1b[0m\r\n");
+    va_end(ap);
+}
+
+
 /* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
 {
@@ -788,8 +799,7 @@ static void handle_dcc(param p)
 
         if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
             if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-                /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
-                printf("error reading dcc message: '%s'\r\n", message);
+                print_error("unable to parse DCC message '%s'", message);
                 return;
             }
         }
@@ -827,6 +837,11 @@ check_open:
             exit(1);
         }
 
+        if (file_size == bytes_read) {
+            raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            return;
+        }
+
         dcc_sessions.slots[slot] = (struct dcc_connection) {
             .bytes_read = bytes_read,
             .file_size = file_size,
@@ -849,8 +864,7 @@ check_open:
     } else if (!strncmp(message, "ACCEPT", 6)) {
         if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, &port, &file_size) != 3) {
             if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, &port, &file_size) != 3) {
-                /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
-                printf("error reading dcc message: '%s'\r\n", message);
+                print_error("unable to parse DCC message '%s'", message);
                 return;
             }
         }
@@ -894,8 +908,6 @@ check_open:
         exit(1);
     }
     dcc_sessions.sock_fds[slot].fd = sock_fd;
-
-
 }
 
 static void handle_ctcp(param p)
@@ -1131,7 +1143,7 @@ static void slot_clear(size_t i) {
 /* TODO: implicitly assumes that the size reported was the correct size */
 /* TODO: should we just close the file and keep on running if we get
    an error we can recover from? */
-static void slot_process(char *buf, size_t buf_len, size_t i) {
+static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
     const char *err_str = "";
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
@@ -1172,6 +1184,7 @@ static void slot_process(char *buf, size_t buf_len, size_t i) {
         }
     }
 
+    refresh_line(l);
     return;
 handle_err:
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -1317,7 +1330,7 @@ int main(int argc, char **argv)
             }
 
             for (int i = 0; i < CON_MAX; i++) {
-                slot_process(buf, sizeof(buf), i);
+                slot_process(&l, buf, sizeof(buf), i);
             }
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
