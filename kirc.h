@@ -100,13 +100,11 @@ struct abuf {
 };
 
 struct dcc_connection {
-    char file[FNM_MAX + 1];
-    char *chan;
-    char *bot;
+    char filename[FNM_MAX + 1];
+    struct sockaddr_in sin;
     size_t bytes_read;
     size_t file_size;
     int file_fd;
-    int resume;
 };
 
 static struct {

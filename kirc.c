@@ -765,21 +765,21 @@ static void handle_dcc(param p)
     unsigned short port = 0;
 
     int slot = -1;
-    /* check for an open slot */
-    for (int i = 0; i < CON_MAX; i++) {
-        if (dcc_sessions.sock_fds[i].fd < 0) {
-            slot = i;
-            break;
+
+    if (!strncmp(message, "SEND", 4)) {
+        /* check for an open slot */
+        for (int i = 0; i < CON_MAX; i++) {
+            if (dcc_sessions.sock_fds[i].fd < 0) {
+                slot = i;
+                break;
+            }
         }
-    }
 
-    if (slot < 0) {
-        /* TODO: should we send cancel here or should we just let the
-           bots keep trying to send a request until it times out? */
-        return;
-    }
+        if (slot < 0) {
+            raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            return;
+        }
 
-    if (!strncmp(message, "SEND", 4)) {        
         /* TODO: the file size parameter is optional so this isn't strictly correct.
            furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
            addresses as well as ipv4 ones; however, i have yet to see that in the wild
@@ -794,12 +794,17 @@ static void handle_dcc(param p)
             }
         }
 
+        struct sockaddr_in sockaddr = (struct sockaddr_in){
+            .sin_family = AF_INET,
+            .sin_addr = (struct in_addr){htonl(ip_addr)},
+            .sin_port = htons(port),
+        };
+
         /* TODO: at this point we should make sure that the filename is actually a filename
            and not a file path. furthermore, we should it would be helpful to give the user
            the option to rename to the file.
         */
 
-        /* TODO: resumption of downloads */
         int flags = O_WRONLY | O_APPEND;
         int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
@@ -813,7 +818,7 @@ static void handle_dcc(param p)
             if (!fstat(file_fd, &statbuf)) {
                 bytes_read = statbuf.st_size;
                 file_resume = 1;
-                goto init_slot;
+                goto check_open;
             } else {
                 close(file_fd);
             }
@@ -823,66 +828,92 @@ static void handle_dcc(param p)
             file_fd = open(filename, flags | O_CREAT, mode);
         }
 
+check_open:
         if (file_fd < 0) {
             perror("open");
             exit(1);
         }
 
-        struct sockaddr_in sockaddr = (struct sockaddr_in){
-            .sin_family = AF_INET,
-            .sin_addr = (struct in_addr){htonl(ip_addr)},
-            .sin_port = htons(port),
-        };
+        if (file_resume) {
+            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
+                p->nickname, filename, port, bytes_read
+            );
+        } else {
+            sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+            if (sock_fd < 0) {
+                close(file_fd);
+                perror("socket");
+                exit(1);
+            }
 
-        sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+            if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+                close(sock_fd);
+                close(file_fd);
+                perror("connect");
+                exit(1);
+            }
+
+            flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+            if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+                close(sock_fd);
+                close(file_fd);
+                perror("fcntl");
+                exit(1);
+            }
+        }
+
+        dcc_sessions.sock_fds[slot].fd = sock_fd;
+        dcc_sessions.slots[slot] = (struct dcc_connection) {
+            .sin = sockaddr,
+            .bytes_read = bytes_read,
+            .file_size = file_size,
+            .file_fd = file_fd,
+        };
+        strncpy(dcc_sessions.slots[slot].filename, filename, FNM_MAX - 1);
+    } else if (!strncmp(message, "ACCEPT", 6)) {
+        if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, &port, &file_size) != 3) {
+            if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, &port, &file_size) != 3) {
+                /* TODO: i'm not quite sure how we want to handle showing error messages to the user */
+                printf("error reading dcc message: '%s'\r\n", message);
+                return;
+            }
+        }
+
+        for (int i = 0; i < CON_MAX; i++) {
+            if (!strncmp(dcc_sessions.slots[i].filename, filename,FNM_MAX)) {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot < 0) {
+            return;
+        }
+
+        int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (sock_fd < 0) {
-            close(file_fd);
+            close(dcc_sessions.slots[slot].file_fd);
             perror("socket");
             exit(1);
         }
 
+        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
             close(sock_fd);
-            close(file_fd);
+            close(dcc_sessions.slots[slot].file_fd);
             perror("connect");
             exit(1);
         }
 
-        flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+        int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
         if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
             close(sock_fd);
-            close(file_fd);
+            close(dcc_sessions.slots[slot].file_fd);
             perror("fcntl");
             exit(1);
         }
 
-init_slot:
         dcc_sessions.sock_fds[slot].fd = sock_fd;
-        dcc_sessions.slots[slot] = (struct dcc_connection) {
-            .bytes_read = bytes_read,
-            .file_size = file_size,
-            .file_fd = file_fd,
-            .resume = file_resume,
-        };
-
-        strncpy(dcc_sessions.slots[slot].file, filename, FNM_MAX - 1);
-        size_t len = strlen(p->channel);
-        char *str = calloc(len, sizeof(char));
-        if (!str) {
-            /* TODO: report OOM */
-            exit(1);
-        }
-        dcc_sessions.slots[slot].chan = str;
-        strncpy(str, p->channel, len);
-
-        len = strlen(p->nickname);
-        str = calloc(len, sizeof(char));
-        if (!str) {
-            /* TODO: report OOM */
-            exit(1);
-        }
-        dcc_sessions.slots[slot].bot = str;
-        strncpy(str, p->nickname, len);
     }
 }
 
@@ -1111,12 +1142,7 @@ static void open_tty()
 }
 
 static void slot_clear(size_t i) {
-    if (dcc_sessions.slots[i].chan) {
-        free(dcc_sessions.slots[i].chan);
-    }
-    if (dcc_sessions.slots[i].bot) {
-        free(dcc_sessions.slots[i].bot);
-    }
+    memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
     dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
     dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
 }
@@ -1126,25 +1152,25 @@ static void slot_clear(size_t i) {
    an error we can recover from? */
 static void slot_process(char *buf, size_t buf_len, size_t i) {
     const char *err_str = "";
+    int sock_fd = dcc_sessions.sock_fds[i].fd;
+    int file_fd = dcc_sessions.slots[i].file_fd;
+
+    /* write(int fd, const void *buf, size_t n); */
+    /* printf("PRIVMSG %s :DCC RESUME %s %d %zu\r\n", */
+    /*        dcc_sessions.slots[i].bot, */
+    /*        dcc_sessions.slots[i].file, */
+    /*        0, */
+    /*        dcc_sessions.slots[i].bytes_read */
+    /* ); */
+    /* PRIVMSG mybotDCC :^ADCC RESUME <file> <port> <pos>^A */
+    /* PRIVMSG <nick> :DCC ACCEPT <file> <port> <pos> */
+    /* dcc_sessions.slots[i].resume = 0; */
+
     if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
         return;
     }
 
-    if (dcc_sessions.slots[i].resume) {
-        /* write(int fd, const void *buf, size_t n); */
-        printf("PRIVMSG %s :DCC RESUME %s %d %zu\r\n",
-               dcc_sessions.slots[i].bot,
-               dcc_sessions.slots[i].file,
-               0,
-               dcc_sessions.slots[i].bytes_read
-        );
-        /* PRIVMSG mybotDCC :^ADCC RESUME <file> <port> <pos>^A */
-        /* PRIVMSG <nick> :DCC ACCEPT <file> <port> <pos> */
-        /* dcc_sessions.slots[i].resume = 0; */
-        return;
-    }
-
-    int n = read(dcc_sessions.sock_fds[i].fd, buf, buf_len);
+    int n = read(sock_fd, buf, buf_len);
     if (n < 0) {
         err_str = "read";
         goto handle_err;
@@ -1152,14 +1178,13 @@ static void slot_process(char *buf, size_t buf_len, size_t i) {
 
     if (n) {
         dcc_sessions.slots[i].bytes_read += n;
-        if (write(dcc_sessions.slots[i].file_fd, buf, n) < 0) {
+        if (write(file_fd, buf, n) < 0) {
             err_str = "write";
             goto handle_err;
         }
     }
 
     if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
-        int sock_fd = dcc_sessions.sock_fds[i].fd;
         size_t file_size = dcc_sessions.slots[i].file_size;
         size_t bytes_read = dcc_sessions.slots[i].bytes_read;
         unsigned ack_is_64 = file_size > UINT_MAX;
@@ -1170,9 +1195,9 @@ static void slot_process(char *buf, size_t buf_len, size_t i) {
             goto handle_err;
         }
         if (bytes_read == file_size) {
-            shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
-            close(dcc_sessions.sock_fds[i].fd);
-            close(dcc_sessions.slots[i].file_fd);
+            shutdown(sock_fd, SHUT_RDWR);
+            close(sock_fd);
+            close(file_fd);
             slot_clear(i);
         }
     }
@@ -1182,9 +1207,9 @@ handle_err:
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
         return;
     } else if (errno == ECONNRESET) {
-        shutdown(dcc_sessions.sock_fds[i].fd, SHUT_RDWR);
-        close(dcc_sessions.sock_fds[i].fd);
-        close(dcc_sessions.slots[i].file_fd);
+        shutdown(sock_fd, SHUT_RDWR);
+        close(sock_fd);
+        close(file_fd);
         slot_clear(i);
     } else {
         perror(err_str);
