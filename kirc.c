@@ -933,15 +933,6 @@ static void handle_user_input(state l)
 	}
 	if(!strncmp(l->buf + 1, "PART", 4)||!strncmp(l->buf + 1, "part", 4)){
 	    tok = strchr(l->buf, '#');
-	    if(strlen(l->buf) == 5){
-        	raw("part #%s\r\n", chan);
-		printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-        	printf("\x1b[35mLeft #%s!\r\n", chan);
-            	printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-            	chan = NULL;
-            	strcpy(l->prompt, "");
-		return;
-	    }
 	    if(tok){
                 raw("part %s\r\n", tok);
                 printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
