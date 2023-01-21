@@ -848,8 +848,7 @@ check_open:
             .file_fd = file_fd,
         };
 
-        strncpy(dcc_sessions.slots[slot].filename, filename, FNM_MAX - 1);
-
+        strcpy(dcc_sessions.slots[slot].filename, filename);
         dcc_sessions.slots[slot].sin  = (struct sockaddr_in){
             .sin_family = AF_INET,
             .sin_addr = (struct in_addr){htonl(ip_addr)},
