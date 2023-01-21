@@ -1075,101 +1075,104 @@ static void handle_user_input(state l)
     }
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
-    case '/':			/* send system command */
-	if(!strncmp(l->buf + 1, "JOIN", 4)||!strncmp(l->buf + 1, "join", 4)){
-	    if(!strchr(l->buf, '#')){
-		printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-		printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
-		return;
-	    }
-	    chan = strchr(l->buf, '#');
-	    chan ++;
-	    strcpy(l->prompt, chan);
-	    raw("join #%s\r\n", chan);
-	    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-	    printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
-	    return;
-	}
-	if(!strncmp(l->buf + 1, "PART", 4)||!strncmp(l->buf + 1, "part", 4)){
-	    tok = strchr(l->buf, '#');
-	    if(tok){
+    case '/':           /* send system command */
+        if (!strncmp(l->buf + 1, "JOIN", 4) || !strncmp(l->buf + 1, "join", 4)) {
+            if (!strchr(l->buf, '#')){
+                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+                printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+                return;
+            }
+            chan = strchr(l->buf, '#');
+            chan++;
+            strcpy(l->prompt, chan);
+            raw("join #%s\r\n", chan);
+            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+            printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
+            return;
+        }
+        if (!strncmp(l->buf + 1, "PART", 4) || !strncmp(l->buf + 1, "part", 4)) {
+            tok = strchr(l->buf, '#');
+            if (tok){
                 raw("part %s\r\n", tok);
                 printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
                 printf("\x1b[35mLeft %s!\r\n", tok);
                 printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
                 chan = NULL;
                 strcpy(l->prompt, "");
-	        return;
-	    }
-	    int ok = 1;
-	    tok = l->buf + 5;
-	    while(*tok){
-	        if(*tok!=' '){
-		    ok = 0;
-		    break;
-	        }
-	        tok ++;
-	    }
-	    if(ok){
-	        chan = l->prompt;
+                return;
+            }
+            int ok = 1;
+            tok = l->buf + 5;
+            while (*tok){
+                if (*tok != ' '){
+                    ok = 0;
+                    break;
+                }
+                tok++;
+            }
+            if (ok) {
+                chan = l->prompt;
                 raw("part #%s\r\n", chan);
                 printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
                 printf("\x1b[35mLeft #%s!\r\n", chan);
                 printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
                 chan = NULL;
                 strcpy(l->prompt, "");
-	        return;
-	    }
-	    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-	    printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
-	    return;
-	}
-    	if(l->buf[1]=='/'){
-	    raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
-	    printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
-	    return;
-	}
-	if(!strncmp(l->buf+1, "MSG", 3)||!strncmp(l->buf+1, "msg", 3)){
-	    strtok_r(l->buf + 5, " ", &tok);
+                return;
+            }
+            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+            printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+            return;
+        }
+        if (l->buf[1] == '/') {
+            raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 3);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
+            return;
+        }
+        if (!strncmp(l->buf+1, "MSG", 3) || !strncmp(l->buf+1, "msg", 3)) {
+            strtok_r(l->buf + 5, " ", &tok);
             int offset = 0;
-            while(*(l->buf + 5 + offset) == ' ')
-		offset ++;
+            while (*(l->buf + 5 + offset) == ' ') {
+                offset ++;
+            }
             raw("privmsg %s :%s\r\n", l->buf + 5 + offset, tok);
-	    if(strncmp(l->buf + 5 + offset, "NickServ", 8))
-		printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
-	    return;
-	}
-    	if (l->buf[1] == '#') {
+            if (strncmp(l->buf + 5 + offset, "NickServ", 8)) {
+                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
+            }
+            return;
+        }
+        if (l->buf[1] == '#') {
             strcpy(cdef, l->buf + 2);
-	    chan = cdef;
-	    strcpy(l->prompt, chan);
+            chan = cdef;
+            strcpy(l->prompt, chan);
             printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
-	    return;
-    	}
-    	raw("%s\r\n", l->buf + 1);
-    	printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-	return;
-    case '@':			/* send private message to target channel or user */
+            return;
+        }
+        raw("%s\r\n", l->buf + 1);
+        printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        return;
+    case '@':           /* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
         if (l->buf[1] == '@') {
             if (l->buf[2] == '\0') {
                 raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, tok);
                 printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", cdef, tok);
-		return;
+                return;
             }
             raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
             printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2,tok);
-	    return;
+            return;
         }
         raw("privmsg %s :%s\r\n", l->buf + 1, tok);
         printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
-	return;
-    default:			/*  send private message to default channel */
+        return;
+    default:           /*  send private message to default channel */
         raw("privmsg #%s :%s\r\n", cdef, l->buf);
         printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
-	return;
+        return;
     }
 }
+
 static unsigned long long htonll(unsigned long long x) {
     union { int i; char c; } u = { 1 };
     return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
@@ -1305,7 +1308,7 @@ int main(int argc, char **argv)
             break;
         case 'c':
             chan = optarg;
-	    strcpy(cdef, chan);
+            strcpy(cdef, chan);
             break;
         case 'x':
             cmds = 1;
