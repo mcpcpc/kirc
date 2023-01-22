@@ -527,8 +527,7 @@ static void edit_escape_sequence(state l, char seq[3])
 static int edit(state l)
 {
     char c;
-    ssize_t nread = read(ttyinfd, &c, 1);
-    if (nread <= 0) {
+    if (read(ttyinfd, &c, 1) <= 0) {
         return 1;
     }
     char seq[3];
