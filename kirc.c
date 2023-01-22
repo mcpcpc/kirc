@@ -590,7 +590,9 @@ static int edit(state l)
         aux[0] = c;
         int size = u8_character_size(c);
         for (int i = 1; i < size; i++) {
-            nread = read(ttyinfd, aux + i, 1);
+            if(read(ttyinfd, aux + i, 1) == -1){
+		break;
+            }
             if ((aux[i] & 0xC0) != 0x80) {
                 break;
             }
