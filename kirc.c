@@ -401,7 +401,7 @@ static void edit_delete_line_to_end(state l)
 
 static void edit_swap_character_w_previous(state l)
 {
-    if (l->posu8 <= 0 || l->posu8 >= l->lenu8) {
+    if (l->posu8 == 0 || l->posu8 >= l->lenu8) {
         return;
     }
     char aux[8];
@@ -715,9 +715,9 @@ static void message_wrap(param p)
         return;
     }
     char *tok;
-    size_t wordwidth, spacewidth = 1;
     size_t spaceleft = p->maxcols - (p->nicklen + p->offset);
     for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
+        size_t wordwidth, spacewidth = 1;
         wordwidth = strnlen(tok, MSG_MAX);
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\r\n%*.s%s ", (int)p->nicklen + 1, " ", tok);
