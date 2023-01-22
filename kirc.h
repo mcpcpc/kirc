@@ -16,6 +16,8 @@
 #define FNM_MAX 255
 #define CON_MAX 10
 #define CBUF_SIZ 1024
+#define STR_(a) #a
+#define STR(a) STR_(a)
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/types.h>

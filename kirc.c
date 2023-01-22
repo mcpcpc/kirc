@@ -5,9 +5,6 @@
 
 #include "kirc.h"
 
-#define STR_(a) #a
-#define STR(a) STR_(a)
-
 static void free_history(void)
 {
     if (history) {
