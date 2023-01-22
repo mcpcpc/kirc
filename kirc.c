@@ -5,9 +5,6 @@
 
 #include "kirc.h"
 
-#define STR_(a) #a
-#define STR(a) STR_(a)
-
 static void free_history(void)
 {
     if (history) {
@@ -436,7 +433,7 @@ static void edit_history(state l, int dir)
         l->history_index = history_len - 1;
         return;
     }
-    strncpy(l->buf, history[history_len - (1 + l->history_index)],l->buflen);
+    strcpy(l->buf, history[history_len - (1 + l->history_index)]);
     l->buf[l->buflen - 1] = '\0';
     l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
     l->lenu8 = l->posu8 = u8_length(l->buf);
@@ -514,7 +511,7 @@ static void edit_escape_sequence(state l, char seq[3])
                 return;          /* Home */
             case 'F':
                 edit_move_end(l);
-                return;;          /* End */
+                return;          /* End */
         }
         return;
     }
@@ -525,7 +522,7 @@ static void edit_escape_sequence(state l, char seq[3])
             return;              /* Home */
         case 'F':
             edit_move_end(l);
-            return;;              /* End */
+            return;              /* End */
         }
     }
 }
