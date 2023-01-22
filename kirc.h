@@ -63,7 +63,6 @@ static int ttyinfd = STDIN_FILENO;
 static struct termios orig;
 static int rawmode = 0;
 static int atexit_registered = 0;
-static int history_max_len = HIS_MAX;
 static int history_len = 0;
 static char **history = NULL;
 
