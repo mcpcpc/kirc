@@ -514,7 +514,7 @@ static void edit_escape_sequence(state l, char seq[3])
                 return;          /* Home */
             case 'F':
                 edit_move_end(l);
-                return;;          /* End */
+                return;          /* End */
         }
         return;
     }
@@ -525,7 +525,7 @@ static void edit_escape_sequence(state l, char seq[3])
             return;              /* Home */
         case 'F':
             edit_move_end(l);
-            return;;              /* End */
+            return;              /* End */
         }
     }
 }
