@@ -527,7 +527,7 @@ static void edit_escape_sequence(state l, char seq[3])
 static int edit(state l)
 {
     char c;
-    if (read(ttyinfd, &c, 1) != 1) {
+    if (read(ttyinfd, &c, 1) <= 0) {
         return 1;
     }
     char seq[3];
@@ -589,11 +589,9 @@ static int edit(state l)
         aux[0] = c;
         int size = u8_character_size(c);
         for (int i = 1; i < size; i++) {
-            int n = read(ttyinfd, aux + i, 1);
-            if(n == -1){
+            if(read(ttyinfd, aux + i, 1) == -1){
 		break;
             }
-            aux[i + n] = '\0';
             if ((aux[i] & 0xC0) != 0x80) {
                 break;
             }
