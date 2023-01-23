@@ -98,7 +98,7 @@ static int get_columns(int ifd, int ofd)
         if (cols > start) {
             char seq[32];
             snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
-            if (write(ofd, seq, strnlen(seq, MSG_MAX)) == -1) {
+            if (write(ofd, seq, strnlen(seq, 32)) == -1) {
             }
         }
         return cols;
@@ -248,18 +248,18 @@ static void refresh_line(state l)
         txtlenb += u8_next(buf + txtlenb, 0);
     ab_initialize(&ab);
     snprintf(seq, sizeof(seq), "\r");
-    ab_append(&ab, seq, strnlen(seq, MSG_MAX));
+    ab_append(&ab, seq, strnlen(seq, 64));
     ab_append(&ab, l->prompt, l->plenb);
     ab_append(&ab, "> ", 2);
     ab_append(&ab, buf, txtlenb);
     snprintf(seq, sizeof(seq), "\x1b[0K");
-    ab_append(&ab, seq, strnlen(seq, MSG_MAX));
+    ab_append(&ab, seq, strnlen(seq, 64));
     if (posu8 + plenu8) {
         snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(posu8 + plenu8));
     } else {
         snprintf(seq, sizeof(seq), "\r");
     }
-    ab_append(&ab, seq, strnlen(seq, MSG_MAX));
+    ab_append(&ab, seq, strnlen(seq, 64));
     if (write(fd, ab.b, ab.len) == -1) {
     }
     ab_free(&ab);
@@ -297,7 +297,7 @@ static int edit_insert(state l, char *c)
 
 static void edit_move_left(state l)
 {
-    if (l->posb <= 0){
+    if (l->posb == 0){
         return;
     }
     l->posb = u8_previous(l->buf, l->posb);
@@ -338,7 +338,7 @@ static void edit_move_end(state l)
 
 static void edit_delete(state l)
 {
-    if ((l->lenu8 <= 0) || (l->posu8 >= l->lenu8)) {
+    if ((l->lenu8 == 0) || (l->posu8 >= l->lenu8)) {
         return;
     }
     size_t this_size = u8_next(l->buf, l->posb) - l->posb;
@@ -350,7 +350,7 @@ static void edit_delete(state l)
 
 static void edit_backspace(state l)
 {
-    if ((l->posu8 <= 0) || (l->lenu8 <= 0)) {
+    if ((l->posu8 == 0) || (l->lenu8 == 0)) {
         return;
     }
     size_t prev_size = l->posb - u8_previous(l->buf, l->posb);
@@ -401,7 +401,7 @@ static void edit_delete_line_to_end(state l)
 
 static void edit_swap_character_w_previous(state l)
 {
-    if (l->posu8 <= 0 || l->posu8 >= l->lenu8) {
+    if (l->posu8 == 0 || l->posu8 >= l->lenu8) {
         return;
     }
     char aux[8];
@@ -443,15 +443,12 @@ static void edit_history(state l, int dir)
 static int history_add(const char *line)
 {
     char *linecopy;
-    if (history_max_len == 0) {
-        return 0;
-    }
     if (history == NULL) {
-        history = malloc(sizeof(char *) * history_max_len);
+        history = malloc(sizeof(char *) * HIS_MAX);
         if (history == NULL) {
             return 0;
         }
-        memset(history, 0, (sizeof(char *) * history_max_len));
+        memset(history, 0, (sizeof(char *) * HIS_MAX));
     }
     if (history_len && !strcmp(history[history_len - 1], line)) {
         return 0;
@@ -460,9 +457,9 @@ static int history_add(const char *line)
     if (!linecopy) {
         return 0;
     }
-    if (history_len == history_max_len) {
+    if (history_len == HIS_MAX) {
         free(history[0]);
-        memmove(history, history + 1, sizeof(char *) * (history_max_len - 1));
+        memmove(history, history + 1, sizeof(char *) * (HIS_MAX - 1));
         history_len--;
     }
     history[history_len] = linecopy;
@@ -529,13 +526,12 @@ static void edit_escape_sequence(state l, char seq[3])
 
 static int edit(state l)
 {
-    char c, seq[3];
-    int ret = 0;
-    ssize_t nread = read(ttyinfd, &c, 1);
-    if (nread <= 0) {
-        ret = 1;
-    } else {
-        switch (c) {
+    char c;
+    if (read(ttyinfd, &c, 1) <= 0) {
+        return 1;
+    }
+    char seq[3];
+    switch (c) {
         case 13:
             edit_enter();
             return 1;           /* enter */
@@ -545,70 +541,69 @@ static int edit(state l)
         case 127:              /* backspace */
         case 8:
             edit_backspace(l);
-            break;              /* ctrl-h */
+            return 0;              /* ctrl-h */
         case 2:
             edit_move_left(l);
-            break;              /* ctrl-b */
+            return 0;              /* ctrl-b */
         case 6:
             edit_move_right(l);
-            break;              /* ctrl-f */
+            return 0;              /* ctrl-f */
         case 1:
             edit_move_home(l);
-            break;              /* Ctrl+a */
+            return 0;              /* Ctrl+a */
         case 5:
             edit_move_end(l);
-            break;              /* ctrl+e */
+            return 0;              /* ctrl+e */
         case 23:
             edit_delete_previous_word(l);
-            break;              /* ctrl+w */
+            return 0;              /* ctrl+w */
         case 21:
             edit_delete_whole_line(l);
-            break;              /* Ctrl+u */
+            return 0;              /* Ctrl+u */
         case 11:
             edit_delete_line_to_end(l);
-            break;              /* Ctrl+k */
+            return 0;              /* Ctrl+k */
         case 14:
             edit_history(l, 0);
-            break;              /* Ctrl+n */
+            return 0;              /* Ctrl+n */
         case 16:
             edit_history(l, 1);
-            break;              /* Ctrl+p */
+            return 0;              /* Ctrl+p */
         case 20:
             edit_swap_character_w_previous(l);
-            break;              /* ctrl-t */
+            return 0;              /* ctrl-t */
         case 27:
             edit_escape_sequence(l, seq);
-            break;              /* escape sequence */
+            return 0;              /* escape sequence */
         case 4:                /* ctrl-d */
-            if (l->lenu8 > 0) {
-                edit_delete(l);
-            } else {
+            if (l->lenu8 == 0) {
                 history_len--;
                 free(history[history_len]);
-                ret = -1;
+                return -1;
             }
-            break;
-        default:
-            if (u8_character_start(c)) {
-                char aux[8];
-                aux[0] = c;
-                int size = u8_character_size(c);
-                for (int i = 1; i < size; i++) {
-                    nread = read(ttyinfd, aux + i, 1);
-                    if ((aux[i] & 0xC0) != 0x80) {
-                        break;
-                    }
-                }
-                aux[size] = '\0';
-                if (edit_insert(l, aux)) {
-                    ret = -1;
-                }
+            edit_delete(l);
+            return 0;
+    }
+    if (u8_character_start(c)) {
+        char aux[8];
+        aux[0] = c;
+        int size = u8_character_size(c);
+        for (int i = 1; i < size; i++) {
+            if(read(ttyinfd, aux + i, 1) == -1){
+		break;
             }
-            break;
+            if ((aux[i] & 0xC0) != 0x80) {
+                break;
+            }
+        }
+        aux[size] = '\0';
+        if (edit_insert(l, aux)) {
+            return -1;
         }
     }
-    return ret;
+    return 0;
 }
+
 
 static void state_reset(state l)
 {
@@ -721,9 +716,9 @@ static void message_wrap(param p)
         return;
     }
     char *tok;
-    size_t wordwidth, spacewidth = 1;
     size_t spaceleft = p->maxcols - (p->nicklen + p->offset);
     for (tok = strtok(p->message, " "); tok != NULL; tok = strtok(NULL, " ")) {
+        size_t wordwidth, spacewidth = 1;
         wordwidth = strnlen(tok, MSG_MAX);
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\r\n%*.s%s ", (int)p->nicklen + 1, " ", tok);
@@ -999,7 +994,6 @@ static void raw_parser(char *string)
     if (olog) {
         log_append(string, olog);
     }
-    char *tok;
     param_t p = {
         .prefix = strtok(string, " ") + 1,
         .suffix = strtok(NULL, ":"),
@@ -1013,6 +1007,7 @@ static void raw_parser(char *string)
         .offset = 0
     };
     if (!strncmp(p.command, "001", 3) && chan != NULL) {
+        char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(cdef, tok);
             raw("JOIN #%s\r\n", tok);
@@ -1198,7 +1193,7 @@ static void handle_user_input(state l)
 }
 
 static unsigned long long htonll(unsigned long long x) {
-    union { int i; char c; } u = { 1 };
+    union { char c; } u = { 1 };
     return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
 }
 
@@ -1381,7 +1376,7 @@ int main(int argc, char **argv)
     }
     dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};
     dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
-    char usrin[MSG_MAX];
+    char usrin[MSG_MAX] = "";
     state_t l = {
         .buf = usrin,
         .buflen = MSG_MAX,
