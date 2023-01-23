@@ -1231,12 +1231,12 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
     }
 
     int n = read(sock_fd, buf, buf_len);
-    if (n <= 0) {
+    if (n < 0) {
         err_str = "read";
         goto handle_err;
     }
 
-    if (n > 0) {
+    if (n >= 0) {
         dcc_sessions.slots[i].bytes_read += n;
         if (write(file_fd, buf, n) < 0) {
             err_str = "write";
