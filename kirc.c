@@ -841,6 +841,7 @@ check_open:
 
         if (file_size == bytes_read) {
             raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            close(file_fd);
             return;
         }
 
@@ -859,7 +860,7 @@ check_open:
 
         if (file_resume) {
             raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
-                p->nickname, filename, port, bytes_read);
+            p->nickname, filename, port, bytes_read);
             return;
         }
     } else if (!strncmp(message, "ACCEPT", 6)) {
@@ -1211,14 +1212,6 @@ static void version(void)
     exit(0);
 }
 
-static void open_tty()
-{
-    if ((ttyinfd = open("/dev/tty", 0)) == -1) {
-        perror("failed to open /dev/tty");
-        exit(1);
-    }
-}
-
 static void slot_clear(size_t i) {
     memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
     dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
@@ -1238,12 +1231,12 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
     }
 
     int n = read(sock_fd, buf, buf_len);
-    if (n < 0) {
+    if (n == -1) {
         err_str = "read";
         goto handle_err;
     }
-
-    if (n) {
+    
+    if (n >= 0){
         dcc_sessions.slots[i].bytes_read += n;
         if (write(file_fd, buf, n) < 0) {
             err_str = "write";
@@ -1288,7 +1281,6 @@ handle_err:
 int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
-    open_tty();
     int cval;
     while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
         switch (cval) {
