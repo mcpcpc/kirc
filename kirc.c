@@ -1194,8 +1194,7 @@ static void handle_user_input(state l)
 }
 
 static unsigned long long htonll(unsigned long long x) {
-    union { char c; } u = { 1 };
-    return u.c ? ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32) : x;
+    return ((unsigned long long)htonl(x & 0xFFFFFFFF) << 32) | htonl(x >> 32);
 }
 
 static void usage(void)
