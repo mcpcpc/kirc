@@ -59,6 +59,8 @@ static char *inic = NULL;       /* additional server command */
 static int cmds = 0;            /* indicates additional server commands */
 static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 
+#define htonll(x) ((((uint64_t)htonl(x)) << 32) + htonl((x) >> 32))
+
 static int ttyinfd = STDIN_FILENO;
 static struct termios orig;
 static int rawmode = 0;
