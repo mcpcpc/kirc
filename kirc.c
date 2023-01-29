@@ -7,13 +7,14 @@
 
 static void free_history(void)
 {
-    if (history) {
-        int j;
-        for (j = 0; j < history_len; j++) {
-            free(history[j]);
-        }
-        free(history);
+    if (!history) {
+        return;
     }
+    int j;
+    for (j = 0; j < history_len; j++) {
+        free(history[j]);
+    }
+    free(history);
 }
 
 static void disable_raw_mode(void)
@@ -102,41 +103,20 @@ static int get_columns(int ifd, int ofd)
             }
         }
         return cols;
-    } else {
-        return ws.ws_col;
     }
-}
-
-static void buffer_position_move(state l, ssize_t dest, ssize_t src, size_t size)
-{
-    memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size);
-}
-
-static void buffer_position_move_end(state l, ssize_t dest, ssize_t src)
-{
-    buffer_position_move(l, dest, src, l->lenb - (l->posb + src) + 1);
-}
-
-static int u8_character_start(char c)
-{
-    int ret = 1;
-    if (isu8 != 0) {
-        ret = (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0;
-    }
-    return ret;
+    return ws.ws_col;
 }
 
 static int u8_character_size(char c)
 {
-    int ret = 1;
-    if (isu8 != 0) {
-        int size = 0;
-        while (c & (0x80 >> size)) {
-            size++;
-        }
-        ret = (size != 0) ? size : 1;
+    if (isu8 == 0){
+         return 1;
     }
-    return ret;
+    int size = 0;
+    while (c & (0x80 >> size)) {
+        size++;
+    }
+    return (size != 0) ? size : 1;
 }
 
 static size_t u8_length(const char *s)
@@ -150,21 +130,23 @@ static size_t u8_length(const char *s)
 
 static size_t u8_previous(const char *s, size_t posb)
 {
-    if (posb != 0) {
-        do {
-            posb--;
-        } while ((posb > 0) && !u8_character_start(s[posb]));
+    if (posb == 0) {
+        return 0;
     }
+    do {
+        posb--;
+    } while ((posb > 0) && !u8_character_start(s[posb]));
     return posb;
 }
 
 static size_t u8_next(const char *s, size_t posb)
 {
-    if (s[posb] != '\0') {
-        do {
-            posb++;
-        } while ((s[posb] != '\0') && !u8_character_start(s[posb]));
+    if (s[posb] == '\0') {
+        return posb;
     }
+    do {
+        posb++;
+    } while ((s[posb] != '\0') && !u8_character_start(s[posb]));
     return posb;
 }
 
@@ -207,7 +189,7 @@ static int setIsu8_C(int ifd, int ofd)
     return 0;
 }
 
-static void ab_initialize(struct abuf *ab)
+static inline void ab_initialize(struct abuf *ab)
 {
     ab->b = NULL;
     ab->len = 0;
@@ -222,11 +204,6 @@ static void ab_append(struct abuf *ab, const char *s, int len)
     memcpy(new + ab->len, s, len);
     ab->b = new;
     ab->len += len;
-}
-
-static void ab_free(struct abuf *ab)
-{
-    free(ab->b);
 }
 
 static void refresh_line(state l)
@@ -262,7 +239,7 @@ static void refresh_line(state l)
     ab_append(&ab, seq, strnlen(seq, 64));
     if (write(fd, ab.b, ab.len) == -1) {
     }
-    ab_free(&ab);
+    free(ab.b);
 }
 
 static int edit_insert(state l, char *c)
@@ -384,14 +361,14 @@ static void edit_delete_previous_word(state l)
     refresh_line(l);
 }
 
-static void edit_delete_whole_line(state l)
+static inline void edit_delete_whole_line(state l)
 {
     l->buf[0] = '\0';
     l->posb = l->lenb = l->posu8 = l->lenu8 = 0;
     refresh_line(l);
 }
 
-static void edit_delete_line_to_end(state l)
+static inline void edit_delete_line_to_end(state l)
 {
     l->buf[l->posb] = '\0';
     l->lenb = l->posb;
@@ -467,7 +444,7 @@ static int history_add(const char *line)
     return 1;
 }
 
-static void edit_enter(void)
+static inline void edit_enter(void)
 {
     history_len--;
     free(history[history_len]);
@@ -605,7 +582,7 @@ static int edit(state l)
 }
 
 
-static void state_reset(state l)
+static inline void state_reset(state l)
 {
     l->plenb = strnlen(l->prompt, MSG_MAX);
     l->plenu8 = u8_length(l->prompt);
@@ -730,7 +707,7 @@ static void message_wrap(param p)
     }
 }
 
-static void param_print_nick(param p)
+static inline void param_print_nick(param p)
 {
     printf("\x1b[35;1m%*s\x1b[0m ", p->nicklen - 4, p->nickname);
     printf("--> \x1b[35;1m%s\x1b[0m", p->message);
@@ -744,7 +721,7 @@ static void param_print_part(param p)
     }
 }
 
-static void param_print_quit(param p)
+static inline void param_print_quit(param p)
 {
     printf("%*s<<< \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
 }
@@ -1193,21 +1170,21 @@ static void handle_user_input(state l)
     }
 }
 
-static void usage(void)
+static inline void usage(void)
 {
     fputs("kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname] \
 [-u username] [-k password] [-a token] [-o path] [-e] [-x] [-v] [-V]\n", stderr);
     exit(2);
 }
 
-static void version(void)
+static inline void version(void)
 {
     fputs("kirc-" VERSION " Copyright © 2022 Michael Czigler, MIT License\n",
           stdout);
     exit(0);
 }
 
-static void slot_clear(size_t i) {
+static inline void slot_clear(size_t i) {
     memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
     dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
     dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
@@ -1230,7 +1207,7 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
         err_str = "read";
         goto handle_err;
     }
-    
+
     if (n >= 0){
         dcc_sessions.slots[i].bytes_read += n;
         if (write(file_fd, buf, n) < 0) {
