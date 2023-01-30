@@ -123,7 +123,8 @@ static size_t u8_length(const char *s)
 {
     size_t lenu8 = 0;
     while (*s != '\0') {
-        lenu8 += u8_character_start(*(s++));
+        lenu8 += u8_character_start(*s);
+        s++;
     }
     return lenu8;
 }
