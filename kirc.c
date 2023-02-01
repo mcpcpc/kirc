@@ -84,27 +84,33 @@ static int get_cursor_position(int ifd, int ofd)
 static int get_columns(int ifd, int ofd)
 {
     struct winsize ws;
-    if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        int start = get_cursor_position(ifd, ofd);
-        if (start == -1) {
-            return 80;
-        }
-        if (write(ofd, "\x1b[999C", 6) != 6) {
-            return 80;
-        }
-        int cols = get_cursor_position(ifd, ofd);
-        if (cols == -1) {
-            return 80;
-        }
-        if (cols > start) {
-            char seq[32];
-            snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
-            if (write(ofd, seq, strnlen(seq, 32)) == -1) {
-            }
-        }
+    if (ioctl(1, TIOCGWINSZ, &ws) != -1 && ws.ws_col != 0) {
+        return ws.ws_col;
+    }
+    int start = get_cursor_position(ifd, ofd);
+    if (start == -1) {
+        return 80;
+    }
+    if (write(ofd, "\x1b[999C", 6) != 6) {
+        return 80;
+    }
+    int cols = get_cursor_position(ifd, ofd);
+    if (cols == -1) {
+        return 80;
+    }
+    if (cols <= start) {
         return cols;
     }
-    return ws.ws_col;
+    char seq[32];
+    snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
+    if (write(ofd, seq, strnlen(seq, 32)) == -1) {
+    }
+    return cols;
+}
+
+static int u8_character_start(char c)
+{
+    return isu8 ? (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0 : 1;
 }
 
 static int u8_character_start(char c)
@@ -121,7 +127,7 @@ static int u8_character_size(char c)
     while (c & (0x80 >> size)) {
         size++;
     }
-    return (size != 0) ? size : 1;
+    return size ? size : 1;
 }
 
 static size_t u8_length(const char *s)
@@ -251,22 +257,10 @@ static void refresh_line(state l)
 static int edit_insert(state l, char *c)
 {
     size_t clenb = strlen(c);
-    if ((l->lenb + clenb) < l->buflen) {
-        if (l->lenu8 == l->posu8) {
-            strcpy(l->buf + l->posb, c);
-            l->posu8++;
-            l->lenu8++;
-            l->posb += clenb;
-            l->lenb += clenb;
-            if ((l->plenu8 + l->lenu8) < l->cols) {
-                if (write(STDOUT_FILENO, c, clenb) == -1) {
-                    return -1;
-                }
-                return 0;
-            }
-            refresh_line(l);
-            return 0;
-        }
+    if ((l->lenb + clenb) >= l->buflen) {
+        return 0;
+    }
+    if (l->lenu8 != l->posu8) {
         buffer_position_move_end(l, clenb, 0);
         memmove(l->buf + l->posb, c, clenb);
         l->posu8++;
@@ -274,6 +268,19 @@ static int edit_insert(state l, char *c)
         l->posb += clenb;
         l->lenb += clenb;
         refresh_line(l);
+        return 0;
+    }
+    strcpy(l->buf + l->posb, c);
+    l->posu8++;
+    l->lenu8++;
+    l->posb += clenb;
+    l->lenb += clenb;
+    if ((l->plenu8 + l->lenu8) >= l->cols) {
+        refresh_line(l);
+        return 0;
+    }
+    if (write(STDOUT_FILENO, c, clenb) == -1) {
+        return -1;
     }
     return 0;
 }
@@ -286,7 +293,6 @@ static void edit_move_left(state l)
     l->posb = u8_previous(l->buf, l->posb);
     l->posu8--;
     refresh_line(l);
-    return;
 }
 
 static void edit_move_right(state l)
@@ -458,44 +464,16 @@ static inline void edit_enter(void)
 
 static void edit_escape_sequence(state l, char seq[3])
 {
-    if (read(ttyinfd, seq, 1) == -1)
-        return;
-    if (read(ttyinfd, seq + 1, 1) == -1)
-        return;
-    if (seq[0] == '[') {        /* ESC [ sequences. */
-        if ((seq[1] >= '0') && (seq[1] <= '9')) {
-            /* Extended escape, read additional byte. */
-            if (read(ttyinfd, seq + 2, 1) == -1) {
-                return;
-            }
-            if ((seq[2] == '~') && (seq[1] == 3)) {
-                edit_delete(l); /* Delete key. */
-            }
-            return;
-        }
-        switch (seq[1]) {
-            case 'A':
-                edit_history(l, 1);
-                return;          /* Up */
-            case 'B':
-                edit_history(l, 0);
-                return;          /* Down */
-            case 'C':
-                edit_move_right(l);
-                return;          /* Right */
-            case 'D':
-                edit_move_left(l);
-                return;          /* Left */
-            case 'H':
-                edit_move_home(l);
-                return;          /* Home */
-            case 'F':
-                edit_move_end(l);
-                return;          /* End */
-        }
+    if (read(ttyinfd, seq, 1) == -1) {
         return;
     }
-    if (seq[0] == 'O') { /* ESC O sequences. */
+    if (read(ttyinfd, seq + 1, 1) == -1) {
+        return;
+    }
+    if (seq[0] != '[') {        /* ESC [ sequences. */
+        if (seq[0] != 'O') { /* ESC O sequences. */
+            return;
+        }
         switch (seq[1]) {
         case 'H':
             edit_move_home(l);
@@ -504,9 +482,39 @@ static void edit_escape_sequence(state l, char seq[3])
             edit_move_end(l);
             return;              /* End */
         }
+        return;
+    }
+    if ((seq[1] >= '0') && (seq[1] <= '9')) {
+        /* Extended escape, read additional byte. */
+        if (read(ttyinfd, seq + 2, 1) == -1) {
+            return;
+        }
+        if ((seq[2] == '~') && (seq[1] == 3)) {
+            edit_delete(l); /* Delete key. */
+        }
+        return;
+    }
+    switch (seq[1]) {
+    case 'A':
+        edit_history(l, 1);
+        return;          /* Up */
+    case 'B':
+        edit_history(l, 0);
+    return;          /* Down */
+    case 'C':
+        edit_move_right(l);
+        return;          /* Right */
+    case 'D':
+        edit_move_left(l);
+        return;          /* Left */
+    case 'H':
+        edit_move_home(l);
+        return;          /* Home */
+    case 'F':
+        edit_move_end(l);
+        return;          /* End */
     }
 }
-
 static int edit(state l)
 {
     char c;
@@ -515,74 +523,75 @@ static int edit(state l)
     }
     char seq[3];
     switch (c) {
-        case 13:
-            edit_enter();
-            return 1;           /* enter */
-        case 3:
-            errno = EAGAIN;
-            return -1;          /* ctrl-c */
-        case 127:              /* backspace */
-        case 8:
-            edit_backspace(l);
-            return 0;              /* ctrl-h */
-        case 2:
-            edit_move_left(l);
-            return 0;              /* ctrl-b */
-        case 6:
-            edit_move_right(l);
-            return 0;              /* ctrl-f */
-        case 1:
-            edit_move_home(l);
-            return 0;              /* Ctrl+a */
-        case 5:
-            edit_move_end(l);
-            return 0;              /* ctrl+e */
-        case 23:
-            edit_delete_previous_word(l);
-            return 0;              /* ctrl+w */
-        case 21:
-            edit_delete_whole_line(l);
-            return 0;              /* Ctrl+u */
-        case 11:
-            edit_delete_line_to_end(l);
-            return 0;              /* Ctrl+k */
-        case 14:
-            edit_history(l, 0);
-            return 0;              /* Ctrl+n */
-        case 16:
-            edit_history(l, 1);
-            return 0;              /* Ctrl+p */
-        case 20:
-            edit_swap_character_w_previous(l);
-            return 0;              /* ctrl-t */
-        case 27:
-            edit_escape_sequence(l, seq);
-            return 0;              /* escape sequence */
-        case 4:                /* ctrl-d */
-            if (l->lenu8 == 0) {
-                history_len--;
-                free(history[history_len]);
-                return -1;
-            }
-            edit_delete(l);
-            return 0;
-    }
-    if (u8_character_start(c)) {
-        char aux[8];
-        aux[0] = c;
-        int size = u8_character_size(c);
-        for (int i = 1; i < size; i++) {
-            if(read(ttyinfd, aux + i, 1) == -1){
-		break;
-            }
-            if ((aux[i] & 0xC0) != 0x80) {
-                break;
-            }
-        }
-        aux[size] = '\0';
-        if (edit_insert(l, aux)) {
+    case 13:
+        edit_enter();
+        return 1;           /* enter */
+    case 3:
+        errno = EAGAIN;
+        return -1;          /* ctrl-c */
+    case 127:              /* backspace */
+    case 8:
+        edit_backspace(l);
+        return 0;              /* ctrl-h */
+    case 2:
+        edit_move_left(l);
+        return 0;              /* ctrl-b */
+    case 6:
+        edit_move_right(l);
+        return 0;              /* ctrl-f */
+    case 1:
+        edit_move_home(l);
+        return 0;              /* Ctrl+a */
+    case 5:
+        edit_move_end(l);
+        return 0;              /* ctrl+e */
+    case 23:
+        edit_delete_previous_word(l);
+        return 0;              /* ctrl+w */
+    case 21:
+        edit_delete_whole_line(l);
+        return 0;              /* Ctrl+u */
+    case 11:
+        edit_delete_line_to_end(l);
+        return 0;              /* Ctrl+k */
+    case 14:
+        edit_history(l, 0);
+        return 0;              /* Ctrl+n */
+    case 16:
+        edit_history(l, 1);
+        return 0;              /* Ctrl+p */
+    case 20:
+        edit_swap_character_w_previous(l);
+        return 0;              /* ctrl-t */
+    case 27:
+        edit_escape_sequence(l, seq);
+        return 0;              /* escape sequence */
+    case 4:                /* ctrl-d */
+        if (l->lenu8 == 0) {
+            history_len--;
+            free(history[history_len]);
             return -1;
         }
+        edit_delete(l);
+        return 0;
+    }
+    if (!u8_character_start(c)) {
+        return 0;
+    }
+    char aux[8];
+    aux[0] = c;
+    int size = u8_character_size(c);
+    for (int i = 1; i < size; i++) {
+        if(read(ttyinfd, aux + i, 1) == -1){
+            break;
+        }
+        if ((aux[i] & 0xC0) != 0x80) {
+            break;
+        }
+    }
+    aux[size] = '\0';
+    if (edit_insert(l, aux)) {
+        return -1;
     }
     return 0;
 }
@@ -1066,6 +1075,71 @@ static int handle_server_message(void)
     }
 }
 
+void join_command(state l)
+{
+    if (!strchr(l->buf, '#')){
+        printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+        return;
+    }
+    chan = strchr(l->buf, '#');
+    chan++;
+    strcpy(l->prompt, chan);
+    raw("join #%s\r\n", chan);
+    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+    printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
+}
+
+void part_command(state l)
+{
+    char *tok;
+    tok = strchr(l->buf, '#');
+    if (tok){
+        raw("part %s\r\n", tok);
+        printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        printf("\x1b[35mLeft %s!\r\n", tok);
+        printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
+        chan = NULL;
+        strcpy(l->prompt, "");
+        return;
+    }
+    int ok = 1;
+    tok = l->buf + 5;
+    while (*tok){
+        if (*tok != ' '){
+            ok = 0;
+            break;
+        }
+        tok++;
+    }
+    if (ok) {
+        chan = l->prompt;
+        raw("part #%s\r\n", chan);
+        printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+        printf("\x1b[35mLeft #%s!\r\n", chan);
+        printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
+        chan = NULL;
+        strcpy(l->prompt, "");
+        return;
+    }
+    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+    printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+}
+
+void msg_command(state l)
+{
+    char *tok;
+    strtok_r(l->buf + 5, " ", &tok);
+    int offset = 0;
+    while (*(l->buf + 5 + offset) == ' ') {
+        offset ++;
+    }
+    raw("privmsg %s :%s\r\n", l->buf + 5 + offset, tok);
+    if (strncmp(l->buf + 5 + offset, "NickServ", 8)) {
+        printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
+    }
+}
+
 static void handle_user_input(state l)
 {
     if (l->buf == NULL) {
@@ -1080,51 +1154,11 @@ static void handle_user_input(state l)
     switch (l->buf[0]) {
     case '/':           /* send system command */
         if (!strncmp(l->buf + 1, "JOIN", 4) || !strncmp(l->buf + 1, "join", 4)) {
-            if (!strchr(l->buf, '#')){
-                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-                printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
-                return;
-            }
-            chan = strchr(l->buf, '#');
-            chan++;
-            strcpy(l->prompt, chan);
-            raw("join #%s\r\n", chan);
-            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-            printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
+            join_command(l);
             return;
         }
         if (!strncmp(l->buf + 1, "PART", 4) || !strncmp(l->buf + 1, "part", 4)) {
-            tok = strchr(l->buf, '#');
-            if (tok){
-                raw("part %s\r\n", tok);
-                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-                printf("\x1b[35mLeft %s!\r\n", tok);
-                printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-                chan = NULL;
-                strcpy(l->prompt, "");
-                return;
-            }
-            int ok = 1;
-            tok = l->buf + 5;
-            while (*tok){
-                if (*tok != ' '){
-                    ok = 0;
-                    break;
-                }
-                tok++;
-            }
-            if (ok) {
-                chan = l->prompt;
-                raw("part #%s\r\n", chan);
-                printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-                printf("\x1b[35mLeft #%s!\r\n", chan);
-                printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-                chan = NULL;
-                strcpy(l->prompt, "");
-                return;
-            }
-            printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
-            printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
+            part_command(l);
             return;
         }
         if (l->buf[1] == '/') {
@@ -1133,15 +1167,7 @@ static void handle_user_input(state l)
             return;
         }
         if (!strncmp(l->buf+1, "MSG", 3) || !strncmp(l->buf+1, "msg", 3)) {
-            strtok_r(l->buf + 5, " ", &tok);
-            int offset = 0;
-            while (*(l->buf + 5 + offset) == ' ') {
-                offset ++;
-            }
-            raw("privmsg %s :%s\r\n", l->buf + 5 + offset, tok);
-            if (strncmp(l->buf + 5 + offset, "NickServ", 8)) {
-                printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
-            }
+            msg_command(l);
             return;
         }
         if (l->buf[1] == '#') {
@@ -1156,18 +1182,18 @@ static void handle_user_input(state l)
         return;
     case '@':           /* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
-        if (l->buf[1] == '@') {
-            if (l->buf[2] == '\0') {
-                raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, tok);
-                printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", cdef, tok);
-                return;
-            }
-            raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
-            printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2,tok);
+        if (l->buf[1] != '@') {
+            raw("privmsg %s :%s\r\n", l->buf + 1, tok);
+            printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
             return;
         }
-        raw("privmsg %s :%s\r\n", l->buf + 1, tok);
-        printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
+        if (l->buf[2] == '\0') {
+            raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, tok);
+            printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", cdef, tok);
+            return;
+        }
+        raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
+        printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2,tok);
         return;
     default:           /*  send private message to default channel */
         raw("privmsg #%s :%s\r\n", cdef, l->buf);
