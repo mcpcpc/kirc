@@ -763,6 +763,7 @@ static void handle_dcc(param p)
     size_t file_size = 0;
     unsigned ip_addr = 0;
     unsigned short port = 0;
+    char ipv6_addr[IPV6_SIZE];
 
     int slot = -1;
     int file_fd = -1;
@@ -788,8 +789,13 @@ static void handle_dcc(param p)
 
         if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
             if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-                print_error("unable to parse DCC message '%s'", message);
-                return;
+                if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
+                    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
+                        print_error("unable to parse DCC message '%s'", message);
+                        return;
+                    }
+                }
+                ipv6 = 1;
             }
         }
 
@@ -837,14 +843,25 @@ check_open:
             .file_size = file_size,
             .file_fd = file_fd,
         };
-
         strcpy(dcc_sessions.slots[slot].filename, filename);
-        dcc_sessions.slots[slot].sin  = (struct sockaddr_in){
-            .sin_family = AF_INET,
-            .sin_addr = (struct in_addr){htonl(ip_addr)},
-            .sin_port = htons(port),
-        };
-
+        if(!ipv6) {
+            dcc_sessions.slots[slot].sin  = (struct sockaddr_in){
+                .sin_family = AF_INET,
+                .sin_addr = (struct in_addr){htonl(ip_addr)},
+                .sin_port = htons(port),
+            };
+        }
+        else {
+            struct in6_addr result;
+            if (inet_pton(AF_INET6, ipv6_addr, &result) != 1){
+                close(file_fd);
+            }
+            dcc_sessions.slots[slot].sin6 = (struct sockaddr_in6){
+                .sin6_family = AF_INET6,
+                .sin6_addr = result,
+                .sin6_port = htons(port),
+            };
+        }
         if (file_resume) {
             raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
             p->nickname, filename, port, bytes_read);
@@ -874,21 +891,32 @@ check_open:
         return;
     }
 
-    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int sock_fd;
+    if(!ipv6) {
+        sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
+        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+            close(sock_fd);
+            close(file_fd);
+            perror("connect");
+            exit(1);
+        }
+    }
+    else {
+        sock_fd = socket(AF_INET6, SOCK_STREAM, 0);
+        struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin6;
+        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+            close(sock_fd);
+            close(file_fd);
+            perror("connect");
+            exit(1);
+        }
+    }
     if (sock_fd < 0) {
         close(file_fd);
         perror("socket");
         exit(1);
     }
-
-    struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
-    if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-        close(sock_fd);
-        close(file_fd);
-        perror("connect");
-        exit(1);
-    }
-
     int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
     if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
         close(sock_fd);
