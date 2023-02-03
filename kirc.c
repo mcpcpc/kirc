@@ -763,7 +763,7 @@ static void handle_dcc(param p)
     size_t file_size = 0;
     unsigned ip_addr = 0;
     unsigned short port = 0;
-    char ipv6_addr[IPV6_SIZE];
+    char ipv6_addr[42];
 
     int slot = -1;
     int file_fd = -1;
