@@ -789,8 +789,8 @@ static void handle_dcc(param p)
 
         if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
             if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-                if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
-                    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
+                if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
+                    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
                         print_error("unable to parse DCC message '%s'", message);
                         return;
                     }

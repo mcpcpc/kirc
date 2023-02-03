@@ -16,7 +16,7 @@
 #define FNM_MAX 255
 #define CON_MAX 10
 #define CBUF_SIZ 1024
-#define IPV6_SIZE 40
+#define IPV6_SIZE 41
 #define STR_(a) #a
 #define STR(a) STR_(a)
 
