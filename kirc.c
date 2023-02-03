@@ -113,11 +113,6 @@ static int u8_character_start(char c)
     return isu8 ? (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0 : 1;
 }
 
-static int u8_character_start(char c)
-{
-    return isu8 ? (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0 : 1;
-}
-
 static int u8_character_size(char c)
 {
     if (isu8 == 0){
