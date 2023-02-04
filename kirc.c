@@ -189,12 +189,6 @@ static int setIsu8_C(int ifd, int ofd)
     return 0;
 }
 
-static inline void ab_initialize(struct abuf *ab)
-{
-    ab->b = NULL;
-    ab->len = 0;
-}
-
 static void ab_append(struct abuf *ab, const char *s, int len)
 {
     char *new = realloc(ab->b, ab->len + len);
@@ -223,7 +217,8 @@ static void refresh_line(state l)
     }
     while (txtlenb < lenb && ch++ < l->cols)
         txtlenb += u8_next(buf + txtlenb, 0);
-    ab_initialize(&ab);
+    ab.b = NULL;
+    ab.len = 0;
     snprintf(seq, sizeof(seq), "\r");
     ab_append(&ab, seq, strnlen(seq, 64));
     ab_append(&ab, l->prompt, l->plenb);
@@ -749,33 +744,32 @@ static void print_error(char *fmt, ...)
 
 static short parse_dcc_send_message(const char *message, char *filename, unsigned *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
 {
-    int ipv6 = 0;
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) != 4) {
-        if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) != 4) {
-            ipv6 = 1;
-        }
-    }
-    if(!ipv6) {
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
         return 0;
     }
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) != 4) {
-        if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) != 4) {
-            print_error("unable to parse DCC message '%s'", message);
-            return -1;
-        }
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+        return 0;
     }
-    return 1;
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+        return 1;
+    }
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+        return 1;
+    }
+    print_error("unable to parse DCC message '%s'", message);
+    return -1;
 }
 
 static short parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
 {
-    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, port, file_size) != 3) {
-        if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, port, file_size) != 3) {
-            print_error("unable to parse DCC message '%s'", message);
-            return 1;
-        }
+    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, port, file_size) == 3) {
+        return 0;
     }
-    return 0;
+    if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, port, file_size) == 3) {
+        return 0;
+    }
+    print_error("unable to parse DCC message '%s'", message);
+    return 1;
 }
 
 static void open_socket(int slot, int *file_fd)
@@ -1072,10 +1066,9 @@ static int handle_server_message(void)
         if (nread == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 return 0;
-            } else {
-                perror("read");
-                return -2;
             }
+            perror("read");
+            return -2;
         }
         if (nread == 0) {
             fputs("\rconnection closed", stderr);
@@ -1132,12 +1125,8 @@ static void part_command(state l)
     }
     int ok = 1;
     tok = l->buf + 5;
-    while (*tok){
-        if (*tok != ' '){
-            ok = 0;
-            break;
-        }
-        tok++;
+    while (*tok == ' ') {
+       tok++;
     }
     if (ok) {
         chan = l->prompt;
