@@ -16,6 +16,8 @@
 #define FNM_MAX 255
 #define CON_MAX 10
 #define CBUF_SIZ 1024
+#define DCC_FLAGS (O_WRONLY | O_APPEND)
+#define DCC_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 #define STR_(a) #a
 #define STR(a) STR_(a)
 
@@ -60,9 +62,11 @@ static int cmds = 0;            /* indicates additional server commands */
 static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 static short ipv6 = 0;
 
+/* define function macros */
 #define htonll(x) ((1==htonl(1)) ? (x) : (((uint64_t)htonl((x) & 0xFFFFFFFFUL)) << 32) | htonl((uint32_t)((x) >> 32)))
 #define buffer_position_move(l, dest, src, size) memmove(l->buf + l->posb + dest, l->buf + l->posb + src, size)
 #define buffer_position_move_end(l, dest, src) buffer_position_move(l, dest, src, l->lenb - (l->posb + src) + 1)
+#define u8_character_start(c) (isu8 ? (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0 : 1)
 
 static int ttyinfd = STDIN_FILENO;
 static struct termios orig;

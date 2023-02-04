@@ -108,20 +108,13 @@ static int get_columns(int ifd, int ofd)
     return cols;
 }
 
-static int u8_character_start(char c)
-{
-    return isu8 ? (c & 0x80) == 0x00 || (c & 0xC0) == 0xC0 : 1;
-}
-
 static int u8_character_size(char c)
 {
     if (isu8 == 0){
          return 1;
     }
     int size = 0;
-    while (c & (0x80 >> size)) {
-        size++;
-    }
+    while (c & (0x80 >> size++));
     return size ? size : 1;
 }
 
@@ -834,17 +827,12 @@ static void handle_dcc(param p)
     char ipv6_addr[42];
 
     int slot = -1;
-    int file_fd = -1;
+    int file_fd;
 
     if (!strncmp(message, "SEND", 4)) {
-        for (int i = 0; i < CON_MAX; i++) {
-            if (dcc_sessions.slots[i].file_fd < 0) {
-                slot = i;
-                break;
-            }
-        }
+        while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
 
-        if (slot < 0) {
+        if (slot == CON_MAX) {
             raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
             return;
         }
@@ -861,16 +849,13 @@ static void handle_dcc(param p)
         }
 
         /* TODO: at this point we should make sure that the filename is actually a filename
-           and not a file path. furthermore, we should it would be helpful to give the user
+           and not a file path. furthermore, it would be helpful to give the user
            the option to rename to the file.
         */
 
-        int flags = O_WRONLY | O_APPEND;
-        int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-
         int file_resume = 0;
         size_t bytes_read = 0;
-        file_fd = open(filename, flags);
+        file_fd = open(filename, DCC_FLAGS);
 
         if (file_fd > 0) {
             struct stat statbuf = {0};
@@ -882,7 +867,7 @@ static void handle_dcc(param p)
         }
 
         if (!file_resume) {
-            file_fd = open(filename, flags | O_CREAT, mode);
+            file_fd = open(filename, DCC_FLAGS | O_CREAT, DCC_MODE);
         }
 
         if (file_fd < 0) {
@@ -934,10 +919,8 @@ check_resume:
             return;
         }
 
-        slot = 0;
-        while(slot < CON_MAX && strncmp(dcc_sessions.slots[slot].filename, filename, FNM_MAX)) {
-            slot++;
-        }
+        while(++slot < CON_MAX && strncmp(dcc_sessions.slots[slot].filename, filename, FNM_MAX));
+
         if (slot == CON_MAX) {
             return;
         }
@@ -1270,7 +1253,7 @@ static inline void slot_clear(size_t i) {
 /* TODO: should we just close the file and keep on running if we get
    an error we can recover from? */
 static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
-    const char *err_str = "";
+    const char *err_str;
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
 
@@ -1284,45 +1267,46 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
         goto handle_err;
     }
 
-    if (n >= 0){
-        dcc_sessions.slots[i].bytes_read += n;
-        if (write(file_fd, buf, n) < 0) {
-            err_str = "write";
-            goto handle_err;
-        }
+    dcc_sessions.slots[i].bytes_read += n;
+    if (write(file_fd, buf, n) < 0) {
+        err_str = "write";
+        goto handle_err;
     }
 
-    if (dcc_sessions.sock_fds[i].revents & POLLOUT) {
-        size_t file_size = dcc_sessions.slots[i].file_size;
-        size_t bytes_read = dcc_sessions.slots[i].bytes_read;
-        unsigned ack_is_64 = file_size > UINT_MAX;
-        unsigned ack_shift = (1 - ack_is_64) * 32;
-        unsigned long long ack = htonll(bytes_read << ack_shift);
-        if (write(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
-            err_str = "write";
-            goto handle_err;
-        }
-        if (bytes_read == file_size) {
-            shutdown(sock_fd, SHUT_RDWR);
-            close(sock_fd);
-            close(file_fd);
-            slot_clear(i);
-        }
+    if (!(dcc_sessions.sock_fds[i].revents & POLLOUT)) {
+        refresh_line(l);
+        return;
     }
-
+    size_t file_size = dcc_sessions.slots[i].file_size;
+    size_t bytes_read = dcc_sessions.slots[i].bytes_read;
+    unsigned ack_is_64 = file_size > UINT_MAX;
+    unsigned ack_shift = (1 - ack_is_64) * 32;
+    unsigned long long ack = htonll(bytes_read << ack_shift);
+    if (write(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
+        err_str = "write";
+        goto handle_err;
+    }
+    if (bytes_read == file_size) {
+        shutdown(sock_fd, SHUT_RDWR);
+        close(sock_fd);
+        close(file_fd);
+        slot_clear(i);
+    }
     refresh_line(l);
     return;
 handle_err:
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
         return;
-    } else if (errno == ECONNRESET) {
+    }
+    if (errno == ECONNRESET) {
         shutdown(sock_fd, SHUT_RDWR);
         close(sock_fd);
         close(file_fd);
         slot_clear(i);
+        return;
     } else {
         perror(err_str);
-        exit(1);
+        return;
     }
 }
 
