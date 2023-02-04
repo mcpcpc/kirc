@@ -754,6 +754,74 @@ static void print_error(char *fmt, ...)
     va_end(ap);
 }
 
+static short parse_dcc_send_message(const char *message, char *filename, unsigned *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
+{
+    int ipv6 = 0;
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) != 4) {
+        if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) != 4) {
+            ipv6 = 1;
+        }
+    }
+    if(!ipv6) {
+        return 0;
+    }
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) != 4) {
+        if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) != 4) {
+            print_error("unable to parse DCC message '%s'", message);
+            return -1;
+        }
+    }
+    return 1;
+}
+
+static short parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
+{
+    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, port, file_size) != 3) {
+        if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, port, file_size) != 3) {
+            print_error("unable to parse DCC message '%s'", message);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void open_socket(int slot, int *file_fd)
+{
+    int sock_fd;
+    if(!ipv6) {
+        sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
+        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+            close(sock_fd);
+            close(*file_fd);
+            perror("connect");
+            return;
+        }
+    }
+    else {
+        sock_fd = socket(AF_INET6, SOCK_STREAM, 0);
+        struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin6;
+        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+            close(sock_fd);
+            close(*file_fd);
+            perror("connect");
+            return;
+        }
+    }
+    if (sock_fd < 0) {
+        close(*file_fd);
+        perror("socket");
+        return;
+    }
+    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+        close(sock_fd);
+        close(*file_fd);
+        perror("fcntl");
+        return;
+    }
+    dcc_sessions.sock_fds[slot].fd = sock_fd;
+}
 
 /* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
@@ -787,16 +855,9 @@ static void handle_dcc(param p)
            and from what i can tell other general purpose irc clients like irssi don't
            try handle that case either. */
 
-        if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-            if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, &ip_addr, &port, &file_size) != 4) {
-                if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
-                    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, &port, &file_size) != 4) {
-                        print_error("unable to parse DCC message '%s'", message);
-                        return;
-                    }
-                }
-                ipv6 = 1;
-            }
+        ipv6 = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
+        if(ipv6 == -1) {
+            return;
         }
 
         /* TODO: at this point we should make sure that the filename is actually a filename
@@ -813,20 +874,17 @@ static void handle_dcc(param p)
 
         if (file_fd > 0) {
             struct stat statbuf = {0};
-            if (!fstat(file_fd, &statbuf)) {
-                bytes_read = statbuf.st_size;
-                file_resume = 1;
-                goto check_open;
-            } else {
+            if (fstat(file_fd, &statbuf)) {
                 close(file_fd);
             }
+            bytes_read = statbuf.st_size;
+            file_resume = 1;
         }
 
         if (!file_resume) {
             file_fd = open(filename, flags | O_CREAT, mode);
         }
 
-check_open:
         if (file_fd < 0) {
             perror("open");
             exit(1);
@@ -850,81 +908,44 @@ check_open:
                 .sin_addr = (struct in_addr){htonl(ip_addr)},
                 .sin_port = htons(port),
             };
+            goto check_resume;
         }
-        else {
-            struct in6_addr result;
-            if (inet_pton(AF_INET6, ipv6_addr, &result) != 1){
-                close(file_fd);
-            }
-            dcc_sessions.slots[slot].sin6 = (struct sockaddr_in6){
-                .sin6_family = AF_INET6,
-                .sin6_addr = result,
-                .sin6_port = htons(port),
-            };
+        struct in6_addr result;
+        if (inet_pton(AF_INET6, ipv6_addr, &result) != 1){
+            close(file_fd);
         }
+        dcc_sessions.slots[slot].sin6 = (struct sockaddr_in6){
+            .sin6_family = AF_INET6,
+            .sin6_addr = result,
+            .sin6_port = htons(port),
+        };
+
+check_resume:
         if (file_resume) {
             raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
             p->nickname, filename, port, bytes_read);
             return;
         }
-    } else if (!strncmp(message, "ACCEPT", 6)) {
-        if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, &port, &file_size) != 3) {
-            if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, &port, &file_size) != 3) {
-                print_error("unable to parse DCC message '%s'", message);
-                return;
-            }
+        open_socket(slot, &file_fd);
+        return;
+    }
+    if (!strncmp(message, "ACCEPT", 6)) {
+        if(parse_dcc_accept_message(message, filename, &port, &file_size)) {
+            return;
         }
 
-        for (int i = 0; i < CON_MAX; i++) {
-            if (!strncmp(dcc_sessions.slots[i].filename, filename,FNM_MAX)) {
-                slot = i;
-                break;
-            }
+        slot = 0;
+        while(slot < CON_MAX && strncmp(dcc_sessions.slots[slot].filename, filename, FNM_MAX)) {
+            slot++;
         }
-
-        if (slot < 0) {
+        if (slot == CON_MAX) {
             return;
         }
 
         file_fd = dcc_sessions.slots[slot].file_fd;
-    } else {
+        open_socket(slot, &file_fd);
         return;
     }
-
-    int sock_fd;
-    if(!ipv6) {
-        sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
-        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-            close(sock_fd);
-            close(file_fd);
-            perror("connect");
-            exit(1);
-        }
-    }
-    else {
-        sock_fd = socket(AF_INET6, SOCK_STREAM, 0);
-        struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin6;
-        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-            close(sock_fd);
-            close(file_fd);
-            perror("connect");
-            exit(1);
-        }
-    }
-    if (sock_fd < 0) {
-        close(file_fd);
-        perror("socket");
-        exit(1);
-    }
-    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
-    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
-        close(sock_fd);
-        close(file_fd);
-        perror("fcntl");
-        exit(1);
-    }
-    dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
 static void handle_ctcp(param p)
@@ -1098,7 +1119,7 @@ static int handle_server_message(void)
     }
 }
 
-void join_command(state l)
+static void join_command(state l)
 {
     if (!strchr(l->buf, '#')){
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
@@ -1113,7 +1134,7 @@ void join_command(state l)
     printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
 }
 
-void part_command(state l)
+static void part_command(state l)
 {
     char *tok;
     tok = strchr(l->buf, '#');
@@ -1149,7 +1170,7 @@ void part_command(state l)
     printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
 }
 
-void msg_command(state l)
+static void msg_command(state l)
 {
     char *tok;
     strtok_r(l->buf + 5, " ", &tok);
