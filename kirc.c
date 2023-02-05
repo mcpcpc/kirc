@@ -1123,12 +1123,11 @@ static void part_command(state l)
         strcpy(l->prompt, "");
         return;
     }
-    int ok = 1;
     tok = l->buf + 5;
     while (*tok == ' ') {
        tok++;
     }
-    if (ok) {
+    if (*tok == '#' || *tok == '\0') {
         chan = l->prompt;
         raw("part #%s\r\n", chan);
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
@@ -1154,6 +1153,18 @@ static void msg_command(state l)
     if (strncmp(l->buf + 5 + offset, "NickServ", 8)) {
         printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
     }
+}
+
+static void nick_command(state l)
+{
+    char *tok;
+    raw("%s\r\n", l->buf + 1);
+    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+    tok = l->buf + 5;
+    while (*tok == ' ') {
+        tok ++;
+    }
+    strcpy(nick, tok);
 }
 
 static void handle_user_input(state l)
@@ -1182,8 +1193,12 @@ static void handle_user_input(state l)
             printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 3);
             return;
         }
-        if (!strncmp(l->buf+1, "MSG", 3) || !strncmp(l->buf+1, "msg", 3)) {
+        if (!strncmp(l->buf + 1, "MSG", 3) || !strncmp(l->buf + 1, "msg", 3)) {
             msg_command(l);
+            return;
+        }
+        if (!strncmp(l->buf + 1, "NICK", 4) || !strncmp(l->buf + 1, "nick", 4)) {
+            nick_command(l);
             return;
         }
         if (l->buf[1] == '#') {
