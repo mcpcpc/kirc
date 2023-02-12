@@ -951,6 +951,7 @@ static void handle_ctcp(param p)
 
 static void param_print_private(param p)
 {
+    *(p->nickname + 18) = '\0';
     time_t rawtime;
     struct tm *timeinfo;
     time ( &rawtime );
@@ -1028,7 +1029,7 @@ static void raw_parser(char *string)
         .channel = strtok(NULL, " \r"),
         .params = strtok(NULL, ":\r"),
         .maxcols = get_columns(ttyinfd, STDOUT_FILENO),
-        .nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3),
+        .nicklen = (p.maxcols / 3 > WRAP_LEN ? WRAP_LEN : p.maxcols / 3),
         .offset = 0
     };
     if (!strncmp(p.command, "001", 3) && chan != NULL) {
