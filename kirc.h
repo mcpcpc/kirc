@@ -74,6 +74,7 @@ static int rawmode = 0;
 static int atexit_registered = 0;
 static int history_len = 0;
 static char **history = NULL;
+static short small_screen;
 
 typedef struct PARAMETERS {
     char *prefix;

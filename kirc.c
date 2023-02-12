@@ -951,24 +951,29 @@ static void handle_ctcp(param p)
 
 static void param_print_private(param p)
 {
-    *(p->nickname + p->nicklen - 8) = '\0';
     time_t rawtime;
     struct tm *timeinfo;
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    char timestamp[9] = "[";
-    char buf[5];
-    if (timeinfo->tm_hour < 10) {
-        strcat(timestamp, "0");
+    char timestamp[9];
+    if (!small_screen) {
+        if (strnlen(p->nickname, p->nicklen) > (size_t)p->nicklen - 8) {
+            *(p->nickname + p->nicklen - 8) = '\0';
+        }
+        strcpy(timestamp, "[");
+        char buf[5];
+        if (timeinfo->tm_hour < 10) {
+            strcat(timestamp, "0");
+        }
+        snprintf(buf, sizeof(buf), "%d:", timeinfo->tm_hour);
+        strcat(timestamp, buf);
+        if (timeinfo->tm_min < 10) {
+            strcat(timestamp, "0");
+        }
+        snprintf(buf, sizeof(buf), "%d] ", timeinfo->tm_min);
+        strcat(timestamp, buf);
+        printf("%s", timestamp);
     }
-    snprintf(buf, sizeof(buf), "%d:", timeinfo->tm_hour);
-    strcat(timestamp, buf);
-    if (timeinfo->tm_min < 10) {
-        strcat(timestamp, "0");
-    }
-    snprintf(buf, sizeof(buf), "%d] ", timeinfo->tm_min);
-    strcat(timestamp, buf);
-    printf("%s", timestamp);
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= (size_t)p->nicklen + strnlen(timestamp, sizeof(timestamp))) {
         s = p->nicklen - strnlen(p->nickname, MSG_MAX) - strnlen(timestamp, sizeof(timestamp));
@@ -1029,9 +1034,16 @@ static void raw_parser(char *string)
         .channel = strtok(NULL, " \r"),
         .params = strtok(NULL, ":\r"),
         .maxcols = get_columns(ttyinfd, STDOUT_FILENO),
-        .nicklen = (p.maxcols / 3 > WRAP_LEN ? WRAP_LEN : p.maxcols / 3),
+        .nicklen = WRAP_LEN,
         .offset = 0
     };
+    if (WRAP_LEN > p.maxcols / 3) {
+        small_screen = 1;
+        p.nicklen = p.maxcols / 3;
+    }
+    else {
+        small_screen = 0;
+    }
     if (!strncmp(p.command, "001", 3) && chan != NULL) {
         char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
