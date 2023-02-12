@@ -957,9 +957,31 @@ static void handle_ctcp(param p)
 
 static void param_print_private(param p)
 {
+    time_t rawtime;
+    struct tm *timeinfo;
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    char timestamp[12] = "[";
+    char buf[5];
+    if (timeinfo->tm_hour < 10) {
+        strcat(timestamp, "0");
+    }
+    snprintf(buf, sizeof(buf), "%d:", timeinfo->tm_hour);
+    strcat(timestamp, buf);
+    if (timeinfo->tm_min < 10) {
+        strcat(timestamp, "0");
+    }
+    snprintf(buf, sizeof(buf), "%d:", timeinfo->tm_min);
+    strcat(timestamp, buf);
+    if (timeinfo->tm_sec < 10) {
+        strcat(timestamp, "0");
+    }
+    snprintf(buf, sizeof(buf), "%d] ", timeinfo->tm_sec);
+    strcat(timestamp, buf);
+    printf("%s", timestamp);
     int s = 0;
     if (strnlen(p->nickname, MSG_MAX) <= (size_t)p->nicklen) {
-        s = p->nicklen - strnlen(p->nickname, MSG_MAX);
+        s = p->nicklen - strnlen(p->nickname, MSG_MAX) - strnlen(timestamp, sizeof(timestamp));
     }
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
         handle_ctcp(p);
@@ -990,6 +1012,7 @@ static void param_print_channel(param p)
         p->offset += strnlen(p->params, CHA_MAX);
     }
 }
+
 
 static void raw_parser(char *string)
 {
