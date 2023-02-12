@@ -202,7 +202,6 @@ static void ab_append(struct abuf *ab, const char *s, int len)
 
 static void refresh_line(state l)
 {
-    char seq[64];
     size_t plenu8 = l->plenu8 + 2;
     char *buf = l->buf;
     size_t lenb = l->lenb;
@@ -218,19 +217,18 @@ static void refresh_line(state l)
         txtlenb += u8_next(buf + txtlenb, 0);
     ab.b = NULL;
     ab.len = 0;
-    snprintf(seq, sizeof(seq), "\r");
-    ab_append(&ab, seq, strnlen(seq, 64));
+    ab_append(&ab, "\r", sizeof("\r") - 1);
     ab_append(&ab, l->prompt, l->plenb);
-    ab_append(&ab, "> ", 2);
+    ab_append(&ab, "> ", sizeof("> ") - 1);
     ab_append(&ab, buf, txtlenb);
-    snprintf(seq, sizeof(seq), "\x1b[0K");
-    ab_append(&ab, seq, strnlen(seq, 64));
+    ab_append(&ab, "\x1b[0K", sizeof("\x1b[0K") - 1);
     if (posu8 + plenu8) {
+        char seq[32];
         snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(posu8 + plenu8));
+        ab_append(&ab, seq, strnlen(seq, 32));
     } else {
-        snprintf(seq, sizeof(seq), "\r");
+        ab_append(&ab, "\r", sizeof("\r") - 1);
     }
-    ab_append(&ab, seq, strnlen(seq, 64));
     if (write(STDOUT_FILENO, ab.b, ab.len) == -1) {
     }
     free(ab.b);
@@ -1011,7 +1009,6 @@ static void param_print_channel(param p)
         p->offset += strnlen(p->params, CHA_MAX);
     }
 }
-
 
 static void raw_parser(char *string)
 {
