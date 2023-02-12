@@ -955,7 +955,7 @@ static void param_print_private(param p)
     struct tm *timeinfo;
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    char timestamp[12] = "[";
+    char timestamp[9] = "[";
     char buf[5];
     if (timeinfo->tm_hour < 10) {
         strcat(timestamp, "0");
@@ -965,16 +965,11 @@ static void param_print_private(param p)
     if (timeinfo->tm_min < 10) {
         strcat(timestamp, "0");
     }
-    snprintf(buf, sizeof(buf), "%d:", timeinfo->tm_min);
-    strcat(timestamp, buf);
-    if (timeinfo->tm_sec < 10) {
-        strcat(timestamp, "0");
-    }
-    snprintf(buf, sizeof(buf), "%d] ", timeinfo->tm_sec);
+    snprintf(buf, sizeof(buf), "%d] ", timeinfo->tm_min);
     strcat(timestamp, buf);
     printf("%s", timestamp);
     int s = 0;
-    if (strnlen(p->nickname, MSG_MAX) <= (size_t)p->nicklen) {
+    if (strnlen(p->nickname, MSG_MAX) <= (size_t)p->nicklen + strnlen(timestamp, sizeof(timestamp))) {
         s = p->nicklen - strnlen(p->nickname, MSG_MAX) - strnlen(timestamp, sizeof(timestamp));
     }
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
