@@ -1034,7 +1034,6 @@ static void raw_parser(char *string)
         .channel = strtok(NULL, " \r"),
         .params = strtok(NULL, ":\r"),
         .maxcols = get_columns(ttyinfd, STDOUT_FILENO),
-        .nicklen = WRAP_LEN,
         .offset = 0
     };
     if (WRAP_LEN > p.maxcols / 3) {
@@ -1043,6 +1042,7 @@ static void raw_parser(char *string)
     }
     else {
         small_screen = 0;
+        p.nicklen = WRAP_LEN;
     }
     if (!strncmp(p.command, "001", 3) && chan != NULL) {
         char *tok;
