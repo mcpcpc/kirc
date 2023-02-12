@@ -213,8 +213,9 @@ static void refresh_line(state l)
         buf += u8_next(buf, 0);
         posu8--;
     }
-    while (txtlenb < lenb && ch++ < l->cols)
+    while (txtlenb < lenb && ch++ < l->cols) {
         txtlenb += u8_next(buf + txtlenb, 0);
+    }
     ab.b = NULL;
     ab.len = 0;
     ab_append(&ab, "\r", sizeof("\r") - 1);
@@ -741,17 +742,17 @@ static void print_error(char *fmt, ...)
 
 static short parse_dcc_send_message(const char *message, char *filename, unsigned *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
 {
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
-        return 0;
-    }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
-        return 0;
-    }
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         return 1;
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         return 1;
+    }
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+        return 0;
+    }
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+        return 0;
     }
     print_error("unable to parse DCC message '%s'", message);
     return -1;
@@ -828,11 +829,7 @@ static void handle_dcc(param p)
             return;
         }
 
-        /* TODO: the file size parameter is optional so this isn't strictly correct.
-           furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
-           addresses as well as ipv4 ones; however, i have yet to see that in the wild
-           and from what i can tell other general purpose irc clients like irssi don't
-           try handle that case either. */
+        /* TODO: the file size parameter is optional so this isn't strictly correct. */
 
         ipv6 = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
         if(ipv6 == -1) {
