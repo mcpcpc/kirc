@@ -951,7 +951,7 @@ static void handle_ctcp(param p)
 
 static void param_print_private(param p)
 {
-    *(p->nickname + 18) = '\0';
+    *(p->nickname + p->nicklen - 8) = '\0';
     time_t rawtime;
     struct tm *timeinfo;
     time ( &rawtime );
