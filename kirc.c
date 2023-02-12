@@ -204,7 +204,6 @@ static void refresh_line(state l)
 {
     char seq[64];
     size_t plenu8 = l->plenu8 + 2;
-    int fd = STDOUT_FILENO;
     char *buf = l->buf;
     size_t lenb = l->lenb;
     size_t posu8 = l->posu8;
@@ -232,7 +231,7 @@ static void refresh_line(state l)
         snprintf(seq, sizeof(seq), "\r");
     }
     ab_append(&ab, seq, strnlen(seq, 64));
-    if (write(fd, ab.b, ab.len) == -1) {
+    if (write(STDOUT_FILENO, ab.b, ab.len) == -1) {
     }
     free(ab.b);
 }
