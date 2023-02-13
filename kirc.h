@@ -11,7 +11,7 @@
 #define VERSION "0.3.2"
 #define MSG_MAX 512
 #define CHA_MAX 200
-#define NIC_MAX 26
+#define WRAP_LEN 26
 #define HIS_MAX 100
 #define FNM_MAX 255
 #define CON_MAX 10
@@ -74,6 +74,7 @@ static int rawmode = 0;
 static int atexit_registered = 0;
 static int history_len = 0;
 static char **history = NULL;
+static short small_screen;
 
 typedef struct PARAMETERS {
     char *prefix;

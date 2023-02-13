@@ -202,9 +202,7 @@ static void ab_append(struct abuf *ab, const char *s, int len)
 
 static void refresh_line(state l)
 {
-    char seq[64];
     size_t plenu8 = l->plenu8 + 2;
-    int fd = STDOUT_FILENO;
     char *buf = l->buf;
     size_t lenb = l->lenb;
     size_t posu8 = l->posu8;
@@ -215,24 +213,24 @@ static void refresh_line(state l)
         buf += u8_next(buf, 0);
         posu8--;
     }
-    while (txtlenb < lenb && ch++ < l->cols)
+    while (txtlenb < lenb && ch++ < l->cols) {
         txtlenb += u8_next(buf + txtlenb, 0);
+    }
     ab.b = NULL;
     ab.len = 0;
-    snprintf(seq, sizeof(seq), "\r");
-    ab_append(&ab, seq, strnlen(seq, 64));
+    ab_append(&ab, "\r", sizeof("\r") - 1);
     ab_append(&ab, l->prompt, l->plenb);
-    ab_append(&ab, "> ", 2);
+    ab_append(&ab, "> ", sizeof("> ") - 1);
     ab_append(&ab, buf, txtlenb);
-    snprintf(seq, sizeof(seq), "\x1b[0K");
-    ab_append(&ab, seq, strnlen(seq, 64));
+    ab_append(&ab, "\x1b[0K", sizeof("\x1b[0K") - 1);
     if (posu8 + plenu8) {
+        char seq[32];
         snprintf(seq, sizeof(seq), "\r\x1b[%dC", (int)(posu8 + plenu8));
+        ab_append(&ab, seq, strnlen(seq, 32));
     } else {
-        snprintf(seq, sizeof(seq), "\r");
+        ab_append(&ab, "\r", sizeof("\r") - 1);
     }
-    ab_append(&ab, seq, strnlen(seq, 64));
-    if (write(fd, ab.b, ab.len) == -1) {
+    if (write(STDOUT_FILENO, ab.b, ab.len) == -1) {
     }
     free(ab.b);
 }
@@ -744,17 +742,17 @@ static void print_error(char *fmt, ...)
 
 static short parse_dcc_send_message(const char *message, char *filename, unsigned *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
 {
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
-        return 0;
-    }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
-        return 0;
-    }
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         return 1;
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         return 1;
+    }
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+        return 0;
+    }
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+        return 0;
     }
     print_error("unable to parse DCC message '%s'", message);
     return -1;
@@ -831,11 +829,7 @@ static void handle_dcc(param p)
             return;
         }
 
-        /* TODO: the file size parameter is optional so this isn't strictly correct.
-           furthermore, during testing i've seen XDCC bots such as iroffer send ipv6
-           addresses as well as ipv4 ones; however, i have yet to see that in the wild
-           and from what i can tell other general purpose irc clients like irssi don't
-           try handle that case either. */
+        /* TODO: the file size parameter is optional so this isn't strictly correct. */
 
         ipv6 = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
         if(ipv6 == -1) {
@@ -957,9 +951,32 @@ static void handle_ctcp(param p)
 
 static void param_print_private(param p)
 {
+    time_t rawtime;
+    struct tm *timeinfo;
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    char timestamp[9];
+    if (!small_screen) {
+        if (strnlen(p->nickname, p->nicklen) > (size_t)p->nicklen - 8) {
+            *(p->nickname + p->nicklen - 8) = '\0';
+        }
+        strcpy(timestamp, "[");
+        char buf[5];
+        if (timeinfo->tm_hour < 10) {
+            strcat(timestamp, "0");
+        }
+        snprintf(buf, sizeof(buf), "%d:", timeinfo->tm_hour);
+        strcat(timestamp, buf);
+        if (timeinfo->tm_min < 10) {
+            strcat(timestamp, "0");
+        }
+        snprintf(buf, sizeof(buf), "%d] ", timeinfo->tm_min);
+        strcat(timestamp, buf);
+        printf("%s", timestamp);
+    }
     int s = 0;
-    if (strnlen(p->nickname, MSG_MAX) <= (size_t)p->nicklen) {
-        s = p->nicklen - strnlen(p->nickname, MSG_MAX);
+    if (strnlen(p->nickname, MSG_MAX) <= (size_t)p->nicklen + strnlen(timestamp, sizeof(timestamp))) {
+        s = p->nicklen - strnlen(p->nickname, MSG_MAX) - strnlen(timestamp, sizeof(timestamp));
     }
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
         handle_ctcp(p);
@@ -1017,9 +1034,16 @@ static void raw_parser(char *string)
         .channel = strtok(NULL, " \r"),
         .params = strtok(NULL, ":\r"),
         .maxcols = get_columns(ttyinfd, STDOUT_FILENO),
-        .nicklen = (p.maxcols / 3 > NIC_MAX ? NIC_MAX : p.maxcols / 3),
         .offset = 0
     };
+    if (WRAP_LEN > p.maxcols / 3) {
+        small_screen = 1;
+        p.nicklen = p.maxcols / 3;
+    }
+    else {
+        small_screen = 0;
+        p.nicklen = WRAP_LEN;
+    }
     if (!strncmp(p.command, "001", 3) && chan != NULL) {
         char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
