@@ -161,29 +161,23 @@ static int setIsu8_C(int ifd, int ofd)
     if (get_cursor_position(ifd, ofd) != 1) {
         return -1;
     }
-    const char *testChars[] = {
-        "\xe1\xbb\xa4",
-        NULL
-    };
-    for (const char **it = testChars; *it; it++) {
-        if (write(ofd, *it, strlen(*it)) != (ssize_t) strlen(*it)) {
+    if (write(ofd, TESTCHARS, sizeof(TESTCHARS) - 1) != sizeof(TESTCHARS) - 1) {
+        return -1;
+    }
+    int pos = get_cursor_position(ifd, ofd);
+    if (write(ofd, "\r", 1) != 1) {
+        return -1;
+    }
+    for (int i = 1; i < pos; i++) {
+        if (write(ofd, " ", 1) != 1) {
             return -1;
         }
-        int pos = get_cursor_position(ifd, ofd);
-        if (write(ofd, "\r", 1) != 1) {
-            return -1;
-        }
-        for (int i = 1; i < pos; i++) {
-            if (write(ofd, " ", 1) != 1) {
-                return -1;
-            }
-        }
-        if (write(ofd, "\r", 1) != 1) {
-            return -1;
-        }
-        if (pos != 2) {
-            return 0;
-        }
+    }
+    if (write(ofd, "\r", 1) != 1) {
+        return -1;
+    }
+    if (pos != 2) {
+        return 0;
     }
     isu8 = 1;
     return 0;
