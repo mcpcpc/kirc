@@ -44,14 +44,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-static char cdef[MSG_MAX] = ""; /* default PRIVMSG channel */
 static int conn;                /* connection socket */
 static int verb = 0;            /* verbose output */
 static int sasl = 0;            /* SASL method */
 static int isu8 = 0;            /* UTF-8 flag */
 static const char *host = "irc.libera.chat";  /* host address */
 static const char *port = "6667";     /* port */
-static char *chan = NULL;       /* channel(s) */
+static char chan[MSG_MAX];      /* channel and prompt */
 static char *nick = NULL;       /* nickname */
 static char *pass = NULL;       /* password */
 static char *user = NULL;       /* user name */
@@ -91,8 +90,7 @@ typedef struct PARAMETERS {
 } param_t, *param;
 
 typedef struct STATE {
-    char *prompt;               /* Prompt to display. */
-    char *buf;                  /* Edited line buffer. */
+    char buf[MSG_MAX];          /* Edited line buffer. */
     size_t buflen;              /* Edited line buffer size. */
     size_t plenb;               /* Prompt length. */
     size_t plenu8;              /* Prompt length. */
