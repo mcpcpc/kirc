@@ -212,7 +212,7 @@ static void refresh_line(state l)
     ab.b = NULL;
     ab.len = 0;
     ab_append(&ab, "\r", sizeof("\r") - 1);
-    ab_append(&ab, l->prompt, l->plenb);
+    ab_append(&ab, chan, l->plenb);
     ab_append(&ab, "> ", sizeof("> ") - 1);
     ab_append(&ab, buf, txtlenb);
     ab_append(&ab, "\x1b[0K", sizeof("\x1b[0K") - 1);
@@ -573,8 +573,8 @@ static int edit(state l)
 
 static inline void state_reset(state l)
 {
-    l->plenb = strnlen(l->prompt, MSG_MAX);
-    l->plenu8 = u8_length(l->prompt);
+    l->plenb = strnlen(chan, MSG_MAX);
+    l->plenu8 = u8_length(chan);
     l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
     l->history_index = 0;
     l->buf[0] = '\0';
@@ -705,7 +705,7 @@ static inline void param_print_nick(param p)
 static void param_print_part(param p)
 {
     printf("%*s<-- \x1b[34;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
-    if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
+    if (p->channel != NULL && strcmp(p->channel + 1, chan)) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
     }
 }
@@ -718,7 +718,7 @@ static inline void param_print_quit(param p)
 static void param_print_join(param p)
 {
     printf("%*s--> \x1b[32;1m%s\x1b[0m", p->nicklen - 3, "", p->nickname);
-    if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
+    if (p->channel != NULL && strcmp(p->channel + 1, chan)) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
     }
 }
@@ -974,7 +974,7 @@ static void param_print_private(param p)
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
         handle_ctcp(p);
         printf("%*s\x1b[33;1m%-.*s\x1b[36m ", s, "", p->nicklen, p->nickname);
-    } else if (p->channel != NULL && strcmp(p->channel + 1, cdef)) {
+    } else if (p->channel != NULL && strcmp(p->channel + 1, chan)) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
         p->offset += 12 + strnlen(p->channel, CHA_MAX);
@@ -1037,10 +1037,10 @@ static void raw_parser(char *string)
         small_screen = 0;
         p.nicklen = WRAP_LEN;
     }
-    if (!strncmp(p.command, "001", 3) && chan != NULL) {
+    if (!strncmp(p.command, "001", 3) && *chan != '\0') {
         char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-            strcpy(cdef, tok);
+            strcpy(chan, tok);
             raw("JOIN #%s\r\n", tok);
         }
         return;
@@ -1119,9 +1119,7 @@ static void join_command(state l)
         printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
         return;
     }
-    chan = strchr(l->buf, '#');
-    chan++;
-    strcpy(l->prompt, chan);
+    strcpy(chan, strchr(l->buf, '#') + 1);
     raw("join #%s\r\n", chan);
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
     printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
@@ -1136,8 +1134,7 @@ static void part_command(state l)
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         printf("\x1b[35mLeft %s!\r\n", tok);
         printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-        chan = NULL;
-        strcpy(l->prompt, "");
+        strcpy(chan, "");
         return;
     }
     tok = l->buf + 5;
@@ -1145,13 +1142,11 @@ static void part_command(state l)
        tok++;
     }
     if (*tok == '#' || *tok == '\0') {
-        chan = l->prompt;
         raw("part #%s\r\n", chan);
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         printf("\x1b[35mLeft #%s!\r\n", chan);
         printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
-        chan = NULL;
-        strcpy(l->prompt, "");
+        strcpy(chan, "");
         return;
     }
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
@@ -1186,7 +1181,7 @@ static void nick_command(state l)
 
 static void handle_user_input(state l)
 {
-    if (l->buf == NULL) {
+    if (*l->buf == '\0') {
         return;
     }
     char *tok;
@@ -1206,8 +1201,8 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[1] == '/') {
-            raw("privmsg #%s :%s\r\n", l->prompt, l->buf + 2);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", l->prompt, l->buf + 2);
+            raw("privmsg #%s :%s\r\n", chan, l->buf + 2);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf + 2);
             return;
         }
         if (!strncmp(l->buf + 1, "MSG", 3) || !strncmp(l->buf + 1, "msg", 3)) {
@@ -1219,10 +1214,8 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[1] == '#') {
-            strcpy(cdef, l->buf + 2);
-            chan = cdef;
-            strcpy(l->prompt, chan);
-            printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", cdef);
+            strcpy(chan, l->buf + 2);
+            printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", chan);
             return;
         }
         raw("%s\r\n", l->buf + 1);
@@ -1236,16 +1229,16 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[2] == '\0') {
-            raw("privmsg #%s :\001ACTION %s\001\r\n", cdef, tok);
-            printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", cdef, tok);
+            raw("privmsg #%s :\001ACTION \001\r\n", chan);
+            printf("\x1b[35mprivmsg #%s :ACTION \x1b[0m\r\n", chan);
             return;
         }
         raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
         printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2,tok);
         return;
     default:           /*  send private message to default channel */
-        raw("privmsg #%s :%s\r\n", cdef, l->buf);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", cdef, l->buf);
+        raw("privmsg #%s :%s\r\n", chan, l->buf);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf);
         return;
     }
 }
@@ -1371,8 +1364,7 @@ int main(int argc, char **argv)
             pass = optarg;
             break;
         case 'c':
-            chan = optarg;
-            strcpy(cdef, chan);
+            strcpy(chan, optarg);
             break;
         case 'x':
             cmds = 1;
@@ -1421,12 +1413,8 @@ int main(int argc, char **argv)
     }
     dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};
     dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
-    char usrin[MSG_MAX] = "";
-    state_t l = {
-        .buf = usrin,
-        .buflen = MSG_MAX,
-        .prompt = cdef
-    };
+    state_t l;
+    l.buflen = MSG_MAX;
     state_reset(&l);
     int rc, editReturnFlag = 0;
     if (enable_raw_mode(ttyinfd) == -1) {
