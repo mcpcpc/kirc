@@ -857,7 +857,6 @@ static void handle_dcc(param p)
         }
 
         if (file_size == bytes_read) {
-            raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
             close(file_fd);
             return;
         }
