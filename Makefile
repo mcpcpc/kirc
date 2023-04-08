@@ -1,25 +1,21 @@
 .POSIX:
 ALL_WARNING = -Wall -Wextra -pedantic
-ALL_LDFLAGS = $(LDFLAGS)
 PREFIX = /usr/local
 LDLIBS = -lm
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
 
-all: clean kirc
-install: all
+all: kirc.c kirc.h
+	$(CC) $(LDFLAGS) -o kirc kirc.c $(LDLIBS)
+install: kirc
 	mkdir -p $(DESTDIR)$(BINDIR)
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
 	cp -f kirc $(DESTDIR)$(BINDIR)
 	cp -f kirc.1 $(DESTDIR)$(MANDIR)/man1
 	chmod 755 $(DESTDIR)$(BINDIR)/kirc
 	chmod 644 $(DESTDIR)$(MANDIR)/man1/kirc.1
-kirc: kirc.o
-	$(CC) $(ALL_LDFLAGS) -o $@ $< $(LDLIBS)
-kirc.o: kirc.c kirc.h
-	$(CC) $(ALL_WARNING) -o $@ -c $<
 clean:
-	rm -f kirc *.o
+	rm -f kirc
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/kirc
 	rm -f $(DESTDIR)$(MANDIR)/man1/kirc.1
