@@ -1,6 +1,6 @@
 .POSIX:
 ALL_WARNING = -Wall -Wextra -pedantic
-PREFIX = /usr/local
+PREFIX ?= /usr/local
 LDLIBS = -lm
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
