@@ -1228,12 +1228,12 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[2] == '\0') {
-            raw("privmsg #%s :\001ACTION \001\r\n", chan);
-            printf("\x1b[35mprivmsg #%s :ACTION \x1b[0m\r\n", chan);
+            raw("privmsg #%s :\001ACTION %s\001\r\n", chan, tok);
+            printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, tok);
             return;
         }
         raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
-        printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2,tok);
+        printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
         return;
     default:           /*  send private message to default channel */
         raw("privmsg #%s :%s\r\n", chan, l->buf);
