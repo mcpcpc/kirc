@@ -1071,14 +1071,11 @@ static void raw_parser(char *string)
     printf("\x1b[0m\r\n");
 }
 
-static char message_buffer[MSG_MAX + 1];
-static size_t message_end = 0;
-
 static int handle_server_message(void)
 {
+    static char message_buffer[MSG_MAX + 1];
     for (;;) {
-        ssize_t nread = read(conn, &message_buffer[message_end],
-                             MSG_MAX - message_end);
+        ssize_t nread = read(conn, message_buffer, MSG_MAX);
         if (nread == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 return 0;
@@ -1091,22 +1088,14 @@ static int handle_server_message(void)
             puts("\r\x1b[E");
             return -1;
         }
-        size_t i, old_message_end = message_end;
-        message_end += nread;
-        for (i = old_message_end; i < message_end; ++i) {
-            if (i != 0 && message_buffer[i - 1] == '\r'
-                && message_buffer[i] == '\n') {
-                char saved_char = message_buffer[i + 1];
-                message_buffer[i + 1] = '\0';
+        size_t i;
+        for (i = 0; i < nread - 1; ++i) {
+            if (message_buffer[i] == '\r' && message_buffer[i + 1] == '\n') {
+                char saved_char = message_buffer[i + 2];
+                message_buffer[i + 2] = '\0';
                 raw_parser(message_buffer);
-                message_buffer[i + 1] = saved_char;
-                memmove(&message_buffer, &message_buffer[i + 1], message_end - i - 1);
-                message_end = message_end - i - 1;
-                i = 0;
+                message_buffer[i + 2] = saved_char;
             }
-        }
-        if (message_end == MSG_MAX) {
-            message_end = 0;
         }
     }
 }
