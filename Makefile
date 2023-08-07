@@ -15,7 +15,7 @@ install: kirc
 	chmod 755 $(DESTDIR)$(BINDIR)/kirc
 	chmod 644 $(DESTDIR)$(MANDIR)/man1/kirc.1
 clean:
-	rm -f kirc
+	rm -f kirc kirc.o
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/kirc
 	rm -f $(DESTDIR)$(MANDIR)/man1/kirc.1
