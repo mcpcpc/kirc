@@ -1,12 +1,12 @@
 .POSIX:
 ALL_WARNING = -Wall -Wextra -pedantic
 PREFIX ?= /usr/local
-LDLIBS = -lm
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
 
 all: kirc.c kirc.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -o kirc kirc.c $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) kirc.c -o kirc
+
 install: kirc
 	mkdir -p $(DESTDIR)$(BINDIR)
 	mkdir -p $(DESTDIR)$(MANDIR)/man1

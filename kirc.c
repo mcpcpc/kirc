@@ -1438,10 +1438,10 @@ int main(int argc, char **argv)
             }
             if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
                 rc = handle_server_message();
+                if (rc == -2) {
+                    return 1;
+                }
                 if (rc != 0) {
-                    if (rc == -2) {
-                        return 1;
-                    }
                     return 0;
                 }
                 refresh_line(&l);
