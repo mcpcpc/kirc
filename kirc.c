@@ -733,13 +733,23 @@ static void print_error(char *fmt, ...)
     va_end(ap);
 }
 
-static short parse_dcc_send_message(const char *message, char *filename, unsigned *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
+static short parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
 {
+    /* TODO: Fix horrible hacks */
+
+    char ipv6 = 0;
+
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        return 1;
+        ipv6 = !!(ipv6_addr[15]);
+        if (ipv6 == 1) {
+            return 1;
+        }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        return 1;
+        ipv6 = !!(ipv6_addr[15]);
+        if (ipv6 == 1) {
+            return 1;
+        }
     }
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
         return 0;
@@ -807,7 +817,7 @@ static void handle_dcc(param p)
     const char *message = p->message + 5;
     char filename[FNM_MAX + 1];
     size_t file_size = 0;
-    unsigned ip_addr = 0;
+    unsigned int ip_addr = 0;
     unsigned short port = 0;
     char ipv6_addr[42];
 

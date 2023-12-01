@@ -15,7 +15,7 @@
 #define WRAP_LEN 26
 #define HIS_MAX 100
 #define FNM_MAX 255
-#define CON_MAX 10
+#define CON_MAX 20
 #define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
 #define DCC_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
