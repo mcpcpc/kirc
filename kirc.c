@@ -1128,7 +1128,7 @@ static void join_command(state l)
         printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
         return;
     }
-    strcpy(chan, strchr(l->buf, '#') + 1);
+    *stpncpy(chan, strchr(l->buf, '#') + 1, MSG_MAX - 1) = '\0';
     raw("join #%s\r\n", chan);
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
     printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
@@ -1165,15 +1165,27 @@ static void part_command(state l)
 static void msg_command(state l)
 {
     char *tok;
-    strtok_r(l->buf + 5, " ", &tok);
+    strtok_r(l->buf + 4, " ", &tok);
     int offset = 0;
-    while (*(l->buf + 5 + offset) == ' ') {
+    while (*(l->buf + 4 + offset) == ' ') {
         offset ++;
     }
-    raw("privmsg %s :%s\r\n", l->buf + 5 + offset, tok);
-    if (strncmp(l->buf + 5 + offset, "NickServ", 8)) {
-        printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 5 + offset, tok);
+    raw("privmsg %s :%s\r\n", l->buf + 4 + offset, tok);
+    if (strncmp(l->buf + 4 + offset, "NickServ", 8)) {
+        printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 4 + offset, tok);
     }
+}
+
+static void action_command(state l)
+{
+    char *tok;
+    strtok_r(l->buf + 7, " ", &tok);
+    int offset = 0;
+    while (*(l->buf + 7 + offset) == ' ') {
+        offset ++;
+    }
+    raw("privmsg #%s :\001ACTION %s\001\r\n", chan, l->buf + 7 + offset);
+    printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, l->buf + 7 + offset);
 }
 
 static void nick_command(state l)
@@ -1223,8 +1235,7 @@ static void handle_user_input(state l)
             return;
         }
         if (!strncmp(l->buf + 1, "ACTION", 6) || !strncmp(l->buf + 1, "action", 6)) {
-            raw("privmsg #%s :\001ACTION %s\001\r\n", chan, l->buf + 8);
-            printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, l->buf + 8);
+            action_command(l);
             return;
         }
         if (l->buf[1] == '#') {
