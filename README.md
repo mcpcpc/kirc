@@ -18,6 +18,9 @@ Consult `man kirc` for a full list and explanation of available arguments.
     kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname]
          [-u username] [-k password] [-a token] [-o logfile] [-e|x|v|V]
 
+## DCC
+	DCC transfers are always accpeted without user interaction and downloaded to the current directory.
+
 ## Command Aliases
 
     <message>                   send PRIVMSG to the current channel.
