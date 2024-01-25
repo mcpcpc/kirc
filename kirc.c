@@ -1178,12 +1178,11 @@ static void msg_command(state l)
 
 static void action_command(state l)
 {
-    char *tok;
-    strtok_r(l->buf + 7, " ", &tok);
     int offset = 0;
     while (*(l->buf + 7 + offset) == ' ') {
         offset ++;
     }
+
     raw("privmsg #%s :\001ACTION %s\001\r\n", chan, l->buf + 7 + offset);
     printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, l->buf + 7 + offset);
 }
