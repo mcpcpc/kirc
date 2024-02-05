@@ -983,6 +983,7 @@ static void param_print_private(param p)
     if (p->channel != NULL && (strcmp(p->channel, nick) == 0)) {
         handle_ctcp(p);
         printf("%*s\x1b[33;1m%-.*s [PRIVMSG]\x1b[36m ", s, "", p->nicklen, p->nickname);
+        p->offset += sizeof(" [PRIVMSG]");
     } else if (p->channel != NULL && strcmp(p->channel + 1, chan)) {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m", s, "", p->nicklen, p->nickname);
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
