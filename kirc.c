@@ -582,7 +582,7 @@ static inline void state_reset(state l)
     history_add("");
 }
 
-static char *ctime_now(char buf[26])
+static char *ctime_now(char *buf)
 {
     struct tm tm_;
     time_t now = time(NULL);
