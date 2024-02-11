@@ -5,9 +5,8 @@ BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
 
 kirc: kirc.c kirc.h
-
-all: kirc
 	$(CC) $(CFLAGS) $(LDFLAGS) kirc.c -o kirc
+all: kirc
 
 install: kirc
 	mkdir -p $(DESTDIR)$(BINDIR)
