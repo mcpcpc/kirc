@@ -4,10 +4,12 @@ PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
 
-all: kirc.c kirc.h
+kirc: kirc.c kirc.h
+
+all: kirc
 	$(CC) $(CFLAGS) $(LDFLAGS) kirc.c -o kirc
 
-install: all
+install: kirc
 	mkdir -p $(DESTDIR)$(BINDIR)
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
 	cp -f kirc $(DESTDIR)$(BINDIR)
