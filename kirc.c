@@ -1133,6 +1133,7 @@ static void join_command(state l)
     raw("join #%s\r\n", chan);
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
     printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
+    l->nick_privmsg = 0;
 }
 
 static void part_command(state l)
@@ -1188,6 +1189,20 @@ static void action_command(state l)
     printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, l->buf + 7 + offset);
 }
 
+static void set_privmsg_command(state l)
+{
+    int offset = 0;
+    while (*(l->buf + 11 + offset) == ' ') {
+        offset ++;
+    }
+
+    strcpy(chan, l->buf + 11 + offset);
+
+    printf("\x1b[35mNew privmsg target: %s\x1b[0m\r\n", l->buf + 11 + offset);
+    l->nick_privmsg = 1;
+}
+
+
 static void nick_command(state l)
 {
     char *tok;
@@ -1238,8 +1253,14 @@ static void handle_user_input(state l)
             action_command(l);
             return;
         }
+        if (!strncmp(l->buf + 1, "SETPRIVMSG", 10) || !strncmp(l->buf + 1, "setprivmsg", 10)) {
+            set_privmsg_command(l);
+            return;
+        }
+
         if (l->buf[1] == '#') {
             strcpy(chan, l->buf + 2);
+            l->nick_privmsg = 0;
             printf("\x1b[35mnew channel: #%s\x1b[0m\r\n", chan);
             return;
         }
@@ -1257,8 +1278,14 @@ static void handle_user_input(state l)
         printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
         return;
     default:           /*  send private message to default channel */
-        raw("privmsg #%s :%s\r\n", chan, l->buf);
-        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf);
+        if(l->nick_privmsg == 0) {
+            raw("privmsg #%s :%s\r\n", chan, l->buf);
+            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf);
+        }
+        else {
+            raw("privmsg %s :%s\r\n", chan, l->buf);
+            printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", chan, l->buf);
+        }
         return;
     }
 }
@@ -1434,6 +1461,7 @@ int main(int argc, char **argv)
     dcc_sessions.sock_fds[CON_MAX] = (struct pollfd){.fd = ttyinfd,.events = POLLIN};
     dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
     state_t l;
+    memset(&l, 0, sizeof(l));
     l.buflen = MSG_MAX;
     state_reset(&l);
     int rc, editReturnFlag = 0;
