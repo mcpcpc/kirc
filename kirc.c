@@ -737,16 +737,14 @@ static short parse_dcc_send_message(const char *message, char *filename, unsigne
 {
     /* TODO: Fix horrible hacks */
 
-    char ipv6 = 0;
-
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        ipv6 = !!(ipv6_addr[15]);
+        char ipv6 = !!(ipv6_addr[15]);
         if (ipv6 == 1) {
             return 1;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        ipv6 = !!(ipv6_addr[15]);
+        char ipv6 = !!(ipv6_addr[15]);
         if (ipv6 == 1) {
             return 1;
         }
