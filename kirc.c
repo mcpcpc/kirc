@@ -1178,8 +1178,6 @@ static void msg_command(state l)
 
 static void action_command(state l)
 {
-    char *tok;
-    strtok_r(l->buf + 7, " ", &tok);
     int offset = 0;
     while (*(l->buf + 7 + offset) == ' ') {
         offset ++;
