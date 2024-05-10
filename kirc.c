@@ -738,14 +738,12 @@ static short parse_dcc_send_message(const char *message, char *filename, unsigne
     /* TODO: Fix horrible hacks */
 
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        char ipv6 = !!(ipv6_addr[15]);
-        if (ipv6 == 1) {
+        if (ipv6_addr[15]) {
             return 1;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %41s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        char ipv6 = !!(ipv6_addr[15]);
-        if (ipv6 == 1) {
+        if (ipv6_addr[15]) {
             return 1;
         }
     }
@@ -771,7 +769,7 @@ static short parse_dcc_accept_message(const char *message, char *filename, unsig
     return 1;
 }
 
-static void open_socket(int slot, int *file_fd)
+static void open_socket(int slot, int file_fd)
 {
     int sock_fd;
     if(!ipv6) {
@@ -779,7 +777,7 @@ static void open_socket(int slot, int *file_fd)
         struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
             close(sock_fd);
-            close(*file_fd);
+            close(file_fd);
             perror("connect");
             return;
         }
@@ -789,20 +787,20 @@ static void open_socket(int slot, int *file_fd)
         struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin6;
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
             close(sock_fd);
-            close(*file_fd);
+            close(file_fd);
             perror("connect");
             return;
         }
     }
     if (sock_fd < 0) {
-        close(*file_fd);
+        close(file_fd);
         perror("socket");
         return;
     }
     int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
     if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
         close(sock_fd);
-        close(*file_fd);
+        close(file_fd);
         perror("fcntl");
         return;
     }
@@ -817,7 +815,9 @@ static void handle_dcc(param p)
     size_t file_size = 0;
     unsigned int ip_addr = 0;
     unsigned short port = 0;
-    char ipv6_addr[42];
+    char ipv6_addr[INET6_ADDRSTRLEN];
+
+    memset(ipv6_addr, 0, sizeof(ipv6_addr));
 
     int slot = -1;
     int file_fd;
@@ -874,6 +874,7 @@ static void handle_dcc(param p)
             .file_size = file_size,
             .file_fd = file_fd,
         };
+
         strcpy(dcc_sessions.slots[slot].filename, filename);
         if(!ipv6) {
             dcc_sessions.slots[slot].sin  = (struct sockaddr_in){
@@ -883,6 +884,7 @@ static void handle_dcc(param p)
             };
             goto check_resume;
         }
+
         struct in6_addr result;
         if (inet_pton(AF_INET6, ipv6_addr, &result) != 1){
             close(file_fd);
@@ -899,9 +901,10 @@ check_resume:
             p->nickname, filename, port, bytes_read);
             return;
         }
-        open_socket(slot, &file_fd);
+        open_socket(slot, file_fd);
         return;
     }
+
     if (!strncmp(message, "ACCEPT", 6)) {
         if(parse_dcc_accept_message(message, filename, &port, &file_size)) {
             return;
@@ -914,7 +917,7 @@ check_resume:
         }
 
         file_fd = dcc_sessions.slots[slot].file_fd;
-        open_socket(slot, &file_fd);
+        open_socket(slot, file_fd);
         return;
     }
 }
@@ -929,7 +932,7 @@ static void handle_ctcp(param p)
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", p->nickname);
         return;
     }
-    if (!strncmp(message, "TIME", 7)) {
+    if (!strncmp(message, "TIME", 4)) {
         char buf[26];
         if (!ctime_now(buf)) {
             raw("NOTICE %s :\001TIME %s\001\r\n", p->nickname, buf);
