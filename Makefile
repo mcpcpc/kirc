@@ -1,5 +1,5 @@
 .POSIX:
-ALL_WARNING = -Wall -Wextra -pedantic
+ALL_WARNING = -Wall -Wextra -pedantic -std=c99
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
