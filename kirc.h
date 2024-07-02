@@ -10,7 +10,7 @@
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING DCC"
 #define VERSION "0.3.2"
 #define TESTCHARS "\xe1\xbb\xa4"
-#define MSG_MAX 512
+#define MSG_MAX 4096
 #define CHA_MAX 200
 #define WRAP_LEN 26
 #define HIS_MAX 100
