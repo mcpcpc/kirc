@@ -103,7 +103,7 @@ static int get_columns(int ifd, int ofd)
     }
     char seq[32];
     snprintf(seq, sizeof(seq), "\x1b[%dD", cols - start);
-    (void)write(ofd, seq, strnlen(seq, 32));
+    write(ofd, seq, strnlen(seq, 32));
     return cols;
 }
 
@@ -737,12 +737,12 @@ static short parse_dcc_send_message(const char *message, char *filename, unsigne
 {
     /* TODO: Fix horrible hacks */
 
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         if (ipv6_addr[15]) {
             return 1;
         }
     }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         if (ipv6_addr[15]) {
             return 1;
         }
