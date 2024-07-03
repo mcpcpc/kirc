@@ -110,10 +110,15 @@ struct abuf {
     int len;
 };
 
-struct dcc_connection {
-    char filename[FNM_MAX + 1];
+union sockaddr_in46 {
     struct sockaddr_in sin;
     struct sockaddr_in6 sin6;
+    int sin_family;
+};
+
+struct dcc_connection {
+    char filename[FNM_MAX + 1];
+    union sockaddr_in46 sin46;
     size_t bytes_read;
     size_t file_size;
     int file_fd;

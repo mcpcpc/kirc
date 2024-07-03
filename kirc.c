@@ -774,7 +774,7 @@ static void open_socket(int slot, int file_fd)
     int sock_fd;
     if(!ipv6) {
         sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin;
+        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin46.sin;
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
             close(sock_fd);
             close(file_fd);
@@ -784,7 +784,7 @@ static void open_socket(int slot, int file_fd)
     }
     else {
         sock_fd = socket(AF_INET6, SOCK_STREAM, 0);
-        struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin6;
+        struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin46.sin6;
         if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
             close(sock_fd);
             close(file_fd);
@@ -877,7 +877,7 @@ static void handle_dcc(param p)
 
         strcpy(dcc_sessions.slots[slot].filename, filename);
         if(!ipv6) {
-            dcc_sessions.slots[slot].sin  = (struct sockaddr_in){
+            dcc_sessions.slots[slot].sin46.sin  = (struct sockaddr_in){
                 .sin_family = AF_INET,
                 .sin_addr = (struct in_addr){htonl(ip_addr)},
                 .sin_port = htons(port),
@@ -889,7 +889,7 @@ static void handle_dcc(param p)
         if (inet_pton(AF_INET6, ipv6_addr, &result) != 1){
             close(file_fd);
         }
-        dcc_sessions.slots[slot].sin6 = (struct sockaddr_in6){
+        dcc_sessions.slots[slot].sin46.sin6 = (struct sockaddr_in6){
             .sin6_family = AF_INET6,
             .sin6_addr = result,
             .sin6_port = htons(port),
