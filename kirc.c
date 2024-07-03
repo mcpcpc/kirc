@@ -992,9 +992,9 @@ static void param_print_private(param p)
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
     }
-    if (!strncmp(p->message, "\x01" "ACTION", 7)) {
-        p->message += 7;
-        p->offset += 10;
+    if (!strncmp(p->message, "\x01" "ACTION", sizeof("ACTION"))) {
+        p->message += sizeof("ACTION");
+        p->offset += sizeof("[ACTION] ");
         printf("[ACTION] ");
     }
 }
@@ -1014,7 +1014,7 @@ static void param_print_channel(param p)
 
 static void raw_parser(char *string)
 {
-    if (!strncmp(string, "PING", 4)) {
+    if (!strncmp(string, "PING", sizeof("PING") - 1)) {
         string[1] = 'O';
         raw("%s\r\n", string);
         return;
@@ -1048,7 +1048,7 @@ static void raw_parser(char *string)
         small_screen = 0;
         p.nicklen = WRAP_LEN;
     }
-    if (!strncmp(p.command, "001", 3) && *chan != '\0') {
+    if (!strncmp(p.command, "001", sizeof("001") - 1) && *chan != '\0') {
         char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(chan, tok);
@@ -1056,23 +1056,23 @@ static void raw_parser(char *string)
         }
         return;
     }
-    if (!strncmp(p.command, "QUIT", 4)) {
+    if (!strncmp(p.command, "QUIT", sizeof("QUIT") - 1)) {
         param_print_quit(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "PART", 4)) {
+    }if (!strncmp(p.command, "PART", sizeof("PART") - 1)) {
         param_print_part(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "JOIN", 4)) {
+    }if (!strncmp(p.command, "JOIN", sizeof("JOIN") - 1)) {
         param_print_join(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "NICK", 4)) {
+    }if (!strncmp(p.command, "NICK", sizeof("NICK") - 1)) {
         param_print_nick(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "PRIVMSG", 7)) {
+    }if (!strncmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) {
         param_print_private(&p);
         message_wrap(&p);
         printf("\x1b[0m\r\n");
