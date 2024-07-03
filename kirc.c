@@ -738,12 +738,12 @@ static short parse_dcc_send_message(const char *message, char *filename, unsigne
     /* TODO: Fix horrible hacks */
 
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        if (!strchr(ipv6_addr, ':')) {
+        if (strchr(ipv6_addr, ':')) {
             return 1;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        if (!strchr(ipv6_addr, ':')) {
+        if (strchr(ipv6_addr, ':')) {
             return 1;
         }
     }
