@@ -738,12 +738,12 @@ static short parse_dcc_send_message(const char *message, char *filename, unsigne
     /* TODO: Fix horrible hacks */
 
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        if (ipv6_addr[INET_ADDRSTRLEN]) {
+        if (!strchr(ipv6_addr, ':')) {
             return 1;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
-        if (ipv6_addr[INET_ADDRSTRLEN]) {
+        if (!strchr(ipv6_addr, ':')) {
             return 1;
         }
     }
@@ -822,7 +822,7 @@ static void handle_dcc(param p)
     int slot = -1;
     int file_fd;
 
-    if (!strncmp(message, "SEND", 4)) {
+    if (!strncmp(message, "SEND", sizeof("SEND") - 1)) {
         while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
 
         if (slot == CON_MAX) {
@@ -905,7 +905,7 @@ check_resume:
         return;
     }
 
-    if (!strncmp(message, "ACCEPT", 6)) {
+    if (!strncmp(message, "ACCEPT", sizeof("ACCEPT") - 1)) {
         if(parse_dcc_accept_message(message, filename, &port, &file_size)) {
             return;
         }
@@ -924,29 +924,29 @@ check_resume:
 
 static void handle_ctcp(param p)
 {
-    if (p->message[0] != '\001' && strncmp(p->message, "ACTION", 6)) {
+    if (p->message[0] != '\001' && strncmp(p->message, "ACTION", sizeof("ACTION") - 1)) {
         return;
     }
     const char *message = p->message + 1;
-    if (!strncmp(message, "VERSION", 7)) {
+    if (!strncmp(message, "VERSION", sizeof("VERSION") - 1)) {
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", p->nickname);
         return;
     }
-    if (!strncmp(message, "TIME", 4)) {
+    if (!strncmp(message, "TIME", sizeof("TIME") - 1)) {
         char buf[26];
         if (!ctime_now(buf)) {
             raw("NOTICE %s :\001TIME %s\001\r\n", p->nickname, buf);
         }
         return;
     }
-    if (!strncmp(message, "CLIENTINFO", 10)) {
+    if (!strncmp(message, "CLIENTINFO", sizeof("CLIENTINFO") - 1)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", p->nickname);
         return;
-    }if (!strncmp(message, "PING", 4)) {
+    }if (!strncmp(message, "PING", sizeof("PING") - 1)) {
         raw("NOTICE %s :\001%s\r\n", p->nickname, message);
         return;
     }
-    if (!strncmp(message, "DCC", 3)) {
+    if (!strncmp(message, "DCC", sizeof("DCC") - 1)) {
         handle_dcc(p);
         return;
     }
