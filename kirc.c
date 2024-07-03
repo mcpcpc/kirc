@@ -733,28 +733,26 @@ static void print_error(char *fmt, ...)
     va_end(ap);
 }
 
-static signed char parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
+static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
 {
-    /* TODO: Fix horrible hacks */
-
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
-            return 1;
+            return AF_INET6;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
-            return 1;
+            return AF_INET6;
         }
     }
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
-        return 0;
+        return AF_INET;
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
-        return 0;
+        return AF_INET;
     }
     print_error("unable to parse DCC message '%s'", message);
-    return -1;
+    return 0;
 }
 
 static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
@@ -771,26 +769,14 @@ static char parse_dcc_accept_message(const char *message, char *filename, unsign
 
 static void open_socket(int slot, int file_fd)
 {
-    int sock_fd;
-    if(!ipv6) {
-        sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in sockaddr = dcc_sessions.slots[slot].sin46.sin;
-        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-            close(sock_fd);
-            close(file_fd);
-            perror("connect");
-            return;
-        }
-    }
-    else {
-        sock_fd = socket(AF_INET6, SOCK_STREAM, 0);
-        struct sockaddr_in6 sockaddr = dcc_sessions.slots[slot].sin46.sin6;
-        if (connect(sock_fd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
-            close(sock_fd);
-            close(file_fd);
-            perror("connect");
-            return;
-        }
+    int sock_fd = socket(dcc_sessions.slots[slot].sin46.sin_family, SOCK_STREAM, 0);
+    if (connect(sock_fd, (const struct sockaddr *)&dcc_sessions.slots[slot].sin46,
+                         (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                                                                  sizeof(struct sockaddr_in6)) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("connect");
+        return;
     }
     if (sock_fd < 0) {
         close(file_fd);
@@ -832,8 +818,8 @@ static void handle_dcc(param p)
 
         /* TODO: the file size parameter is optional so this isn't strictly correct. */
 
-        ipv6 = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
-        if(ipv6 == -1) {
+        sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
+        if(sin_family == 0) {
             return;
         }
 
@@ -876,7 +862,7 @@ static void handle_dcc(param p)
         };
 
         strcpy(dcc_sessions.slots[slot].filename, filename);
-        if(!ipv6) {
+        if(sin_family == AF_INET) {
             dcc_sessions.slots[slot].sin46.sin  = (struct sockaddr_in){
                 .sin_family = AF_INET,
                 .sin_addr = (struct in_addr){htonl(ip_addr)},
