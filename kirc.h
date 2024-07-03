@@ -60,7 +60,7 @@ static char *olog = NULL;       /* chat log path */
 static char *inic = NULL;       /* additional server command */
 static int cmds = 0;            /* indicates additional server commands */
 static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
-static short ipv6 = 0;
+static signed char ipv6 = 0;
 
 /* define function macros */
 #define htonll(x) ((1==htonl(1)) ? (x) : (((uint64_t)htonl((x) & 0xFFFFFFFFUL)) << 32) | htonl((uint32_t)((x) >> 32)))
@@ -74,7 +74,7 @@ static int rawmode = 0;
 static int atexit_registered = 0;
 static int history_len = 0;
 static char **history = NULL;
-static short small_screen;
+static char small_screen;
 
 typedef struct PARAMETERS {
     char *prefix;

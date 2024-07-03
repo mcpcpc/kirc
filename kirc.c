@@ -733,7 +733,7 @@ static void print_error(char *fmt, ...)
     va_end(ap);
 }
 
-static short parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
+static signed char parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
 {
     /* TODO: Fix horrible hacks */
 
@@ -757,7 +757,7 @@ static short parse_dcc_send_message(const char *message, char *filename, unsigne
     return -1;
 }
 
-static short parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
+static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
 {
     if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, port, file_size) == 3) {
         return 0;
