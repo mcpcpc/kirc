@@ -752,7 +752,7 @@ static sa_family_t parse_dcc_send_message(const char *message, char *filename, u
         return AF_INET;
     }
     print_error("unable to parse DCC message '%s'", message);
-    return 0;
+    return AF_UNSPEC;
 }
 
 static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
@@ -819,7 +819,7 @@ static void handle_dcc(param p)
         /* TODO: the file size parameter is optional so this isn't strictly correct. */
 
         sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
-        if(sin_family == 0) {
+        if(sin_family == AF_UNSPEC) {
             return;
         }
 
