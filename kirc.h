@@ -10,7 +10,7 @@
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING DCC"
 #define VERSION "0.3.2"
 #define TESTCHARS "\xe1\xbb\xa4"
-#define MSG_MAX 512
+#define MSG_MAX 4096
 #define CHA_MAX 200
 #define WRAP_LEN 26
 #define HIS_MAX 100
@@ -60,7 +60,6 @@ static char *olog = NULL;       /* chat log path */
 static char *inic = NULL;       /* additional server command */
 static int cmds = 0;            /* indicates additional server commands */
 static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
-static short ipv6 = 0;
 
 /* define function macros */
 #define htonll(x) ((1==htonl(1)) ? (x) : (((uint64_t)htonl((x) & 0xFFFFFFFFUL)) << 32) | htonl((uint32_t)((x) >> 32)))
@@ -74,7 +73,7 @@ static int rawmode = 0;
 static int atexit_registered = 0;
 static int history_len = 0;
 static char **history = NULL;
-static short small_screen;
+static char small_screen;
 
 typedef struct PARAMETERS {
     char *prefix;
@@ -110,10 +109,15 @@ struct abuf {
     int len;
 };
 
-struct dcc_connection {
-    char filename[FNM_MAX + 1];
+union sockaddr_in46 {
     struct sockaddr_in sin;
     struct sockaddr_in6 sin6;
+    sa_family_t sin_family;
+};
+
+struct dcc_connection {
+    char filename[FNM_MAX + 1];
+    union sockaddr_in46 sin46;
     size_t bytes_read;
     size_t file_size;
     int file_fd;
