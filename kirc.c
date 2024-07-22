@@ -751,6 +751,27 @@ static sa_family_t parse_dcc_send_message(const char *message, char *filename, u
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
         return AF_INET;
     }
+    /* filesize not given */
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu", filename, ipv6_addr, port) == 3) {
+        if (strchr(ipv6_addr, ':')) {
+            *file_size = SIZE_MAX;
+            return AF_INET6;
+        }
+    }
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu", filename, ipv6_addr, port) == 3) {
+        if (strchr(ipv6_addr, ':')) {
+            *file_size = SIZE_MAX;
+            return AF_INET6;
+        }
+    }
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu", filename, ip_addr, port) == 3) {
+        *file_size = SIZE_MAX;
+        return AF_INET;
+    }
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu", filename, ip_addr, port) == 3) {
+        *file_size = SIZE_MAX;
+        return AF_INET;
+    }
     print_error("unable to parse DCC message '%s'", message);
     return AF_UNSPEC;
 }
@@ -761,6 +782,15 @@ static char parse_dcc_accept_message(const char *message, char *filename, unsign
         return 0;
     }
     if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, port, file_size) == 3) {
+        return 0;
+    }
+    /* filesize not given */
+    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu", filename, port) == 2) {
+        *file_size = SIZE_MAX;
+        return 0;
+    }
+    if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu", filename, port) == 2) {
+        *file_size = SIZE_MAX;
         return 0;
     }
     print_error("unable to parse DCC message '%s'", message);
@@ -793,11 +823,15 @@ static void open_socket(int slot, int file_fd)
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
-/* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
 {
+    if (!dcc) {
+        return;
+    }
+
     const char *message = p->message + 5;
-    char filename[FNM_MAX + 1];
+    char _filename[FNM_MAX + 1];
+    char *filename = _filename;
     size_t file_size = 0;
     unsigned int ip_addr = 0;
     unsigned short port = 0;
@@ -816,17 +850,32 @@ static void handle_dcc(param p)
             return;
         }
 
-        /* TODO: the file size parameter is optional so this isn't strictly correct. */
-
         sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
         if(sin_family == AF_UNSPEC) {
             return;
         }
 
-        /* TODO: at this point we should make sure that the filename is actually a filename
-           and not a file path. furthermore, it would be helpful to give the user
-           the option to rename to the file.
-        */
+        for(int i = 0; _filename[i]; i++) {
+            if (_filename[i] == '/') {
+                filename = _filename + i + 1;
+            }
+        }
+
+        char filepath[DIR_MAX + FNM_MAX  + 2];
+
+        if (dcc_dir) {
+            char *ptr = stpncpy(filepath, dcc_dir, DIR_MAX);
+            *ptr = '\0';
+            if (ptr != filepath && *(ptr - 1) != '/') {
+                *ptr = '/';
+                ptr++;
+                *ptr = '\0';
+            }
+
+            strcpy(ptr, filename);
+
+            filename = filepath;
+        }
 
         int file_resume = 0;
         size_t bytes_read = 0;
@@ -1297,9 +1346,6 @@ static inline void slot_clear(size_t i) {
     dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
 }
 
-/* TODO: implicitly assumes that the size reported was the correct size */
-/* TODO: should we just close the file and keep on running if we get
-   an error we can recover from? */
 static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
     const char *err_str;
     int sock_fd = dcc_sessions.sock_fds[i].fd;
@@ -1354,6 +1400,13 @@ handle_err:
         return;
     } else {
         perror(err_str);
+        dcc_sessions.slots[i].err_cnt++;
+        if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
+            shutdown(sock_fd, SHUT_RDWR);
+            close(sock_fd);
+            close(file_fd);
+            slot_clear(i);
+        }
         return;
     }
 }
@@ -1362,16 +1415,19 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:dexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
             break;
         case 'V':
-            ++verb;
+            verb = 1;
             break;
         case 'e':
-            ++sasl;
+            sasl = 1;
+            break;
+        case 'd':
+            dcc = 1;
             break;
         case 's':
             host = optarg;
@@ -1400,6 +1456,9 @@ int main(int argc, char **argv)
         case 'c':
             strcpy(chan, optarg);
             break;
+        case 'D':
+            dcc_dir = optarg;
+            break;
         case 'x':
             cmds = 1;
             inic = argv[optind];
@@ -1409,7 +1468,7 @@ int main(int argc, char **argv)
             break;
         }
     }
-    if (cmds > 0) {
+    if (cmds) {
         int flag = 0;
         for (int i = 0; i < CBUF_SIZ && flag > -1; i++) {
             flag = read(STDIN_FILENO, &cbuf[i], 1);
@@ -1459,39 +1518,39 @@ int main(int argc, char **argv)
         return 1;
     }
     for (;;) {
-        if (poll(dcc_sessions.sock_fds, CON_MAX + 2, -1) != -1) {
-            if (dcc_sessions.sock_fds[CON_MAX + 0].revents & POLLIN) {
-                editReturnFlag = edit(&l);
-                if (editReturnFlag > 0) {
-                    history_add(l.buf);
-                    handle_user_input(&l);
-                    state_reset(&l);
-                } else if (editReturnFlag < 0) {
-                    puts("\r\n");
-                    return 0;
-                }
-                refresh_line(&l);
-            }
-            if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
-                rc = handle_server_message();
-                if (rc == -2) {
-                    return 1;
-                }
-                if (rc != 0) {
-                    return 0;
-                }
-                refresh_line(&l);
-            }
-
-            for (int i = 0; i < CON_MAX; i++) {
-                slot_process(&l, buf, sizeof(buf), i);
-            }
-        } else {
+        if (poll(dcc_sessions.sock_fds, CON_MAX + 2, -1) == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             }
             perror("poll");
             return 1;
+        }
+        if (dcc_sessions.sock_fds[CON_MAX + 0].revents & POLLIN) {
+            editReturnFlag = edit(&l);
+            if (editReturnFlag > 0) {
+                history_add(l.buf);
+                handle_user_input(&l);
+                state_reset(&l);
+            } else if (editReturnFlag < 0) {
+                puts("\r\n");
+                return 0;
+            }
+            refresh_line(&l);
+        }
+        if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
+            rc = handle_server_message();
+            if (rc == -2) {
+                return 1;
+            }
+            if (rc != 0) {
+                return 0;
+            }
+            refresh_line(&l);
+        }
+        if (dcc) {
+            for (int i = 0; i < CON_MAX; i++) {
+                slot_process(&l, buf, sizeof(buf), i);
+            }
         }
     }
 }

@@ -10,11 +10,13 @@
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING DCC"
 #define VERSION "0.3.2"
 #define TESTCHARS "\xe1\xbb\xa4"
-#define MSG_MAX 4096
+#define MSG_MAX 512 /* irc rfc says lines are 512 char's max, but servers can accept more */
 #define CHA_MAX 200
 #define WRAP_LEN 26
 #define HIS_MAX 100
 #define FNM_MAX 255
+#define DIR_MAX 256
+#define ERR_MAX 1 /* number of read/write errors before DCC slot is discarded */
 #define CON_MAX 20
 #define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
@@ -28,6 +30,7 @@
 #endif
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -45,9 +48,11 @@
 #include <arpa/inet.h>
 
 static int conn;                /* connection socket */
-static int verb = 0;            /* verbose output */
-static int sasl = 0;            /* SASL method */
-static int isu8 = 0;            /* UTF-8 flag */
+static char verb = 0;           /* verbose output */
+static char sasl = 0;           /* SASL method */
+static char isu8 = 0;           /* UTF-8 flag */
+static char dcc = 0;            /* DCC flag */
+static char* dcc_dir = NULL;      /* DCC download directory */
 static const char *host = "irc.libera.chat";  /* host address */
 static const char *port = "6667";     /* port */
 static char chan[MSG_MAX];      /* channel and prompt */
@@ -58,7 +63,7 @@ static char *auth = NULL;       /* PLAIN SASL token */
 static char *real = NULL;       /* real name */
 static char *olog = NULL;       /* chat log path */
 static char *inic = NULL;       /* additional server command */
-static int cmds = 0;            /* indicates additional server commands */
+static char cmds = 0;           /* indicates additional server commands */
 static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 
 /* define function macros */
@@ -121,6 +126,7 @@ struct dcc_connection {
     size_t bytes_read;
     size_t file_size;
     int file_fd;
+    int err_cnt;
 };
 
 static struct {
