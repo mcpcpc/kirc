@@ -16,6 +16,7 @@
 #define HIS_MAX 100
 #define FNM_MAX 255
 #define DIR_MAX 256
+#define ERR_MAX 1 /* number of read/write errors before DCC slot is discarded */
 #define CON_MAX 20
 #define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
@@ -29,6 +30,7 @@
 #endif
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -124,6 +126,7 @@ struct dcc_connection {
     size_t bytes_read;
     size_t file_size;
     int file_fd;
+    int err_cnt;
 };
 
 static struct {
