@@ -797,7 +797,8 @@ static void open_socket(int slot, int file_fd)
 static void handle_dcc(param p)
 {
     const char *message = p->message + 5;
-    char filename[FNM_MAX + 1];
+    char _filename[FNM_MAX + 1];
+    char *filename = _filename;
     size_t file_size = 0;
     unsigned int ip_addr = 0;
     unsigned short port = 0;
@@ -823,10 +824,11 @@ static void handle_dcc(param p)
             return;
         }
 
-        /* TODO: at this point we should make sure that the filename is actually a filename
-           and not a file path. furthermore, it would be helpful to give the user
-           the option to rename to the file.
-        */
+        for(int i = 0; _filename[i]; i++) {
+            if (_filename[i] == '/') {
+                filename = _filename + i + 1;
+            }
+        }
 
         int file_resume = 0;
         size_t bytes_read = 0;
