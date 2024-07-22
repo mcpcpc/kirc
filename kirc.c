@@ -864,15 +864,15 @@ static void handle_dcc(param p)
         char filepath[DIR_MAX + FNM_MAX  + 2];
 
         if (dcc_dir) {
-            strncpy(filepath, dcc_dir, DIR_MAX);
-            filepath[DIR_MAX + 1] = '\0';
-            int len = strlen(filepath);
-            if (len && filepath[len - 1] != '/') {
-                filepath[len] = '/';
-                filepath[len + 1] = '\0';
+            char *ptr = stpncpy(filepath, dcc_dir, DIR_MAX);
+            *ptr = '\0';
+            if (ptr != filepath && *(ptr - 1) != '/') {
+                *ptr = '/';
+                ptr++;
+                *ptr = '\0';
             }
 
-            strcat(filepath, filename);
+            strcpy(ptr, filename);
 
             filename = filepath;
         }
