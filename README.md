@@ -15,11 +15,14 @@ Building and installing from source:
 
 Consult `man kirc` for a full list and explanation of available arguments.
 
-    kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname]
-         [-u username] [-k password] [-a token] [-o logfile] [-e|x|v|V]
+    kirc [-s hostname] [-p port] [-c channels] [-n nickname] [-r realname] [-a auth]
+         [-u username] [-k password] [-a token] [-o logfile] [-D directory] [-d|e|x|v|V]
 
 ## DCC
-	DCC transfers are always accpeted without user interaction and downloaded to the current directory.
+	DCC transfers are only accepted if the -d flag is passed to kirc.
+ 	If -d is passed to kirc, DCC transfers are always accpeted without user interaction
+  	and downloaded to the configured directory.
+	If no directory is set with the -D option, files are downloaded to the current directory.
 
 ## Command Aliases
 
