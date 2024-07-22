@@ -793,7 +793,6 @@ static void open_socket(int slot, int file_fd)
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
-/* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
 {
     if (!dcc) {
@@ -832,6 +831,22 @@ static void handle_dcc(param p)
             if (_filename[i] == '/') {
                 filename = _filename + i + 1;
             }
+        }
+
+        char filepath[DIR_MAX + FNM_MAX  + 2];
+
+        if (dcc_dir) {
+            strncpy(filepath, dcc_dir, DIR_MAX);
+            filepath[DIR_MAX + 1] = '\0';
+            int len = strlen(filepath);
+            if (len && filepath[len - 1] != '/') {
+                filepath[len] = '/';
+                filepath[len + 1] = '\0';
+            }
+
+            strcat(filepath, filename);
+
+            filename = filepath;
         }
 
         int file_resume = 0;
@@ -1368,19 +1383,19 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:dexvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:dexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
             break;
         case 'V':
-            ++verb;
+            verb = 1;
             break;
         case 'e':
-            ++sasl;
+            sasl = 1;
             break;
         case 'd':
-            ++dcc;
+            dcc = 1;
             break;
         case 's':
             host = optarg;
@@ -1409,6 +1424,9 @@ int main(int argc, char **argv)
         case 'c':
             strcpy(chan, optarg);
             break;
+        case 'D':
+            dcc_dir = optarg;
+            break;
         case 'x':
             cmds = 1;
             inic = argv[optind];
@@ -1418,7 +1436,7 @@ int main(int argc, char **argv)
             break;
         }
     }
-    if (cmds > 0) {
+    if (cmds) {
         int flag = 0;
         for (int i = 0; i < CBUF_SIZ && flag > -1; i++) {
             flag = read(STDIN_FILENO, &cbuf[i], 1);
