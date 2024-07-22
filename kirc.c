@@ -796,6 +796,10 @@ static void open_socket(int slot, int file_fd)
 /* TODO: since we don't have config files how do we configure a download directory? */
 static void handle_dcc(param p)
 {
+    if (!dcc) {
+        return;
+    }
+
     const char *message = p->message + 5;
     char _filename[FNM_MAX + 1];
     char *filename = _filename;
@@ -1364,7 +1368,7 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:exvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:dexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
@@ -1374,6 +1378,9 @@ int main(int argc, char **argv)
             break;
         case 'e':
             ++sasl;
+            break;
+        case 'd':
+            ++dcc;
             break;
         case 's':
             host = optarg;
@@ -1461,39 +1468,39 @@ int main(int argc, char **argv)
         return 1;
     }
     for (;;) {
-        if (poll(dcc_sessions.sock_fds, CON_MAX + 2, -1) != -1) {
-            if (dcc_sessions.sock_fds[CON_MAX + 0].revents & POLLIN) {
-                editReturnFlag = edit(&l);
-                if (editReturnFlag > 0) {
-                    history_add(l.buf);
-                    handle_user_input(&l);
-                    state_reset(&l);
-                } else if (editReturnFlag < 0) {
-                    puts("\r\n");
-                    return 0;
-                }
-                refresh_line(&l);
-            }
-            if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
-                rc = handle_server_message();
-                if (rc == -2) {
-                    return 1;
-                }
-                if (rc != 0) {
-                    return 0;
-                }
-                refresh_line(&l);
-            }
-
-            for (int i = 0; i < CON_MAX; i++) {
-                slot_process(&l, buf, sizeof(buf), i);
-            }
-        } else {
+        if (poll(dcc_sessions.sock_fds, CON_MAX + 2, -1) == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             }
             perror("poll");
             return 1;
+        }
+        if (dcc_sessions.sock_fds[CON_MAX + 0].revents & POLLIN) {
+            editReturnFlag = edit(&l);
+            if (editReturnFlag > 0) {
+                history_add(l.buf);
+                handle_user_input(&l);
+                state_reset(&l);
+            } else if (editReturnFlag < 0) {
+                puts("\r\n");
+                return 0;
+            }
+            refresh_line(&l);
+        }
+        if (dcc_sessions.sock_fds[CON_MAX + 1].revents & POLLIN) {
+            rc = handle_server_message();
+            if (rc == -2) {
+                return 1;
+            }
+            if (rc != 0) {
+                return 0;
+            }
+            refresh_line(&l);
+        }
+        if (dcc) {
+            for (int i = 0; i < CON_MAX; i++) {
+                slot_process(&l, buf, sizeof(buf), i);
+            }
         }
     }
 }

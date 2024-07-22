@@ -48,6 +48,7 @@ static int conn;                /* connection socket */
 static int verb = 0;            /* verbose output */
 static int sasl = 0;            /* SASL method */
 static int isu8 = 0;            /* UTF-8 flag */
+static int dcc = 0;             /* DCC flag */
 static const char *host = "irc.libera.chat";  /* host address */
 static const char *port = "6667";     /* port */
 static char chan[MSG_MAX];      /* channel and prompt */
