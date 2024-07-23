@@ -644,7 +644,7 @@ static int connection_initialize(void)
 {
     int gai_status;
     struct addrinfo *res, hints = {
-        .ai_family = AF_UNSPEC,
+        .ai_family = hint_family,
         .ai_socktype = SOCK_STREAM
     };
     if ((gai_status = getaddrinfo(host, port, &hints, &res)) != 0) {
@@ -1415,13 +1415,19 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:dexvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
             break;
         case 'V':
             verb = 1;
+            break;
+        case '4':
+            hint_family = AF_INET;
+            break;
+        case '6':
+            hint_family = AF_INET6;
             break;
         case 'e':
             sasl = 1;
