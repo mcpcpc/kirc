@@ -48,6 +48,7 @@
 #include <arpa/inet.h>
 
 static int conn;                /* connection socket */
+static int hint_family = AF_UNSPEC; /* desired ip version */
 static char verb = 0;           /* verbose output */
 static char sasl = 0;           /* SASL method */
 static char isu8 = 0;           /* UTF-8 flag */
