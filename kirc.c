@@ -1107,7 +1107,7 @@ static void raw_parser(char *string)
         param_print_nick(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) {
+    }if ((!strncmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) || (!strncmp(p.command, "NOTICE", sizeof("NOTICE") - 1))) {
         param_print_private(&p);
         message_wrap(&p);
         printf("\x1b[0m\r\n");
