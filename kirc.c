@@ -1391,13 +1391,13 @@ static void dcc_command(state l)
     }
 
     if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
-        for(char *ptr = tok; *ptr; ptr++ {
+        for(char *ptr = tok; *ptr; ptr++) {
             dcc_sessions.slots[slot].sin46.sin.sin_port *= 10;
             dcc_sessions.slots[slot].sin46.sin.sin_port += *ptr - '0';
         }
     }
     else {
-        for(char *ptr = tok; *ptr; ptr++ {
+        for(char *ptr = tok; *ptr; ptr++) {
             dcc_sessions.slots[slot].sin46.sin6.sin6_port *= 10;
             dcc_sessions.slots[slot].sin46.sin6.sin6_port += *ptr - '0';
         }
@@ -1505,8 +1505,16 @@ static inline void slot_clear(size_t i) {
     dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
 }
 
+static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
+/* TODO */
+}
+
 static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
     const char *err_str;
+    if (dcc_sessions.slots[i].write) {
+        slot_process_write(l, buf, buf_len, i);
+        return;
+    }
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
 
