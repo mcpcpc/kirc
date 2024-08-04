@@ -1334,6 +1334,8 @@ static void dcc_command(state l)
 
     dcc_sessions.slots[slot].sin46.sin_family = AF_INET;
 
+    char *ip_ptr = tok;
+
     while (*tok && *tok != ' ') {
         if (*tok == ':') {
             dcc_sessions.slots[slot].sin46.sin_family = AF_INET6;
@@ -1345,13 +1347,13 @@ static void dcc_command(state l)
         return;
     }
 
-     *tok = '\0'; /* *tok was ' ' */
+    *tok = '\0'; /* *tok was ' ' */
 
     char ip_addr_string[INET6_ADDRSTRLEN];
     memset(ip_addr_string, 0, sizeof(ip_addr_string));
 
     if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
-        if (inet_pton(AF_INET, tok, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
+        if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
         }
         int ind = 0;
@@ -1372,10 +1374,10 @@ static void dcc_command(state l)
         }
     }
     else {
-        if (inet_pton(AF_INET, tok, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
+        if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
         }
-        strcpy(ip_addr_string, tok);
+        strcpy(ip_addr_string, ip_ptr);
     }
 
     *tok = ' '; /* put back *tok */
