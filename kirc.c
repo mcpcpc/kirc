@@ -1338,6 +1338,7 @@ static void dcc_command(state l)
         if (*tok == ':') {
             dcc_sessions.slots[slot].sin46.sin_family = AF_INET6;
         }
+        tok++;
     }
 
     if (*tok == '\0') {
