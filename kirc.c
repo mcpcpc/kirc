@@ -1273,9 +1273,8 @@ static void dcc_command(state l)
         return;
     }
 
-    char target[CHA_MAX + 3]; /* limit nicks to CHA_MAX */
-    target[0] = '"';
-    char *ptarget = target + 1;
+    char target[CHA_MAX + 1]; /* limit nicks to CHA_MAX */
+    char *ptarget = target;
 
     int num = 0;
 
@@ -1283,8 +1282,7 @@ static void dcc_command(state l)
         *ptarget++ = *tok++;
     }
 
-    *ptarget = '"';
-    *(ptarget + 1) = '\0';
+    *ptarget = '\0';
 
     if (*tok == '\0' || *tok != ' ') {
         return;
@@ -1315,7 +1313,9 @@ static void dcc_command(state l)
 
 
     dcc_sessions.slots[slot].write = 1;
-    strcpy(dcc_sessions.slots[slot].filename, filename);
+    dcc_sessions.slots[slot].filename[0] = '"';
+    char *stp_cpy = stpncpy(dcc_sessions.slots[slot].filename + 1, filename, FNM_MAX - 2);
+    *stp_cpy = '"';
     dcc_sessions.slots[slot].file_fd = open(filepath, O_RDONLY);
 
     *tok = ' '; /* put back *tok */
