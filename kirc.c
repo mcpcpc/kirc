@@ -1286,7 +1286,7 @@ static void dcc_command(state l)
     *ptarget = '"';
     *(ptarget + 1) = '\0';
 
-    if (*tok || *tok != ' ') {
+    if (*tok == '\0' || *tok != ' ') {
         return;
     }
 
