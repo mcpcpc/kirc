@@ -855,6 +855,8 @@ static void handle_dcc(param p)
             return;
         }
 
+        dcc_sessions.slots[slot].write = 0;
+
         for(int i = 0; _filename[i]; i++) {
             if (_filename[i] == '/') {
                 filename = _filename + i + 1;
@@ -950,6 +952,8 @@ check_resume:
         if (slot == CON_MAX) {
             return;
         }
+
+        dcc_sessions.slots[slot].write = 0;
 
         file_fd = dcc_sessions.slots[slot].file_fd;
         open_socket(slot, file_fd);
@@ -1251,6 +1255,157 @@ static void nick_command(state l)
     strcpy(nick, tok);
 }
 
+static void dcc_command(state l)
+{
+    int slot = 0;
+    while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
+
+    if (slot == CON_MAX) {
+        return;
+    }
+
+    char *tok = l->buf + sizeof("dcc");
+    while (*tok == ' ') {
+        tok ++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    char target[CHA_MAX + 1]; /* limit nicks to CHA_MAX */
+    char *ptarget = target;
+
+    int num = 0;
+
+    while (*tok && *tok != ' ' && ++num < CHA_MAX) {
+        *ptarget++ = *tok++;
+    }
+
+    *ptarget = '\0';
+
+    if (*tok || *tok != ' ') {
+        return;
+    }
+
+    while (*tok == ' ') {
+        tok ++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    char *filepath = tok;
+    char *filename = tok;
+    while (*tok && *tok != ' ') {
+        if (*tok == '/') {
+            filename = tok + 1;
+        }
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    *tok = '\0'; /* *tok was ' ' */
+
+
+    dcc_sessions.slots[slot].write = 1;
+    strcpy(dcc_sessions.slots[slot].filename, filename);
+    dcc_sessions.slots[slot].file_fd = open(filepath, O_RDONLY);
+
+    *tok = ' '; /* put back *tok */
+
+    if (dcc_sessions.slots[slot].file_fd < 0) {
+        return;
+    }
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    dcc_sessions.slots[slot].sin46.sin_family = AF_INET;
+
+    while (*tok && *tok != ' ') {
+        if (*tok == ':') {
+            dcc_sessions.slots[slot].sin46.sin_family = AF_INET6;
+        }
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+     *tok = '\0'; /* *tok was ' ' */
+
+    char ip_addr_string[INET6_ADDRSTRLEN];
+    memset(ip_addr_string, 0, sizeof(ip_addr_string));
+
+    if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
+        if (inet_pton(AF_INET, tok, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
+            close(dcc_sessions.slots[slot].file_fd);
+        }
+        int ind = 0;
+        unsigned int ipv4_addr = (unsigned int)dcc_sessions.slots[slot].sin46.sin.sin_addr.s_addr;
+        while (ipv4_addr) {
+            ip_addr_string[ind] = ipv4_addr % 10;
+            ipv4_addr /= 10;
+            ind++;
+        }
+        char *begin = ip_addr_string;
+        char *end = strchr(ip_addr_string, '\0') - 1;
+        while (begin < end) {
+            char tmp = *begin;
+            *begin = *end;
+            *end = tmp;
+            begin++;
+            end--;
+        }
+    }
+    else {
+        if (inet_pton(AF_INET, tok, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
+            close(dcc_sessions.slots[slot].file_fd);
+        }
+        strcpy(ip_addr_string, tok);
+    }
+
+    *tok = ' '; /* put back *tok */
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    char *s_chr = strchr(tok, ' ');
+    if (s_chr) {
+        *s_chr = '\0';
+    }
+
+    if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
+        for(char *ptr = tok; *ptr; ptr++ {
+            dcc_sessions.slots[slot].sin46.sin.sin_port *= 10;
+            dcc_sessions.slots[slot].sin46.sin.sin_port += *ptr - '0';
+        }
+    }
+    else {
+        for(char *ptr = tok; *ptr; ptr++ {
+            dcc_sessions.slots[slot].sin46.sin6.sin6_port *= 10;
+            dcc_sessions.slots[slot].sin46.sin6.sin6_port += *ptr - '0';
+        }
+    }
+/* socket code to be added */
+    raw("privmsg %s :DCC SEND %s %s %s\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok);
+}
+
 static void handle_user_input(state l)
 {
     if (*l->buf == '\0') {
@@ -1291,6 +1446,10 @@ static void handle_user_input(state l)
         }
         if (!strncmp(l->buf + 1, "QUERY", sizeof("QUERY") - 1) || !strncmp(l->buf + 1, "query", sizeof("query") - 1)) {
             query_command(l);
+            return;
+        }
+        if (!strncmp(l->buf + 1, "DCC", sizeof("DCC") - 1) || !strncmp(l->buf + 1, "dcc", sizeof("dcc") - 1)) {
+            dcc_command(l);
             return;
         }
 

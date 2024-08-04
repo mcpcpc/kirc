@@ -122,12 +122,13 @@ union sockaddr_in46 {
 };
 
 struct dcc_connection {
-    char filename[FNM_MAX + 1];
     union sockaddr_in46 sin46;
     size_t bytes_read;
     size_t file_size;
     int file_fd;
     int err_cnt;
+    char filename[FNM_MAX + 1];
+    char write;
 };
 
 static struct {
