@@ -1273,8 +1273,9 @@ static void dcc_command(state l)
         return;
     }
 
-    char target[CHA_MAX + 1]; /* limit nicks to CHA_MAX */
-    char *ptarget = target;
+    char target[CHA_MAX + 3]; /* limit nicks to CHA_MAX */
+    target[0] = '"';
+    char *ptarget = target + 1;
 
     int num = 0;
 
@@ -1282,7 +1283,8 @@ static void dcc_command(state l)
         *ptarget++ = *tok++;
     }
 
-    *ptarget = '\0';
+    *ptarget = '"';
+    *(ptarget + 1) = '\0';
 
     if (*tok || *tok != ' ') {
         return;
