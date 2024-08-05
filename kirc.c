@@ -1257,6 +1257,8 @@ static void nick_command(state l)
 
 static void dcc_command(state l)
 {
+    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+
     int slot = 0;
     while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
 
@@ -1316,6 +1318,7 @@ static void dcc_command(state l)
     dcc_sessions.slots[slot].filename[0] = '"';
     char *stp_cpy = stpncpy(dcc_sessions.slots[slot].filename + 1, filename, FNM_MAX - 2);
     *stp_cpy = '"';
+    *(stp_cpy + 1) = '\0';
     dcc_sessions.slots[slot].file_fd = open(filepath, O_RDONLY);
 
     *tok = ' '; /* put back *tok */
@@ -1359,7 +1362,7 @@ static void dcc_command(state l)
         int ind = 0;
         unsigned int ipv4_addr = (unsigned int)dcc_sessions.slots[slot].sin46.sin.sin_addr.s_addr;
         while (ipv4_addr) {
-            ip_addr_string[ind] = ipv4_addr % 10;
+            ip_addr_string[ind] = (char)(ipv4_addr % 10 + '0');
             ipv4_addr /= 10;
             ind++;
         }
