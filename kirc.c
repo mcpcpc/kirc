@@ -1410,8 +1410,34 @@ static void dcc_command(state l)
             dcc_sessions.slots[slot].sin46.sin6.sin6_port += *ptr - '0';
         }
     }
-/* socket code to be added */
-    raw("privmsg %s :DCC SEND %s %s %s\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok);
+
+    int sock_fd = socket(dcc_sessions.slots[slot].sin46.sin_family, SOCK_STREAM, 0);
+    int file_fd = dcc_sessions.slots[slot].file_fd;
+
+    if (bind(sock_fd, (const struct sockaddr *)&dcc_sessions.slots[slot].sin46,
+                         (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                                                                  sizeof(struct sockaddr_in6)) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("connect");
+        return;
+    }
+    if (sock_fd < 0) {
+        close(file_fd);
+        perror("socket");
+        return;
+    }
+
+    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("fcntl");
+        return;
+    }
+    dcc_sessions.sock_fds[slot].fd = sock_fd;
+
+    raw("privmsg %s :\001DCC SEND %s %s %s\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok);
 }
 
 static void handle_user_input(state l)
@@ -1514,15 +1540,78 @@ static inline void slot_clear(size_t i) {
 }
 
 static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
-/* TODO */
+    const char *err_str;
+    int sock_fd = dcc_sessions.sock_fds[i].fd;
+    int file_fd = dcc_sessions.slots[i].file_fd;
+
+    if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
+        return;
+    }
+
+    int n = read(file_fd, buf, buf_len);
+    if (n == -1) {
+        err_str = "read";
+        goto handle_err;
+    }
+
+    dcc_sessions.slots[i].bytes_read += n;
+    if (write(sock_fd, buf, n) < 0) {
+        err_str = "write";
+        goto handle_err;
+    }
+
+    if (!(dcc_sessions.sock_fds[i].revents & POLLOUT)) {
+        refresh_line(l);
+        return;
+    }
+
+    size_t file_size = dcc_sessions.slots[i].file_size;
+    size_t bytes_read = dcc_sessions.slots[i].bytes_read;
+    unsigned ack_is_64 = file_size > UINT_MAX;
+    unsigned long long ack;
+    if (read(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
+        err_str = "read";
+        goto handle_err;
+    }
+
+    if (bytes_read == file_size) {
+        shutdown(sock_fd, SHUT_RDWR);
+        close(sock_fd);
+        close(file_fd);
+        slot_clear(i);
+    }
+    refresh_line(l);
+    return;
+handle_err:
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        return;
+    }
+    if (errno == ECONNRESET) {
+        shutdown(sock_fd, SHUT_RDWR);
+        close(sock_fd);
+        close(file_fd);
+        slot_clear(i);
+        return;
+    } else {
+        perror(err_str);
+        dcc_sessions.slots[i].err_cnt++;
+        if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
+            shutdown(sock_fd, SHUT_RDWR);
+            close(sock_fd);
+            close(file_fd);
+            slot_clear(i);
+        }
+        return;
+    }
 }
 
 static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
-    const char *err_str;
     if (dcc_sessions.slots[i].write) {
         slot_process_write(l, buf, buf_len, i);
         return;
     }
+    const char *err_str;
+
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
 
