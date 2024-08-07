@@ -1358,6 +1358,7 @@ static void dcc_command(state l)
         if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
         }
+        dcc_sessions.slots[slot].sin46.sin.sin_addr.s_addr = (in_addr_t)htonl((unsigned int)dcc_sessions.slots[slot].sin46.sin.sin_addr.s_addr);
         int ind = 0;
         unsigned int ipv4_addr = (unsigned int)dcc_sessions.slots[slot].sin46.sin.sin_addr.s_addr;
         while (ipv4_addr) {
