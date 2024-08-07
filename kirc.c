@@ -1430,8 +1430,6 @@ static void dcc_command(state l)
         return;
     }
 
-    dcc_sessions.sock_fds[slot].fd = sock_fd;
-
     if (listen(sock_fd, BACKLOG) < 0) {
         close(sock_fd);
         close(file_fd);
@@ -1447,6 +1445,16 @@ static void dcc_command(state l)
     }
 
     raw("privmsg %s :\001DCC SEND %s %s %s %lu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
+
+    int _sock_fd = accept(sock_fd, NULL, NULL);
+    if (_sock_fd == -1) {
+        close(sock_fd);
+        close(file_fd);
+        perror("accept");
+        return;
+    }
+
+    dcc_sessions.sock_fds[slot].fd = _sock_fd;
 }
 
 static void handle_user_input(state l)
@@ -1552,13 +1560,6 @@ static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
     const char *err_str;
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
-
-    int _sock_fd = accept(sock_fd, NULL, NULL);
-    if (_sock_fd == -1) {
-        err_str = "accept";
-        goto handle_err;
-    }
-    sock_fd = _sock_fd;
 
     int n = read(file_fd, buf, buf_len);
     if (n == -1) {
