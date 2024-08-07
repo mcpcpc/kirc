@@ -1403,12 +1403,14 @@ static void dcc_command(state l)
             dcc_sessions.slots[slot].sin46.sin.sin_port *= 10;
             dcc_sessions.slots[slot].sin46.sin.sin_port += *ptr - '0';
         }
+        dcc_sessions.slots[slot].sin46.sin.sin_port = htons(dcc_sessions.slots[slot].sin46.sin.sin_port);
     }
     else {
         for(char *ptr = tok; *ptr; ptr++) {
             dcc_sessions.slots[slot].sin46.sin6.sin6_port *= 10;
             dcc_sessions.slots[slot].sin46.sin6.sin6_port += *ptr - '0';
         }
+        dcc_sessions.slots[slot].sin46.sin6.sin6_port = htons(dcc_sessions.slots[slot].sin46.sin6.sin6_port);
     }
 
     int sock_fd = socket(dcc_sessions.slots[slot].sin46.sin_family, SOCK_STREAM, 0);
@@ -1419,7 +1421,7 @@ static void dcc_command(state l)
                                                                                   sizeof(struct sockaddr_in6)) < 0) {
         close(sock_fd);
         close(file_fd);
-        perror("connect");
+        perror("bind");
         return;
     }
     if (sock_fd < 0) {
@@ -1428,16 +1430,23 @@ static void dcc_command(state l)
         return;
     }
 
-    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
-    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
-        close(sock_fd);
-        close(file_fd);
-        perror("fcntl");
-        return;
-    }
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 
-    raw("privmsg %s :\001DCC SEND %s %s %s\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok);
+    if (listen(sock_fd, BACKLOG) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("listen");
+        return;
+    }
+
+    struct stat statbuf;
+
+    if (fstat(file_fd, &statbuf) < 0) {
+        perror("fstat");
+        return;
+    }
+
+    raw("privmsg %s :\001DCC SEND %s %s %s %lu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
 }
 
 static void handle_user_input(state l)
@@ -1544,9 +1553,12 @@ static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
 
-    if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
-        return;
+    int _sock_fd = accept(sock_fd, NULL, NULL);
+    if (_sock_fd == -1) {
+        err_str = "accept";
+        goto handle_err;
     }
+    sock_fd = _sock_fd;
 
     int n = read(file_fd, buf, buf_len);
     if (n == -1) {
@@ -1558,11 +1570,6 @@ static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
     if (write(sock_fd, buf, n) < 0) {
         err_str = "write";
         goto handle_err;
-    }
-
-    if (!(dcc_sessions.sock_fds[i].revents & POLLOUT)) {
-        refresh_line(l);
-        return;
     }
 
     size_t file_size = dcc_sessions.slots[i].file_size;

@@ -18,6 +18,7 @@
 #define DIR_MAX 256
 #define ERR_MAX 1 /* number of read/write errors before DCC slot is discarded */
 #define CON_MAX 20
+#define BACKLOG 100 /* DCC SEND listen() backlog */
 #define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
 #define DCC_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
