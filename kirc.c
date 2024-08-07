@@ -1314,7 +1314,6 @@ static void dcc_command(state l)
     *tok = '\0'; /* *tok was ' ' */
 
 
-    dcc_sessions.slots[slot].write = 1;
     dcc_sessions.slots[slot].filename[0] = '"';
     char *stp_cpy = stpncpy(dcc_sessions.slots[slot].filename + 1, filename, FNM_MAX - 2);
     *stp_cpy = '"';
@@ -1456,6 +1455,7 @@ static void dcc_command(state l)
         return;
     }
 
+    dcc_sessions.slots[slot].write = sock_fd + 1;
     dcc_sessions.sock_fds[slot].fd = _sock_fd;
 }
 
@@ -1586,6 +1586,7 @@ static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
 
     if (bytes_read == file_size) {
         shutdown(sock_fd, SHUT_RDWR);
+        close(dcc_sessions.slots[i].write - 1);
         close(sock_fd);
         close(file_fd);
         slot_clear(i);
@@ -1598,6 +1599,7 @@ handle_err:
     }
     if (errno == ECONNRESET) {
         shutdown(sock_fd, SHUT_RDWR);
+        close(dcc_sessions.slots[i].write - 1);
         close(sock_fd);
         close(file_fd);
         slot_clear(i);
@@ -1607,6 +1609,7 @@ handle_err:
         dcc_sessions.slots[i].err_cnt++;
         if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
             shutdown(sock_fd, SHUT_RDWR);
+            close(dcc_sessions.slots[i].write - 1);
             close(sock_fd);
             close(file_fd);
             slot_clear(i);

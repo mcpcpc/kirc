@@ -128,8 +128,8 @@ struct dcc_connection {
     size_t file_size;
     int file_fd;
     int err_cnt;
+    int write;
     char filename[FNM_MAX + 1];
-    char write;
 };
 
 static struct {
