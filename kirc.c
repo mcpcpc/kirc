@@ -883,7 +883,7 @@ static void handle_dcc(param p)
         size_t bytes_read = 0;
         file_fd = open(filename, DCC_FLAGS);
 
-        if (file_fd > 0) {
+        if (file_fd >= 0) {
             struct stat statbuf = {0};
             if (fstat(file_fd, &statbuf)) {
                 close(file_fd);
@@ -1678,6 +1678,10 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
         goto handle_err;
     }
 
+    if (n == 0) { /* EOF */
+        goto close_fd;
+    }
+
     dcc_sessions.slots[i].bytes_read += n;
     if (write(file_fd, buf, n) < 0) {
         err_str = "write";
@@ -1710,22 +1714,20 @@ handle_err:
         return;
     }
     if (errno == ECONNRESET) {
-        shutdown(sock_fd, SHUT_RDWR);
-        close(sock_fd);
-        close(file_fd);
-        slot_clear(i);
-        return;
+        goto close_fd;
     } else {
         perror(err_str);
         dcc_sessions.slots[i].err_cnt++;
         if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
-            shutdown(sock_fd, SHUT_RDWR);
-            close(sock_fd);
-            close(file_fd);
-            slot_clear(i);
+            goto close_fd;
         }
         return;
     }
+close_fd:
+    shutdown(sock_fd, SHUT_RDWR);
+    close(sock_fd);
+    close(file_fd);
+    slot_clear(i);
 }
 
 int main(int argc, char **argv)
