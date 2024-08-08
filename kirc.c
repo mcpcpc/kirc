@@ -1318,11 +1318,11 @@ static void dcc_command(state l)
     char *stp_cpy = stpncpy(dcc_sessions.slots[slot].filename + 1, filename, FNM_MAX - 2);
     *stp_cpy = '"';
     *(stp_cpy + 1) = '\0';
-    dcc_sessions.slots[slot].file_fd = open(filepath, O_RDONLY);
+    int file_fd = open(filepath, O_RDONLY);
 
     *tok = ' '; /* put back *tok */
 
-    if (dcc_sessions.slots[slot].file_fd < 0) {
+    if (file_fd < 0) {
         return;
     }
 
@@ -1353,13 +1353,13 @@ static void dcc_command(state l)
 
     if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
-            close(dcc_sessions.slots[slot].file_fd);
+            close(file_fd);
             return;
         }
     }
     else {
         if (inet_pton(AF_INET6, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
-            close(dcc_sessions.slots[slot].file_fd);
+            close(file_fd);
             return;
         }
     }
@@ -1398,7 +1398,7 @@ static void dcc_command(state l)
 
     if (result.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &result.sin_addr) != 1) {
-            close(dcc_sessions.slots[slot].file_fd);
+            close(file_fd);
             return;
         }
         int ind = 0;
@@ -1453,7 +1453,6 @@ static void dcc_command(state l)
     }
 
     int sock_fd = socket(dcc_sessions.slots[slot].sin46.sin_family, SOCK_STREAM, 0);
-    int file_fd = dcc_sessions.slots[slot].file_fd;
 
     if (bind(sock_fd, (const struct sockaddr *)&dcc_sessions.slots[slot].sin46,
                          (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) ? sizeof(struct sockaddr_in) :
@@ -1497,6 +1496,7 @@ static void dcc_command(state l)
 
     dcc_sessions.slots[slot].write = sock_fd + 1;
     dcc_sessions.sock_fds[slot].fd = _sock_fd;
+    dcc_sessions.slots[slot].file_fd = file_fd;
 }
 
 static void handle_user_input(state l)
