@@ -1351,15 +1351,55 @@ static void dcc_command(state l)
 
     *tok = '\0'; /* *tok was ' ' */
 
-    char ip_addr_string[INET6_ADDRSTRLEN];
-    memset(ip_addr_string, 0, sizeof(ip_addr_string));
-
     if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
         }
+    }
+    else {
+        if (inet_pton(AF_INET6, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
+            close(dcc_sessions.slots[slot].file_fd);
+        }
+    }
+
+    *tok = ' '; /* put back *tok */
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    ip_ptr = tok;
+
+    struct sockaddr_in result;
+
+    result.sin_family = AF_INET;
+
+    while (*tok && *tok != ' ') {
+        if (*tok == ':') {
+            result.sin_family = AF_INET6;
+        }
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        return;
+    }
+
+    *tok = '\0'; /* *tok was ' ' */
+
+    char ip_addr_string[INET6_ADDRSTRLEN];
+    memset(ip_addr_string, 0, sizeof(ip_addr_string));
+
+    if (result.sin_family == AF_INET) {
+        if (inet_pton(AF_INET, ip_ptr, &result.sin_addr) != 1) {
+            close(dcc_sessions.slots[slot].file_fd);
+        }
         int ind = 0;
-        unsigned int ipv4_addr = htonl((unsigned int)dcc_sessions.slots[slot].sin46.sin.sin_addr.s_addr);
+        unsigned int ipv4_addr = htonl((unsigned int)result.sin_addr.s_addr);
         while (ipv4_addr) {
             ip_addr_string[ind] = (char)(ipv4_addr % 10 + '0');
             ipv4_addr /= 10;
@@ -1376,9 +1416,6 @@ static void dcc_command(state l)
         }
     }
     else {
-        if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
-            close(dcc_sessions.slots[slot].file_fd);
-        }
         strcpy(ip_addr_string, ip_ptr);
     }
 
