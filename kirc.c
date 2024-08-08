@@ -1354,11 +1354,13 @@ static void dcc_command(state l)
     if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
+            return;
         }
     }
     else {
         if (inet_pton(AF_INET6, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
+            return;
         }
     }
 
@@ -1397,6 +1399,7 @@ static void dcc_command(state l)
     if (result.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &result.sin_addr) != 1) {
             close(dcc_sessions.slots[slot].file_fd);
+            return;
         }
         int ind = 0;
         unsigned int ipv4_addr = htonl((unsigned int)result.sin_addr.s_addr);
