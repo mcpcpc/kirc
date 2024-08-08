@@ -1486,6 +1486,12 @@ static void dcc_command(state l)
 
     raw("privmsg %s :\001DCC SEND %s %s %s %lu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
 
+    dcc_sessions.sock_fds[slot].fd = sock_fd;
+
+    if (poll(&dcc_sessions.sock_fds[slot], 1, 3 * 60) <= 0) { /* three minutes untill timeout */
+        return;
+    }
+
     int _sock_fd = accept(sock_fd, NULL, NULL);
     if (_sock_fd == -1) {
         close(sock_fd);
@@ -1668,7 +1674,7 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
     int sock_fd = dcc_sessions.sock_fds[i].fd;
     int file_fd = dcc_sessions.slots[i].file_fd;
 
-    if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
+    if (!(dcc_sessions.sock_fds[i].revents & POLLIN)) {
         return;
     }
 
