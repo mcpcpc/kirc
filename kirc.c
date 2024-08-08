@@ -1482,6 +1482,14 @@ static void dcc_command(state l)
         return;
     }
 
+    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+        close(sock_fd);
+        close(file_fd);
+        perror("fcntl");
+        return;
+    }
+
     dcc_sessions.slots[slot].file_size = statbuf.st_size;
 
     raw("privmsg %s :\001DCC SEND %s %s %s %lu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
