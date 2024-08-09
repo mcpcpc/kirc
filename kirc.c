@@ -1514,7 +1514,7 @@ static void dcc_command(state l)
 
     dcc_sessions.slots[slot].file_size = statbuf.st_size;
 
-    raw("privmsg %s :\001DCC SEND %s %s %s %lu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
+    raw("privmsg %s :\001DCC SEND %s %s %s %" PRIu64 "\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
 
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 
