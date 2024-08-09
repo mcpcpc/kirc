@@ -1652,41 +1652,32 @@ static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
         goto handle_err;
     }
 
-    if (bytes_read == file_size) {
-        shutdown(sock_fd, SHUT_RDWR);
-        shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
-        close(dcc_sessions.slots[i].write - 1);
-        close(sock_fd);
-        close(file_fd);
-        slot_clear(i);
-    }
     refresh_line(l);
+
+    if (bytes_read == file_size) {
+        goto close_fd;
+    }
     return;
 handle_err:
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
         return;
     }
     if (errno == ECONNRESET) {
-        shutdown(sock_fd, SHUT_RDWR);
-        shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
-        close(dcc_sessions.slots[i].write - 1);
-        close(sock_fd);
-        close(file_fd);
-        slot_clear(i);
-        return;
-    } else {
-        perror(err_str);
-        dcc_sessions.slots[i].err_cnt++;
-        if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
-            shutdown(sock_fd, SHUT_RDWR);
-            shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
-            close(dcc_sessions.slots[i].write - 1);
-            close(sock_fd);
-            close(file_fd);
-            slot_clear(i);
-        }
-        return;
+        goto close_fd;
     }
+    perror(err_str);
+    dcc_sessions.slots[i].err_cnt++;
+    if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
+        goto close_fd;
+    }
+    return;
+close_fd:
+    shutdown(sock_fd, SHUT_RDWR);
+    shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
+    close(dcc_sessions.slots[i].write - 1);
+    close(sock_fd);
+    close(file_fd);
+    slot_clear(i);
 }
 
 static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
@@ -1732,13 +1723,12 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
         err_str = "write";
         goto handle_err;
     }
-    if (bytes_read == file_size) {
-        shutdown(sock_fd, SHUT_RDWR);
-        close(sock_fd);
-        close(file_fd);
-        slot_clear(i);
-    }
+
     refresh_line(l);
+
+    if (bytes_read == file_size) {
+        goto close_fd;
+    }
     return;
 handle_err:
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -1746,14 +1736,13 @@ handle_err:
     }
     if (errno == ECONNRESET) {
         goto close_fd;
-    } else {
-        perror(err_str);
-        dcc_sessions.slots[i].err_cnt++;
-        if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
-            goto close_fd;
-        }
-        return;
     }
+    perror(err_str);
+    dcc_sessions.slots[i].err_cnt++;
+    if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
+        goto close_fd;
+    }
+    return;
 close_fd:
     shutdown(sock_fd, SHUT_RDWR);
     close(sock_fd);
