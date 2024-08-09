@@ -823,7 +823,11 @@ static void open_socket(int slot, int file_fd)
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
-static inline void slot_clear(size_t i);
+static inline void slot_clear(size_t i) {
+    memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
+    dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
+    dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
+}
 
 static void handle_dcc(param p)
 {
@@ -849,6 +853,7 @@ static void handle_dcc(param p)
 
         if (slot == CON_MAX) {
             raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            print_error("DCC slots full");
             return;
         }
 
@@ -1267,6 +1272,7 @@ static void dcc_command(state l)
     while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
 
     if (slot == CON_MAX) {
+        print_error("DCC slots full");
         return;
     }
 
@@ -1618,12 +1624,6 @@ static inline void version(void)
     fputs("kirc-" VERSION " Copyright © 2022 Michael Czigler, MIT License\n",
           stdout);
     exit(0);
-}
-
-static inline void slot_clear(size_t i) {
-    memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
-    dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
-    dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
 }
 
 static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
