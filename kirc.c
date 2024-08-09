@@ -1481,6 +1481,12 @@ static void dcc_command(state l)
         goto close_fd;
     }
 
+    int reuse = 1;
+    if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        perror("setsockopt");
+        /* no need to return */ /* use socket as-is */
+    }
+
     if (bind(sock_fd, (const struct sockaddr *)&dcc_sessions.slots[slot].sin46,
                          (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) ? sizeof(struct sockaddr_in) :
                                                                                   sizeof(struct sockaddr_in6)) < 0) {
