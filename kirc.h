@@ -17,6 +17,7 @@
 #define FNM_MAX 255
 #define DIR_MAX 256
 #define ERR_MAX 1 /* number of read/write errors before DCC slot is discarded */
+#define POLL_TIMEOUT 180000 /* 3 minutes */ /* argument is in miliseconds */
 #define CON_MAX 20
 #define BACKLOG 100 /* DCC SEND listen() backlog */
 #define CBUF_SIZ 1024

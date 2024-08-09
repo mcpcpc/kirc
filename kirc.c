@@ -1250,7 +1250,7 @@ static void nick_command(state l)
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
     tok = l->buf + sizeof("nick");
     while (*tok == ' ') {
-        tok ++;
+        tok++;
     }
     strcpy(nick, tok);
 }
@@ -1268,10 +1268,11 @@ static void dcc_command(state l)
 
     char *tok = l->buf + sizeof("dcc");
     while (*tok == ' ') {
-        tok ++;
+        tok++;
     }
 
     if (*tok == '\0') {
+        print_error("malformed DCC command");
         return;
     }
 
@@ -1287,14 +1288,16 @@ static void dcc_command(state l)
     *ptarget = '\0';
 
     if (*tok == '\0' || *tok != ' ') {
+        print_error("malformed DCC command");
         return;
     }
 
     while (*tok == ' ') {
-        tok ++;
+        tok++;
     }
 
     if (*tok == '\0') {
+        print_error("malformed DCC command");
         return;
     }
 
@@ -1308,6 +1311,7 @@ static void dcc_command(state l)
     }
 
     if (*tok == '\0') {
+        print_error("malformed DCC command");
         return;
     }
 
@@ -1323,6 +1327,7 @@ static void dcc_command(state l)
     *tok = ' '; /* put back *tok */
 
     if (file_fd < 0) {
+        perror("open");
         return;
     }
 
@@ -1331,7 +1336,8 @@ static void dcc_command(state l)
     }
 
     if (*tok == '\0') {
-        return;
+        print_error("malformed DCC command");
+        goto close_fd;
     }
 
     dcc_sessions.slots[slot].sin46.sin_family = AF_INET;
@@ -1346,21 +1352,22 @@ static void dcc_command(state l)
     }
 
     if (*tok == '\0') {
-        return;
+        print_error("malformed DCC command");
+        goto close_fd;
     }
 
     *tok = '\0'; /* *tok was ' ' */
 
     if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
-            close(file_fd);
-            return;
+            print_error("bad internal address");
+            goto close_fd;
         }
     }
     else {
         if (inet_pton(AF_INET6, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
-            close(file_fd);
-            return;
+            print_error("bad internal address");
+            goto close_fd;
         }
     }
 
@@ -1371,7 +1378,8 @@ static void dcc_command(state l)
     }
 
     if (*tok == '\0') {
-        return;
+        print_error("malformed DCC command");
+        goto close_fd;
     }
 
     ip_ptr = tok;
@@ -1388,7 +1396,8 @@ static void dcc_command(state l)
     }
 
     if (*tok == '\0') {
-        return;
+        print_error("malformed DCC command");
+        goto close_fd;
     }
 
     *tok = '\0'; /* *tok was ' ' */
@@ -1398,8 +1407,8 @@ static void dcc_command(state l)
 
     if (result.sin_family == AF_INET) {
         if (inet_pton(AF_INET, ip_ptr, &result.sin_addr) != 1) {
-            close(file_fd);
-            return;
+            print_error("bad external address");
+            goto close_fd;
         }
         int ind = 0;
         unsigned int ipv4_addr = htonl((unsigned int)result.sin_addr.s_addr);
@@ -1429,7 +1438,8 @@ static void dcc_command(state l)
     }
 
     if (*tok == '\0') {
-        return;
+        print_error("malformed DCC command");
+        goto close_fd;
     }
 
     char *s_chr = strchr(tok, ' ');
@@ -1454,40 +1464,34 @@ static void dcc_command(state l)
 
     int sock_fd = socket(dcc_sessions.slots[slot].sin46.sin_family, SOCK_STREAM, 0);
 
+    if (sock_fd < 0) {
+        perror("socket");
+        goto close_fd;
+    }
+
     if (bind(sock_fd, (const struct sockaddr *)&dcc_sessions.slots[slot].sin46,
                          (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) ? sizeof(struct sockaddr_in) :
                                                                                   sizeof(struct sockaddr_in6)) < 0) {
-        close(sock_fd);
-        close(file_fd);
         perror("bind");
-        return;
-    }
-    if (sock_fd < 0) {
-        close(file_fd);
-        perror("socket");
-        return;
+        goto close_socket;
     }
 
     if (listen(sock_fd, BACKLOG) < 0) {
-        close(sock_fd);
-        close(file_fd);
         perror("listen");
-        return;
+        goto close_socket;
+    }
+
+    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+        perror("fcntl");
+        goto close_socket;
     }
 
     struct stat statbuf;
 
     if (fstat(file_fd, &statbuf) < 0) {
         perror("fstat");
-        return;
-    }
-
-    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
-    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
-        close(sock_fd);
-        close(file_fd);
-        perror("fcntl");
-        return;
+        goto close_socket;
     }
 
     dcc_sessions.slots[slot].file_size = statbuf.st_size;
@@ -1496,21 +1500,25 @@ static void dcc_command(state l)
 
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 
-    if (poll(&dcc_sessions.sock_fds[slot], 1, 3 * 60) <= 0) { /* three minutes untill timeout */
-        return;
+    if (poll(&dcc_sessions.sock_fds[slot], 1, POLL_TIMEOUT) <= 0) { /* three minutes untill timeout */
+        perror("poll");
+        goto close_socket;
     }
 
     int _sock_fd = accept(sock_fd, NULL, NULL);
     if (_sock_fd == -1) {
-        close(sock_fd);
-        close(file_fd);
         perror("accept");
-        return;
+        goto close_socket;
     }
 
     dcc_sessions.slots[slot].write = sock_fd + 1;
     dcc_sessions.sock_fds[slot].fd = _sock_fd;
     dcc_sessions.slots[slot].file_fd = file_fd;
+    return;
+close_socket:
+    close(sock_fd);
+close_fd:
+    close(file_fd);
 }
 
 static void handle_user_input(state l)
@@ -1640,6 +1648,7 @@ static void slot_process_write(state l, char *buf, size_t buf_len, size_t i) {
 
     if (bytes_read == file_size) {
         shutdown(sock_fd, SHUT_RDWR);
+        shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
         close(dcc_sessions.slots[i].write - 1);
         close(sock_fd);
         close(file_fd);
@@ -1653,6 +1662,7 @@ handle_err:
     }
     if (errno == ECONNRESET) {
         shutdown(sock_fd, SHUT_RDWR);
+        shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
         close(dcc_sessions.slots[i].write - 1);
         close(sock_fd);
         close(file_fd);
@@ -1663,6 +1673,7 @@ handle_err:
         dcc_sessions.slots[i].err_cnt++;
         if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
             shutdown(sock_fd, SHUT_RDWR);
+            shutdown(dcc_sessions.slots[i].write - 1, SHUT_RDWR);
             close(dcc_sessions.slots[i].write - 1);
             close(sock_fd);
             close(file_fd);
