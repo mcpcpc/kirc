@@ -733,7 +733,7 @@ static void print_error(char *fmt, ...)
     va_end(ap);
 }
 
-static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
+static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, uint64_t *file_size)
 {
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
@@ -754,22 +754,22 @@ static sa_family_t parse_dcc_send_message(const char *message, char *filename, u
     /* filesize not given */
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu", filename, ipv6_addr, port) == 3) {
         if (strchr(ipv6_addr, ':')) {
-            *file_size = SIZE_MAX;
+            *file_size = UINT64_MAX;
             return AF_INET6;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu", filename, ipv6_addr, port) == 3) {
         if (strchr(ipv6_addr, ':')) {
-            *file_size = SIZE_MAX;
+            *file_size = UINT64_MAX;
             return AF_INET6;
         }
     }
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu", filename, ip_addr, port) == 3) {
-        *file_size = SIZE_MAX;
+        *file_size = UINT64_MAX;
         return AF_INET;
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu", filename, ip_addr, port) == 3) {
-        *file_size = SIZE_MAX;
+        *file_size = UINT64_MAX;
         return AF_INET;
     }
     print_error("unable to parse DCC message '%s'", message);
@@ -786,11 +786,11 @@ static char parse_dcc_accept_message(const char *message, char *filename, unsign
     }
     /* filesize not given */
     if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu", filename, port) == 2) {
-        *file_size = SIZE_MAX;
+        *file_size = UINT64_MAX;
         return 0;
     }
     if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu", filename, port) == 2) {
-        *file_size = SIZE_MAX;
+        *file_size = UINT64_MAX;
         return 0;
     }
     print_error("unable to parse DCC message '%s'", message);
@@ -838,7 +838,7 @@ static void handle_dcc(param p)
     const char *message = p->message + 5;
     char _filename[FNM_MAX + 1];
     char *filename = _filename;
-    size_t file_size = 0;
+    uint64_t file_size = 0;
     unsigned int ip_addr = 0;
     unsigned short port = 0;
     char ipv6_addr[INET6_ADDRSTRLEN];
@@ -889,7 +889,7 @@ static void handle_dcc(param p)
         }
 
         int file_resume = 0;
-        size_t bytes_read = 0;
+        uint64_t bytes_read = 0;
         file_fd = open(filename, DCC_FLAGS);
 
         if (file_fd >= 0) {
@@ -943,7 +943,7 @@ static void handle_dcc(param p)
 
 check_resume:
         if (file_resume) {
-            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
+            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %" PRIu64  "\001\r\n",
             p->nickname, filename, port, bytes_read);
             return;
         }
@@ -1663,8 +1663,8 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
         refresh_line(l);
         return;
     }
-    size_t file_size = dcc_sessions.slots[i].file_size;
-    size_t bytes_read = dcc_sessions.slots[i].bytes_read;
+    uint64_t file_size = dcc_sessions.slots[i].file_size;
+    uint64_t bytes_read = dcc_sessions.slots[i].bytes_read;
     unsigned ack_is_64 = file_size > UINT_MAX;
     unsigned ack_shift = (1 - ack_is_64) * 32;
     unsigned long long ack = htonll(bytes_read << ack_shift);
