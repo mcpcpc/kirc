@@ -823,6 +823,8 @@ static void open_socket(int slot, int file_fd)
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
+static inline void slot_clear(size_t i);
+
 static void handle_dcc(param p)
 {
     if (!dcc) {
@@ -849,6 +851,8 @@ static void handle_dcc(param p)
             raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
             return;
         }
+
+        slot_clear(slot);
 
         sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
         if(sin_family == AF_UNSPEC) {
@@ -1265,6 +1269,8 @@ static void dcc_command(state l)
     if (slot == CON_MAX) {
         return;
     }
+
+    slot_clear(slot);
 
     char *tok = l->buf + sizeof("dcc");
     while (*tok == ' ') {
