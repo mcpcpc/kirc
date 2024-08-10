@@ -1676,7 +1676,7 @@ static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
 
     refresh_line(l);
 
-    if ((_write ? (ack == htonll(file_size << ack_shift)) : (bytes_read == file_size))) {
+    if (ack == htonll(file_size << ack_shift)) {
         goto close_fd;
     }
     return;
