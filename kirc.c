@@ -735,20 +735,20 @@ static void print_error(char *fmt, ...)
 
 static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, uint64_t *file_size)
 {
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %" PRIu64 "", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
             return AF_INET6;
         }
     }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %" PRIu64 "", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
             return AF_INET6;
         }
     }
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %" PRIu64 "", filename, ip_addr, port, file_size) == 4) {
         return AF_INET;
     }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %" PRIu64 "", filename, ip_addr, port, file_size) == 4) {
         return AF_INET;
     }
     /* filesize not given */
@@ -776,12 +776,12 @@ static sa_family_t parse_dcc_send_message(const char *message, char *filename, u
     return AF_UNSPEC;
 }
 
-static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
+static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, uint64_t *file_size)
 {
-    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, port, file_size) == 3) {
+    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %" PRIu64 "", filename, port, file_size) == 3) {
         return 0;
     }
-    if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, port, file_size) == 3) {
+    if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %" PRIu64 "", filename, port, file_size) == 3) {
         return 0;
     }
     /* filesize not given */
@@ -943,7 +943,7 @@ static void handle_dcc(param p)
 
 check_resume:
         if (file_resume) {
-            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %" PRIu64  "\001\r\n",
+            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %" PRIu64 "\001\r\n",
             p->nickname, filename, port, bytes_read);
             return;
         }
