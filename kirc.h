@@ -32,8 +32,6 @@
 #endif
 
 #include <stdarg.h>
-#include <stdint.h>
-#include <inttypes.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -125,8 +123,8 @@ union sockaddr_in46 {
 };
 
 struct dcc_connection {
-    uint64_t bytes_read;
-    uint64_t file_size;
+    unsigned long long bytes_read;
+    unsigned long long file_size;
     union sockaddr_in46 sin46;
     int file_fd;
     int err_cnt;
