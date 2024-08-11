@@ -5,7 +5,7 @@ BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
 
 kirc: kirc.c kirc.h
-	$(CC) $(CFLAGS) $(LDFLAGS) ${ALL_WARNING} kirc.c -o kirc
+	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 $(LDFLAGS) ${ALL_WARNING} kirc.c -o kirc
 all: kirc
 
 install: kirc
