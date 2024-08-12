@@ -47,6 +47,7 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 static int conn;                /* connection socket */
 static int hint_family = AF_UNSPEC; /* desired ip version */

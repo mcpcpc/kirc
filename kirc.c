@@ -1767,6 +1767,9 @@ int main(int argc, char **argv)
             break;
         }
     }
+    if (dcc) {
+        sigaction(SIGPIPE, &(struct sigaction){.sa_handler = SIG_IGN}, NULL);
+    }
     if (cmds) {
         int flag = 0;
         for (int i = 0; i < CBUF_SIZ && flag > -1; i++) {
