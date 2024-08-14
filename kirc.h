@@ -17,7 +17,9 @@
 #define FNM_MAX 255
 #define DIR_MAX 256
 #define ERR_MAX 1 /* number of read/write errors before DCC slot is discarded */
+#define POLL_TIMEOUT 180000 /* 3 minutes */ /* argument is in miliseconds */
 #define CON_MAX 20
+#define BACKLOG 100 /* DCC SEND listen() backlog */
 #define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
 #define DCC_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -30,7 +32,6 @@
 #endif
 
 #include <stdarg.h>
-#include <stdint.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -46,6 +47,7 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 static int conn;                /* connection socket */
 static int hint_family = AF_UNSPEC; /* desired ip version */
@@ -122,12 +124,13 @@ union sockaddr_in46 {
 };
 
 struct dcc_connection {
-    char filename[FNM_MAX + 1];
+    unsigned long long bytes_read;
+    unsigned long long file_size;
     union sockaddr_in46 sin46;
-    size_t bytes_read;
-    size_t file_size;
     int file_fd;
     int err_cnt;
+    int write;
+    char filename[FNM_MAX + 1];
 };
 
 static struct {

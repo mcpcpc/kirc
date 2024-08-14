@@ -733,64 +733,64 @@ static void print_error(char *fmt, ...)
     va_end(ap);
 }
 
-static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, size_t *file_size)
+static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, unsigned long long *file_size)
 {
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu %llu", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
             return AF_INET6;
         }
     }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %zu", filename, ipv6_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu %llu", filename, ipv6_addr, port, file_size) == 4) {
         if (strchr(ipv6_addr, ':')) {
             return AF_INET6;
         }
     }
-    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu %llu", filename, ip_addr, port, file_size) == 4) {
         return AF_INET;
     }
-    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %zu", filename, ip_addr, port, file_size) == 4) {
+    if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu %llu", filename, ip_addr, port, file_size) == 4) {
         return AF_INET;
     }
     /* filesize not given */
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %" STR(INET6_ADDRSTRLEN) "s %hu", filename, ipv6_addr, port) == 3) {
         if (strchr(ipv6_addr, ':')) {
-            *file_size = SIZE_MAX;
+            *file_size = ULLONG_MAX;
             return AF_INET6;
         }
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %" STR(INET6_ADDRSTRLEN) "s %hu", filename, ipv6_addr, port) == 3) {
         if (strchr(ipv6_addr, ':')) {
-            *file_size = SIZE_MAX;
+            *file_size = ULLONG_MAX;
             return AF_INET6;
         }
     }
     if (sscanf(message, "SEND \"%" STR(FNM_MAX) "[^\"]\" %u %hu", filename, ip_addr, port) == 3) {
-        *file_size = SIZE_MAX;
+        *file_size = ULLONG_MAX;
         return AF_INET;
     }
     if (sscanf(message, "SEND %" STR(FNM_MAX) "s %u %hu", filename, ip_addr, port) == 3) {
-        *file_size = SIZE_MAX;
+        *file_size = ULLONG_MAX;
         return AF_INET;
     }
     print_error("unable to parse DCC message '%s'", message);
     return AF_UNSPEC;
 }
 
-static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, size_t *file_size)
+static char parse_dcc_accept_message(const char *message, char *filename, unsigned short *port, unsigned long long *file_size)
 {
-    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %zu", filename, port, file_size) == 3) {
+    if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu %llu", filename, port, file_size) == 3) {
         return 0;
     }
-    if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %zu", filename, port, file_size) == 3) {
+    if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu %llu", filename, port, file_size) == 3) {
         return 0;
     }
     /* filesize not given */
     if (sscanf(message, "ACCEPT \"%" STR(FNM_MAX) "[^\"]\" %hu", filename, port) == 2) {
-        *file_size = SIZE_MAX;
+        *file_size = ULLONG_MAX;
         return 0;
     }
     if (sscanf(message, "ACCEPT %" STR(FNM_MAX) "s %hu", filename, port) == 2) {
-        *file_size = SIZE_MAX;
+        *file_size = ULLONG_MAX;
         return 0;
     }
     print_error("unable to parse DCC message '%s'", message);
@@ -823,6 +823,12 @@ static void open_socket(int slot, int file_fd)
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 }
 
+static inline void slot_clear(size_t i) {
+    memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
+    dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
+    dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
+}
+
 static void handle_dcc(param p)
 {
     if (!dcc) {
@@ -832,7 +838,7 @@ static void handle_dcc(param p)
     const char *message = p->message + 5;
     char _filename[FNM_MAX + 1];
     char *filename = _filename;
-    size_t file_size = 0;
+    unsigned long long file_size = 0;
     unsigned int ip_addr = 0;
     unsigned short port = 0;
     char ipv6_addr[INET6_ADDRSTRLEN];
@@ -847,13 +853,18 @@ static void handle_dcc(param p)
 
         if (slot == CON_MAX) {
             raw("PRIVMSG %s :XDCC CANCEL\r\n", p->nickname);
+            print_error("DCC slots full");
             return;
         }
+
+        slot_clear(slot);
 
         sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
         if(sin_family == AF_UNSPEC) {
             return;
         }
+
+        dcc_sessions.slots[slot].write = 0;
 
         for(int i = 0; _filename[i]; i++) {
             if (_filename[i] == '/') {
@@ -878,10 +889,10 @@ static void handle_dcc(param p)
         }
 
         int file_resume = 0;
-        size_t bytes_read = 0;
+        unsigned long long bytes_read = 0;
         file_fd = open(filename, DCC_FLAGS);
 
-        if (file_fd > 0) {
+        if (file_fd >= 0) {
             struct stat statbuf = {0};
             if (fstat(file_fd, &statbuf)) {
                 close(file_fd);
@@ -932,7 +943,7 @@ static void handle_dcc(param p)
 
 check_resume:
         if (file_resume) {
-            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %zu\001\r\n",
+            raw("PRIVMSG %s :\001DCC RESUME \"%s\" %hu %llu\001\r\n",
             p->nickname, filename, port, bytes_read);
             return;
         }
@@ -950,6 +961,8 @@ check_resume:
         if (slot == CON_MAX) {
             return;
         }
+
+        dcc_sessions.slots[slot].write = 0;
 
         file_fd = dcc_sessions.slots[slot].file_fd;
         open_socket(slot, file_fd);
@@ -1246,9 +1259,284 @@ static void nick_command(state l)
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
     tok = l->buf + sizeof("nick");
     while (*tok == ' ') {
-        tok ++;
+        tok++;
     }
     strcpy(nick, tok);
+}
+
+static void dcc_command(state l)
+{
+    printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
+
+    int slot = 0;
+    while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
+
+    if (slot == CON_MAX) {
+        print_error("DCC slots full");
+        return;
+    }
+
+    slot_clear(slot);
+
+    char *tok = l->buf + sizeof("dcc");
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        return;
+    }
+
+    char target[CHA_MAX + 1]; /* limit nicks to CHA_MAX */
+    char *ptarget = target;
+
+    int num = 0;
+
+    while (*tok && *tok != ' ' && ++num < CHA_MAX) {
+        *ptarget++ = *tok++;
+    }
+
+    *ptarget = '\0';
+
+    if (*tok == '\0' || *tok != ' ') {
+        print_error("malformed DCC command");
+        return;
+    }
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        return;
+    }
+
+    char *filepath = tok;
+    char *filename = tok;
+    while (*tok && *tok != ' ') {
+        if (*tok == '/') {
+            filename = tok + 1;
+        }
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        return;
+    }
+
+    *tok = '\0'; /* *tok was ' ' */
+
+
+    dcc_sessions.slots[slot].filename[0] = '"';
+    char *stp_cpy = stpncpy(dcc_sessions.slots[slot].filename + 1, filename, FNM_MAX - 2);
+    *stp_cpy = '"';
+    *(stp_cpy + 1) = '\0';
+    int file_fd = open(filepath, O_RDONLY);
+
+    *tok = ' '; /* put back *tok */
+
+    if (file_fd < 0) {
+        perror("open");
+        return;
+    }
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        goto close_fd;
+    }
+
+    dcc_sessions.slots[slot].sin46.sin_family = AF_INET;
+
+    char *ip_ptr = tok;
+
+    while (*tok && *tok != ' ') {
+        if (*tok == ':') {
+            dcc_sessions.slots[slot].sin46.sin_family = AF_INET6;
+        }
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        goto close_fd;
+    }
+
+    *tok = '\0'; /* *tok was ' ' */
+
+    if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
+        if (inet_pton(AF_INET, ip_ptr, &dcc_sessions.slots[slot].sin46.sin.sin_addr) != 1) {
+            print_error("bad internal address");
+            goto close_fd;
+        }
+    }
+    else {
+        if (inet_pton(AF_INET6, ip_ptr, &dcc_sessions.slots[slot].sin46.sin6.sin6_addr) != 1) {
+            print_error("bad internal address");
+            goto close_fd;
+        }
+    }
+
+    *tok = ' '; /* put back *tok */
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        goto close_fd;
+    }
+
+    ip_ptr = tok;
+
+    struct sockaddr_in result;
+
+    result.sin_family = AF_INET;
+
+    while (*tok && *tok != ' ') {
+        if (*tok == ':') {
+            result.sin_family = AF_INET6;
+        }
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        goto close_fd;
+    }
+
+    *tok = '\0'; /* *tok was ' ' */
+
+    char ip_addr_string[INET6_ADDRSTRLEN];
+    memset(ip_addr_string, 0, sizeof(ip_addr_string));
+
+    if (result.sin_family == AF_INET) {
+        if (inet_pton(AF_INET, ip_ptr, &result.sin_addr) != 1) {
+            print_error("bad external address");
+            goto close_fd;
+        }
+        int ind = 0;
+        unsigned int ipv4_addr = htonl((unsigned int)result.sin_addr.s_addr);
+        while (ipv4_addr) {
+            ip_addr_string[ind] = (char)(ipv4_addr % 10 + '0');
+            ipv4_addr /= 10;
+            ind++;
+        }
+        char *begin = ip_addr_string;
+        char *end = strchr(ip_addr_string, '\0') - 1;
+        while (begin < end) {
+            char tmp = *begin;
+            *begin = *end;
+            *end = tmp;
+            begin++;
+            end--;
+        }
+    }
+    else {
+        strcpy(ip_addr_string, ip_ptr);
+    }
+
+    *tok = ' '; /* put back *tok */
+
+    while (*tok == ' ') {
+        tok++;
+    }
+
+    if (*tok == '\0') {
+        print_error("malformed DCC command");
+        goto close_fd;
+    }
+
+    char *s_chr = strchr(tok, ' ');
+    if (s_chr) {
+        *s_chr = '\0';
+    }
+
+    if (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) {
+        for(char *ptr = tok; *ptr; ptr++) {
+            dcc_sessions.slots[slot].sin46.sin.sin_port *= 10;
+            dcc_sessions.slots[slot].sin46.sin.sin_port += *ptr - '0';
+        }
+        dcc_sessions.slots[slot].sin46.sin.sin_port = htons(dcc_sessions.slots[slot].sin46.sin.sin_port);
+    }
+    else {
+        for(char *ptr = tok; *ptr; ptr++) {
+            dcc_sessions.slots[slot].sin46.sin6.sin6_port *= 10;
+            dcc_sessions.slots[slot].sin46.sin6.sin6_port += *ptr - '0';
+        }
+        dcc_sessions.slots[slot].sin46.sin6.sin6_port = htons(dcc_sessions.slots[slot].sin46.sin6.sin6_port);
+    }
+
+    int sock_fd = socket(dcc_sessions.slots[slot].sin46.sin_family, SOCK_STREAM, 0);
+
+    if (sock_fd < 0) {
+        perror("socket");
+        goto close_fd;
+    }
+
+    int reuse = 1;
+    if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        perror("setsockopt");
+        /* no need to return */ /* use socket as-is */
+    }
+
+    if (bind(sock_fd, (const struct sockaddr *)&dcc_sessions.slots[slot].sin46,
+                         (dcc_sessions.slots[slot].sin46.sin_family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                                                                  sizeof(struct sockaddr_in6)) < 0) {
+        perror("bind");
+        goto close_socket;
+    }
+
+    if (listen(sock_fd, BACKLOG) < 0) {
+        perror("listen");
+        goto close_socket;
+    }
+
+    int flags = fcntl(sock_fd, F_GETFL, 0) | O_NONBLOCK;
+    if (flags < 0 || fcntl(sock_fd, F_SETFL, flags) < 0) {
+        perror("fcntl");
+        goto close_socket;
+    }
+
+    struct stat statbuf;
+
+    if (fstat(file_fd, &statbuf) < 0) {
+        perror("fstat");
+        goto close_socket;
+    }
+
+    dcc_sessions.slots[slot].file_size = statbuf.st_size;
+
+    raw("privmsg %s :\001DCC SEND %s %s %s %llu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
+
+    dcc_sessions.sock_fds[slot].fd = sock_fd;
+
+    if (poll(&dcc_sessions.sock_fds[slot], 1, POLL_TIMEOUT) <= 0) { /* three minutes untill timeout */
+        perror("poll");
+        goto close_socket;
+    }
+
+    int _sock_fd = accept(sock_fd, NULL, NULL);
+    if (_sock_fd == -1) {
+        perror("accept");
+        goto close_socket;
+    }
+
+    dcc_sessions.slots[slot].write = sock_fd + 1;
+    dcc_sessions.sock_fds[slot].fd = _sock_fd;
+    dcc_sessions.slots[slot].file_fd = file_fd;
+    return;
+close_socket:
+    close(sock_fd);
+close_fd:
+    close(file_fd);
 }
 
 static void handle_user_input(state l)
@@ -1291,6 +1579,10 @@ static void handle_user_input(state l)
         }
         if (!strncmp(l->buf + 1, "QUERY", sizeof("QUERY") - 1) || !strncmp(l->buf + 1, "query", sizeof("query") - 1)) {
             query_command(l);
+            return;
+        }
+        if (!strncmp(l->buf + 1, "DCC", sizeof("DCC") - 1) || !strncmp(l->buf + 1, "dcc", sizeof("dcc") - 1)) {
+            dcc_command(l);
             return;
         }
 
@@ -1340,75 +1632,76 @@ static inline void version(void)
     exit(0);
 }
 
-static inline void slot_clear(size_t i) {
-    memset(dcc_sessions.slots[i].filename, 0, FNM_MAX);
-    dcc_sessions.sock_fds[i] = (struct pollfd){.fd = -1, .events = POLLIN | POLLOUT};
-    dcc_sessions.slots[i] = (struct dcc_connection){.file_fd = -1};
-}
-
 static void slot_process(state l, char *buf, size_t buf_len, size_t i) {
+    const int _write = dcc_sessions.slots[i].write;
     const char *err_str;
-    int sock_fd = dcc_sessions.sock_fds[i].fd;
-    int file_fd = dcc_sessions.slots[i].file_fd;
 
-    if (~dcc_sessions.sock_fds[i].revents & POLLIN) {
+    const int sock_fd = dcc_sessions.sock_fds[i].fd;
+    const int file_fd = dcc_sessions.slots[i].file_fd;
+
+    if (!(dcc_sessions.sock_fds[i].revents & POLLIN) && !_write) {
         return;
     }
 
-    int n = read(sock_fd, buf, buf_len);
+    int n = read(_write ? file_fd : sock_fd, buf, buf_len);
     if (n == -1) {
         err_str = "read";
         goto handle_err;
     }
 
+    if ((n == 0) && !_write) { /* EOF */
+        goto close_fd;
+    }
+
     dcc_sessions.slots[i].bytes_read += n;
-    if (write(file_fd, buf, n) < 0) {
+    if (write(_write ? sock_fd : file_fd, buf, n) < 0) {
         err_str = "write";
         goto handle_err;
     }
 
-    if (!(dcc_sessions.sock_fds[i].revents & POLLOUT)) {
+    if (!(dcc_sessions.sock_fds[i].revents & POLLOUT) && !_write) {
         refresh_line(l);
         return;
     }
-    size_t file_size = dcc_sessions.slots[i].file_size;
-    size_t bytes_read = dcc_sessions.slots[i].bytes_read;
+    unsigned long long file_size = dcc_sessions.slots[i].file_size;
+    unsigned long long bytes_read = dcc_sessions.slots[i].bytes_read;
     unsigned ack_is_64 = file_size > UINT_MAX;
     unsigned ack_shift = (1 - ack_is_64) * 32;
     unsigned long long ack = htonll(bytes_read << ack_shift);
-    if (write(sock_fd, &ack, ack_is_64 ? 8 : 4) < 0) {
-        err_str = "write";
+
+    if ((_write ? read(sock_fd, &ack, ack_is_64 ? 8 : 4) : write(sock_fd, &ack, ack_is_64 ? 8 : 4))< 0) {
+        err_str = _write ? "read" : "write";
         goto handle_err;
     }
-    if (bytes_read == file_size) {
-        shutdown(sock_fd, SHUT_RDWR);
-        close(sock_fd);
-        close(file_fd);
-        slot_clear(i);
-    }
+
     refresh_line(l);
+
+    if (ack == htonll(file_size << ack_shift)) {
+        goto close_fd;
+    }
     return;
 handle_err:
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
         return;
     }
     if (errno == ECONNRESET) {
-        shutdown(sock_fd, SHUT_RDWR);
-        close(sock_fd);
-        close(file_fd);
-        slot_clear(i);
-        return;
-    } else {
-        perror(err_str);
-        dcc_sessions.slots[i].err_cnt++;
-        if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
-            shutdown(sock_fd, SHUT_RDWR);
-            close(sock_fd);
-            close(file_fd);
-            slot_clear(i);
-        }
-        return;
+        goto close_fd;
     }
+    perror(err_str);
+    dcc_sessions.slots[i].err_cnt++;
+    if (dcc_sessions.slots[i].err_cnt > ERR_MAX) {
+        goto close_fd;
+    }
+    return;
+close_fd:
+    shutdown(sock_fd, SHUT_RDWR);
+    if (_write) {
+        shutdown(_write - 1, SHUT_RDWR);
+        close(_write - 1);
+    }
+    close(sock_fd);
+    close(file_fd);
+    slot_clear(i);
 }
 
 int main(int argc, char **argv)
@@ -1473,6 +1766,9 @@ int main(int argc, char **argv)
             usage();
             break;
         }
+    }
+    if (dcc) {
+        sigaction(SIGPIPE, &(struct sigaction){.sa_handler = SIG_IGN}, NULL);
     }
     if (cmds) {
         int flag = 0;
