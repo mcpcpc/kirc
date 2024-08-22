@@ -197,12 +197,13 @@ static void refresh_line(state l)
 {
     size_t plenu8 = l->plenu8 + 2;
     char *buf = l->buf;
-    for (buf = strchr(buf, '\t'); buf; buf = strchr(buf, '\t')) {
-        *buf = ' ';
-    }
-    buf = l->buf;
-    for (buf = strchr(buf, '\031'); buf; buf = strchr(buf, '\031')) {
-        *buf = ' ';
+    for (buf = l->buf; *buf; buf++) {
+        switch (*buf) {
+        case '\t':
+        case '\031':
+            *buf = ' ';
+            break;
+        }
     }
     buf = l->buf;
     size_t lenb = l->lenb;
