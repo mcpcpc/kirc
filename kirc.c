@@ -201,6 +201,10 @@ static void refresh_line(state l)
         *buf = ' ';
     }
     buf = l->buf;
+    for (buf = strchr(buf, '\031'); buf; buf = strchr(buf, '\031')) {
+        *buf = ' ';
+    }
+    buf = l->buf;
     size_t lenb = l->lenb;
     size_t posu8 = l->posu8;
     size_t ch = plenu8, txtlenb = 0;
