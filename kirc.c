@@ -196,7 +196,7 @@ static void ab_append(struct abuf *ab, const char *s, int len)
 static void refresh_line(state l)
 {
     size_t plenu8 = l->plenu8 + 2;
-    char *buf = l->buf;
+    char *buf;
     for (buf = l->buf; *buf; buf++) {
         switch (*buf) {
         case '\t':
