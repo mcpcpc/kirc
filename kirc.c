@@ -1529,12 +1529,14 @@ static void dcc_command(state l)
 
     if (poll(&dcc_sessions.sock_fds[slot], 1, POLL_TIMEOUT) <= 0) { /* three minutes untill timeout */
         perror("poll");
+        slot_clear(slot);
         goto close_socket;
     }
 
     int _sock_fd = accept(sock_fd, NULL, NULL);
     if (_sock_fd == -1) {
         perror("accept");
+        slot_clear(slot);
         goto close_socket;
     }
 
