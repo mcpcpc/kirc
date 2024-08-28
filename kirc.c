@@ -1188,7 +1188,7 @@ static void join_command(state l)
         return;
     }
     *stpncpy(chan, strchr(l->buf, '#') + 1, MSG_MAX - 1) = '\0';
-    raw("join #%s\r\n", chan);
+    raw("JOIN #%s\r\n", chan);
     printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
     printf("\x1b[35mJoined #%s!\x1b[0m\r\n", chan);
     l->nick_privmsg = 0;
@@ -1199,7 +1199,7 @@ static void part_command(state l)
     char *tok;
     tok = strchr(l->buf, '#');
     if (tok){
-        raw("part %s\r\n", tok);
+        raw("PART %s\r\n", tok);
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         printf("\x1b[35mLeft %s!\r\n", tok);
         printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
@@ -1211,7 +1211,7 @@ static void part_command(state l)
        tok++;
     }
     if (*tok == '#' || *tok == '\0') {
-        raw("part #%s\r\n", chan);
+        raw("PART #%s\r\n", chan);
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
         printf("\x1b[35mLeft #%s!\r\n", chan);
         printf("\x1b[35mYou need to use /join or /# to speak in a channel!\x1b[0m\r\n");
@@ -1230,7 +1230,7 @@ static void msg_command(state l)
     while (*(l->buf + sizeof("msg") + offset) == ' ') {
         offset ++;
     }
-    raw("privmsg %s :%s\r\n", l->buf + sizeof("msg") + offset, tok);
+    raw("PRIVMSG %s :%s\r\n", l->buf + sizeof("msg") + offset, tok);
     if (strncmp(l->buf + sizeof("msg") + offset, "NickServ", sizeof("NickServ") - 1)) {
         printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + sizeof("msg") + offset, tok);
     }
@@ -1243,7 +1243,7 @@ static void action_command(state l)
         offset ++;
     }
 
-    raw("privmsg #%s :\001ACTION %s\001\r\n", chan, l->buf + sizeof("action") + offset);
+    raw("PRIVMSG #%s :\001ACTION %s\001\r\n", chan, l->buf + sizeof("action") + offset);
     printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, l->buf + sizeof("action") + offset);
 }
 
@@ -1523,7 +1523,7 @@ static void dcc_command(state l)
 
     dcc_sessions.slots[slot].file_size = statbuf.st_size;
 
-    raw("privmsg %s :\001DCC SEND %s %s %s %llu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
+    raw("PRIVMSG %s :\001DCC SEND %s %s %s %llu\001\r\n", target, dcc_sessions.slots[slot].filename, ip_addr_string, tok, statbuf.st_size);
 
     dcc_sessions.sock_fds[slot].fd = sock_fd;
 
@@ -1570,7 +1570,7 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[1] == '/') {
-            raw("privmsg #%s :%s\r\n", chan, l->buf + 2);
+            raw("PRIVMSG #%s :%s\r\n", chan, l->buf + 2);
             printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf + 2);
             return;
         }
@@ -1607,20 +1607,20 @@ static void handle_user_input(state l)
     case '@':           /* send private message to target channel or user */
         strtok_r(l->buf, " ", &tok);
         if (l->buf[1] != '@') {
-            raw("privmsg %s :%s\r\n", l->buf + 1, tok);
+            raw("PRIVMSG %s :%s\r\n", l->buf + 1, tok);
             printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + 1, tok);
             return;
         }
-        raw("privmsg %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
+        raw("PRIVMSG %s :\001ACTION %s\001\r\n", l->buf + 2, tok);
         printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
         return;
     default:           /*  send private message to default channel */
         if(l->nick_privmsg == 0) {
-            raw("privmsg #%s :%s\r\n", chan, l->buf);
+            raw("PRIVMSG #%s :%s\r\n", chan, l->buf);
             printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf);
         }
         else {
-            raw("privmsg %s :%s\r\n", chan, l->buf);
+            raw("PRIVMSG %s :%s\r\n", chan, l->buf);
             printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", chan, l->buf);
         }
         return;
