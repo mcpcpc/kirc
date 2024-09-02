@@ -1572,8 +1572,10 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[1] == '/') {
-            raw("PRIVMSG #%s :%s\r\n", chan, l->buf + 2);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf + 2);
+            raw(l->nick_privmsg ? "PRIVMSG %s :%s\r\n" :
+                                  "PRIVMSG #%s :%s\r\n", chan, l->buf + 2);
+            printf(l->nick_privmsg ? "\x1b[35mprivmsg %s :%s\x1b[0m\r\n" :
+                                     "\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf + 2);
             return;
         }
         if (!strncmp(l->buf + 1, "MSG", sizeof("MSG") - 1) || !strncmp(l->buf + 1, "msg", sizeof("msg") - 1)) {
