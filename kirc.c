@@ -857,7 +857,7 @@ static void handle_dcc(param p)
     int slot = -1;
     int file_fd;
 
-    if (!strncmp(message, "SEND", sizeof("SEND") - 1)) {
+    if (!memcmp(message, "SEND", sizeof("SEND") - 1)) {
         while(++slot < CON_MAX && dcc_sessions.slots[slot].file_fd >= 0);
 
         if (slot == CON_MAX) {
@@ -960,7 +960,7 @@ check_resume:
         return;
     }
 
-    if (!strncmp(message, "ACCEPT", sizeof("ACCEPT") - 1)) {
+    if (!memcmp(message, "ACCEPT", sizeof("ACCEPT") - 1)) {
         if(parse_dcc_accept_message(message, filename, &port, &file_size)) {
             return;
         }
@@ -981,29 +981,29 @@ check_resume:
 
 static void handle_ctcp(param p)
 {
-    if (p->message[0] != '\001' && strncmp(p->message, "ACTION", sizeof("ACTION") - 1)) {
+    if (p->message[0] != '\001' && memcmp(p->message, "ACTION", sizeof("ACTION") - 1)) {
         return;
     }
     const char *message = p->message + 1;
-    if (!strncmp(message, "VERSION", sizeof("VERSION") - 1)) {
+    if (!memcmp(message, "VERSION", sizeof("VERSION") - 1)) {
         raw("NOTICE %s :\001VERSION kirc " VERSION "\001\r\n", p->nickname);
         return;
     }
-    if (!strncmp(message, "TIME", sizeof("TIME") - 1)) {
+    if (!memcmp(message, "TIME", sizeof("TIME") - 1)) {
         char buf[26];
         if (!ctime_now(buf)) {
             raw("NOTICE %s :\001TIME %s\001\r\n", p->nickname, buf);
         }
         return;
     }
-    if (!strncmp(message, "CLIENTINFO", sizeof("CLIENTINFO") - 1)) {
+    if (!memcmp(message, "CLIENTINFO", sizeof("CLIENTINFO") - 1)) {
         raw("NOTICE %s :\001CLIENTINFO " CTCP_CMDS "\001\r\n", p->nickname);
         return;
-    }if (!strncmp(message, "PING", sizeof("PING") - 1)) {
+    }if (!memcmp(message, "PING", sizeof("PING") - 1)) {
         raw("NOTICE %s :\001%s\r\n", p->nickname, message);
         return;
     }
-    if (!strncmp(message, "DCC", sizeof("DCC") - 1)) {
+    if (!memcmp(message, "DCC", sizeof("DCC") - 1)) {
         handle_dcc(p);
         return;
     }
@@ -1049,7 +1049,7 @@ static void param_print_private(param p)
     } else {
         printf("%*s\x1b[33;1m%-.*s\x1b[0m ", s, "", p->nicklen, p->nickname);
     }
-    if (!strncmp(p->message, "\x01" "ACTION", sizeof("ACTION"))) {
+    if (!memcmp(p->message, "\x01" "ACTION", sizeof("\x01" "ACTION") - 1)) {
         p->message += sizeof("ACTION");
         p->offset += sizeof("[ACTION] ");
         printf("[ACTION] ");
@@ -1071,7 +1071,7 @@ static void param_print_channel(param p)
 
 static void raw_parser(char *string)
 {
-    if (!strncmp(string, "PING", sizeof("PING") - 1)) {
+    if (!memcmp(string, "PING", sizeof("PING") - 1)) {
         string[1] = 'O';
         raw("%s\r\n", string);
         return;
@@ -1105,7 +1105,7 @@ static void raw_parser(char *string)
         small_screen = 0;
         p.nicklen = WRAP_LEN;
     }
-    if (!strncmp(p.command, "001", sizeof("001") - 1) && *chan != '\0') {
+    if (!memcmp(p.command, "001", sizeof("001") - 1) && *chan != '\0') {
         char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strcpy(chan, tok);
@@ -1113,23 +1113,23 @@ static void raw_parser(char *string)
         }
         return;
     }
-    if (!strncmp(p.command, "QUIT", sizeof("QUIT") - 1)) {
+    if (!memcmp(p.command, "QUIT", sizeof("QUIT") - 1)) {
         param_print_quit(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "PART", sizeof("PART") - 1)) {
+    }if (!memcmp(p.command, "PART", sizeof("PART") - 1)) {
         param_print_part(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "JOIN", sizeof("JOIN") - 1)) {
+    }if (!memcmp(p.command, "JOIN", sizeof("JOIN") - 1)) {
         param_print_join(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if (!strncmp(p.command, "NICK", sizeof("NICK") - 1)) {
+    }if (!memcmp(p.command, "NICK", sizeof("NICK") - 1)) {
         param_print_nick(&p);
         printf("\x1b[0m\r\n");
         return;
-    }if ((!strncmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) || (!strncmp(p.command, "NOTICE", sizeof("NOTICE") - 1))) {
+    }if ((!memcmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) || (!memcmp(p.command, "NOTICE", sizeof("NOTICE") - 1))) {
         param_print_private(&p);
         message_wrap(&p);
         printf("\x1b[0m\r\n");
@@ -1231,7 +1231,7 @@ static void msg_command(state l)
         offset ++;
     }
     raw("PRIVMSG %s :%s\r\n", l->buf + sizeof("msg") + offset, tok);
-    if (strncmp(l->buf + sizeof("msg") + offset, "NickServ", sizeof("NickServ") - 1)) {
+    if (memcmp(l->buf + sizeof("msg") + offset, "NickServ", sizeof("NickServ") - 1)) {
         printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", l->buf + sizeof("msg") + offset, tok);
     }
 }
@@ -1563,11 +1563,11 @@ static void handle_user_input(state l)
     printf("\r\x1b[0K");
     switch (l->buf[0]) {
     case '/':           /* send system command */
-        if (!strncmp(l->buf + 1, "JOIN", sizeof("JOIN") - 1) || !strncmp(l->buf + 1, "join", sizeof("join") - 1)) {
+        if (!memcmp(l->buf + 1, "JOIN", sizeof("JOIN") - 1) || !memcmp(l->buf + 1, "join", sizeof("join") - 1)) {
             join_command(l);
             return;
         }
-        if (!strncmp(l->buf + 1, "PART", sizeof("PART") - 1) || !strncmp(l->buf + 1, "part", sizeof("part") - 1)) {
+        if (!memcmp(l->buf + 1, "PART", sizeof("PART") - 1) || !memcmp(l->buf + 1, "part", sizeof("part") - 1)) {
             part_command(l);
             return;
         }
@@ -1578,23 +1578,23 @@ static void handle_user_input(state l)
                                      "\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf + 2);
             return;
         }
-        if (!strncmp(l->buf + 1, "MSG", sizeof("MSG") - 1) || !strncmp(l->buf + 1, "msg", sizeof("msg") - 1)) {
+        if (!memcmp(l->buf + 1, "MSG", sizeof("MSG") - 1) || !memcmp(l->buf + 1, "msg", sizeof("msg") - 1)) {
             msg_command(l);
             return;
         }
-        if (!strncmp(l->buf + 1, "NICK", sizeof("NICK") - 1) || !strncmp(l->buf + 1, "nick", sizeof("nick") - 1)) {
+        if (!memcmp(l->buf + 1, "NICK", sizeof("NICK") - 1) || !memcmp(l->buf + 1, "nick", sizeof("nick") - 1)) {
             nick_command(l);
             return;
         }
-        if (!strncmp(l->buf + 1, "ACTION", sizeof("ACTION") - 1) || !strncmp(l->buf + 1, "action", sizeof("action") - 1)) {
+        if (!memcmp(l->buf + 1, "ACTION", sizeof("ACTION") - 1) || !memcmp(l->buf + 1, "action", sizeof("action") - 1)) {
             action_command(l);
             return;
         }
-        if (!strncmp(l->buf + 1, "QUERY", sizeof("QUERY") - 1) || !strncmp(l->buf + 1, "query", sizeof("query") - 1)) {
+        if (!memcmp(l->buf + 1, "QUERY", sizeof("QUERY") - 1) || !memcmp(l->buf + 1, "query", sizeof("query") - 1)) {
             query_command(l);
             return;
         }
-        if (!strncmp(l->buf + 1, "DCC", sizeof("DCC") - 1) || !strncmp(l->buf + 1, "dcc", sizeof("dcc") - 1)) {
+        if (!memcmp(l->buf + 1, "DCC", sizeof("DCC") - 1) || !memcmp(l->buf + 1, "dcc", sizeof("dcc") - 1)) {
             dcc_command(l);
             return;
         }
