@@ -615,9 +615,12 @@ static void log_append(char *str, char *path)
     while (*str != '\0') {
         if (*str >= 32 && *str < 127) {
             fwrite(str, sizeof(char), 1, out);
-        } else if (*str == 3 || *str == 4) {
+        }
+        /* this may not be needed anymore */
+        else if (*str == 3 || *str == 4) {
             str++;
-        } else if (*str == '\n') {
+        }
+        else if (*str == '\n') {
             fwrite("\n", sizeof(char), 1, out);
         }
         str++;
@@ -1071,6 +1074,41 @@ static void param_print_channel(param p)
 
 static void raw_parser(char *string)
 {
+    int len = strlen(string);
+    char _str1[MSG_MAX + 1];
+    char *str1 = _str1;
+    char *str = string;
+    while(*str) {
+        if (*str == 3 || *str == 4) {
+            /* color codes are ^Cxx,yy */
+            /* xx and yy are numbers, either 1 or 2 digits */
+            /* the ,yy part is optional */
+            str++;
+            char *p = str;
+            while (*p && *p != ',' && *p >= '0' && *p <= '9' && p < str + 2) {
+                p++;
+                len--;
+            }
+            str = p;
+            if (*str != ',') {
+                continue;
+            }
+            str++;
+            p = str;
+            while (*p && *p >= '0' && *p <= '9' && p < str + 2) {
+                p++;
+                len--;
+            }
+            str = p;
+            continue;
+        }
+        *str1 = *str;
+        str1++;
+        str++;
+    }
+    *str1 = '\0';
+    memcpy(string, _str1, len + 1);
+
     if (!memcmp(string, "PING", sizeof("PING") - 1)) {
         string[1] = 'O';
         raw("%s\r\n", string);
