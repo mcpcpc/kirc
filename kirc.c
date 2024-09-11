@@ -582,8 +582,23 @@ static int edit(state l)
 
 static inline void state_reset(state l)
 {
-    l->plenb = strnlen(chan, MSG_MAX);
-    l->plenu8 = u8_length(chan);
+    static char first_time = 0;
+    if (!first_time) {
+        first_time = 1;
+        char *tok = chan;
+        char *ptr;
+        for(ptr = chan; *ptr; ptr++) {
+            if ((*ptr == ',') || (*ptr == '|')) {
+                tok = ptr + 1;
+            }
+        }
+        l->plenb = ptr - tok;
+        l->plenu8 = u8_length(tok);
+    }
+    else {
+        l->plenb = strnlen(chan, MSG_MAX);
+        l->plenu8 = u8_length(chan);
+    }
     l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
     l->history_index = 0;
     l->buf[0] = '\0';
@@ -1138,8 +1153,9 @@ static void raw_parser(char *string)
     if (!memcmp(p.command, "001", sizeof("001") - 1) && *chan != '\0') {
         char *tok;
         for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-            strcpy(chan, tok);
-            raw("JOIN #%s\r\n", tok);
+            int len = strnlen(tok, CHA_MAX);
+            memmove(chan, tok, len + 1);
+            raw("JOIN #%s\r\n", chan);
         }
         return;
     }
