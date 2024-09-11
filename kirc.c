@@ -611,31 +611,24 @@ static void log_append(char *str, char *path)
         exit(1);
     }
     ctime_now(buf);
-    fprintf(out, "%s:", buf);
-    while (*str != '\0') {
-        if (*str >= 32 && *str < 127) {
-            fwrite(str, sizeof(char), 1, out);
-        }
-        /* this may not be needed anymore */
-        else if (*str == 3 || *str == 4) {
-            str++;
-        }
-        else if (*str == '\n') {
-            fwrite("\n", sizeof(char), 1, out);
+    char _o_str[MSG_MAX + 1]; /* str is at most this big */
+    char *o_str = _o_str;
+    while(*str != '\0') {
+        if ((*str >= 32 && *str < 127) || *str == '\n') {
+            *o_str = *str;
+            o_str++;
         }
         str++;
-    };
+    }
+    *o_str = '\0';
+    fprintf(out, "%s:%s", buf, _o_str);
     fclose(out);
 }
 
 static void raw(char *fmt, ...)
 {
     va_list ap;
-    char *cmd_str = malloc(MSG_MAX);
-    if (!cmd_str) {
-        perror("malloc");
-        exit(1);
-    }
+    char cmd_str[MSG_MAX + 1];
     va_start(ap, fmt);
     vsnprintf(cmd_str, MSG_MAX, fmt, ap);
     va_end(ap);
@@ -649,7 +642,6 @@ static void raw(char *fmt, ...)
         perror("write");
         exit(1);
     }
-    free(cmd_str);
 }
 
 static int connection_initialize(void)
@@ -1075,7 +1067,7 @@ static void param_print_channel(param p)
 static void raw_parser(char *string)
 {
     int len = strlen(string);
-    char _str1[MSG_MAX + 1];
+    char _str1[MSG_MAX + 1]; /* string is at most this large */
     char *str1 = _str1;
     char *str = string;
     while(*str) {
