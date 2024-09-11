@@ -1071,32 +1071,32 @@ static void raw_parser(char *string)
     char *str1 = _str1;
     char *str = string;
     while(*str) {
-        if (*str == 3 || *str == 4) {
-            /* color codes are ^Cxx,yy */
-            /* xx and yy are numbers, either 1 or 2 digits */
-            /* the ,yy part is optional */
+        if (*str != '\003' && *str != '\004') {
+            *str1 = *str;
+            str1++;
             str++;
-            char *p = str;
-            while (*p && *p != ',' && *p >= '0' && *p <= '9' && p < str + 2) {
-                p++;
-                len--;
-            }
-            str = p;
-            if (*str != ',') {
-                continue;
-            }
-            str++;
-            p = str;
-            while (*p && *p >= '0' && *p <= '9' && p < str + 2) {
-                p++;
-                len--;
-            }
-            str = p;
             continue;
         }
-        *str1 = *str;
-        str1++;
+        /* color codes are ^Cxx,yy */
+        /* xx and yy are numbers, either 1 or 2 digits */
+        /* the ,yy part is optional */
         str++;
+        char *p = str;
+        while (*p && *p != ',' && *p >= '0' && *p <= '9' && p < str + 2) {
+            p++;
+            len--;
+        }
+        str = p;
+        if (*str != ',') {
+            continue;
+        }
+        str++;
+        p = str;
+        while (*p && *p >= '0' && *p <= '9' && p < str + 2) {
+            p++;
+            len--;
+        }
+        str = p;
     }
     *str1 = '\0';
     memcpy(string, _str1, len + 1);
