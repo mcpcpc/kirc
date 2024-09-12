@@ -1168,7 +1168,7 @@ static void raw_parser(char *string)
                 ptr = tok;
             }
         }
-        if (*(tok - 1) == '\0') /* ',' or '|' was the last char passed to -c */
+        if (*(tok - 1) == '\0') {/* ',' or '|' was the last char passed to -c */
             chan[0] = '\0';
             return;
         }
