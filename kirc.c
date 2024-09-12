@@ -1019,6 +1019,45 @@ static void handle_ctcp(param p)
     }
 }
 
+static void filter_colors(char *string)
+{
+    if (!filter || !string) {
+        return;
+    }
+    char _str1[MSG_MAX + 1]; /* string is at most this large */
+    char *str1 = _str1;
+    char *str = string;
+    while(*str) {
+        if (*str != '\003' && *str != '\004') {
+            *str1 = *str;
+            str1++;
+            str++;
+            continue;
+        }
+        /* color codes are ^Cxx,yy */
+        /* xx and yy are numbers, either 1 or 2 digits */
+        /* the ,yy part is optional */
+        str++;
+        char *p = str;
+        while (*p && *p != ',' && *p >= '0' && *p <= '9' && p < str + 2) {
+            p++;
+        }
+        str = p;
+        if (*str != ',') {
+            continue;
+        }
+        str++;
+        p = str;
+        while (*p && *p >= '0' && *p <= '9' && p < str + 2) {
+            p++;
+        }
+        str = p;
+    }
+    *str1 = '\0';
+    memcpy(string, _str1, str1 - _str1 + 1);
+    return;
+}
+
 static void param_print_private(param p)
 {
     time_t rawtime;
@@ -1081,41 +1120,6 @@ static void param_print_channel(param p)
 
 static void raw_parser(char *string)
 {
-    int len = strlen(string);
-    char _str1[MSG_MAX + 1]; /* string is at most this large */
-    char *str1 = _str1;
-    char *str = string;
-    while(*str) {
-        if (*str != '\003' && *str != '\004') {
-            *str1 = *str;
-            str1++;
-            str++;
-            continue;
-        }
-        /* color codes are ^Cxx,yy */
-        /* xx and yy are numbers, either 1 or 2 digits */
-        /* the ,yy part is optional */
-        str++;
-        char *p = str;
-        while (*p && *p != ',' && *p >= '0' && *p <= '9' && p < str + 2) {
-            p++;
-            len--;
-        }
-        str = p;
-        if (*str != ',') {
-            continue;
-        }
-        str++;
-        p = str;
-        while (*p && *p >= '0' && *p <= '9' && p < str + 2) {
-            p++;
-            len--;
-        }
-        str = p;
-    }
-    *str1 = '\0';
-    memcpy(string, _str1, len + 1);
-
     if (!memcmp(string, "PING", sizeof("PING") - 1)) {
         string[1] = 'O';
         raw("%s\r\n", string);
@@ -1142,6 +1146,9 @@ static void raw_parser(char *string)
         .maxcols = get_columns(ttyinfd, STDOUT_FILENO),
         .offset = 0
     };
+
+    filter_colors(p.message); /* this can be slow if -f is passed to kirc */
+
     if (WRAP_LEN > p.maxcols / 3) {
         small_screen = 1;
         p.nicklen = p.maxcols / 3;
@@ -1783,7 +1790,7 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dexvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dfexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
@@ -1802,6 +1809,9 @@ int main(int argc, char **argv)
             break;
         case 'd':
             dcc = 1;
+            break;
+        case 'f':
+            filter = 1;
             break;
         case 's':
             host = optarg;

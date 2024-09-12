@@ -55,6 +55,7 @@ static char verb = 0;           /* verbose output */
 static char sasl = 0;           /* SASL method */
 static char isu8 = 0;           /* UTF-8 flag */
 static char dcc = 0;            /* DCC flag */
+static char filter = 0;		/* flag to filter ansi colors */
 static char* dcc_dir = NULL;      /* DCC download directory */
 static const char *host = "irc.libera.chat";  /* host address */
 static const char *port = "6667";     /* port */
