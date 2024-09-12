@@ -1156,23 +1156,23 @@ static void raw_parser(char *string)
             raw("JOIN #%s\r\n", chan);
             return;
         }
-        char *tok;
-        char *ptr = chan;
-        for (tok = chan; *tok; tok++) {
-            while (*tok == ',' || *tok == '|') {
-                *tok = 0;
-                tok++;
-            }
-            raw("JOIN #%s\r\n", ptr);
-            if (*tok) {
-                ptr = tok;
+        char *tok = chan;
+        char *ptr;
+        for(ptr = chan; *ptr; ptr++) {
+            if ((*ptr == ',') || (*ptr == '|')) {
+                *ptr = '\0';
+                if (ptr != tok) { /* the first encountered ',' or '|' */
+                    raw("JOIN #%s\r\n", tok);
+                }
+                tok = ptr + 1;
             }
         }
-        if (*(tok - 1) == '\0') {/* ',' or '|' was the last char passed to -c */
-            chan[0] = '\0';
+        if (ptr == tok) { /* last char passed to -c was ',' or '|' */
+            *chan = '\0';
             return;
         }
-        memmove(chan, ptr, tok - ptr + 1);
+        raw("JOIN #%s\r\n", tok);
+        memmove(chan, tok, ptr - tok + 1);
         return;
     }
     if (!memcmp(p.command, "QUIT", sizeof("QUIT") - 1)) {
