@@ -1147,8 +1147,6 @@ static void raw_parser(char *string)
         .offset = 0
     };
 
-    filter_colors(p.message); /* this can be slow if -f is passed to kirc */
-
     if (WRAP_LEN > p.maxcols / 3) {
         small_screen = 1;
         p.nicklen = p.maxcols / 3;
@@ -1199,6 +1197,7 @@ static void raw_parser(char *string)
         printf("\x1b[0m\r\n");
         return;
     }if ((!memcmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) || (!memcmp(p.command, "NOTICE", sizeof("NOTICE") - 1))) {
+        filter_colors(p.message); /* this can be slow if -f is passed to kirc */
         param_print_private(&p);
         message_wrap(&p);
         printf("\x1b[0m\r\n");
