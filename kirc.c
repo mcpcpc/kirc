@@ -1847,7 +1847,12 @@ int main(int argc, char **argv)
             pass = optarg;
             break;
         case 'c':
-            strcpy(chan, optarg);
+            if (strlen(optarg) < sizeof(chan)) {
+                strcpy(chan, optarg);
+            }
+            else {
+                print_error("argument to -c is too big");
+            }
             break;
         case 'D':
             dcc_dir = optarg;
