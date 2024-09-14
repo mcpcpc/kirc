@@ -5,24 +5,9 @@
 
 #include "kirc.h"
 
-static void free_history(void)
-{
-    if (!history) {
-        return;
-    }
-    int j;
-    for (j = 0; j < history_len; j++) {
-        free(history[j]);
-    }
-    free(history);
-}
-
 static void disable_raw_mode(void)
 {
-    if (rawmode && tcsetattr(ttyinfd, TCSAFLUSH, &orig) != -1) {
-        rawmode = 0;
-    }
-    free_history();
+    tcsetattr(ttyinfd, TCSAFLUSH, &orig);
 }
 
 static int enable_raw_mode(int fd)
@@ -30,13 +15,10 @@ static int enable_raw_mode(int fd)
     if (!isatty(ttyinfd)) {
         goto fatal;
     }
-    if (!atexit_registered) {
-        atexit(disable_raw_mode);
-        atexit_registered = 1;
-    }
     if (tcgetattr(fd, &orig) == -1) {
         goto fatal;
     }
+    atexit(disable_raw_mode);
     struct termios raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
@@ -47,7 +29,6 @@ static int enable_raw_mode(int fd)
     if (tcsetattr(fd, TCSAFLUSH, &raw) < 0) {
         goto fatal;
     }
-    rawmode = 1;
     return 0;
  fatal:
     errno = ENOTTY;
@@ -415,13 +396,6 @@ static void edit_history(state l, int dir)
 static int history_add(const char *line)
 {
     char *linecopy;
-    if (history == NULL) {
-        history = malloc(sizeof(char *) * HIS_MAX);
-        if (history == NULL) {
-            return 0;
-        }
-        memset(history, 0, (sizeof(char *) * HIS_MAX));
-    }
     if (history_len && !strcmp(history[history_len - 1], line)) {
         return 0;
     }
