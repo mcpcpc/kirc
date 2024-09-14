@@ -165,12 +165,10 @@ static int setIsu8_C(int ifd, int ofd)
 
 static void ab_append(struct abuf *ab, const char *s, int len)
 {
-    char *new = realloc(ab->b, ab->len + len);
-    if (new == NULL) {
+    if (len + ab->len > (int)ABUF_LEN) {
         return;
     }
-    memcpy(new + ab->len, s, len);
-    ab->b = new;
+    memcpy(ab->b + ab->len, s, len);
     ab->len += len;
 }
 
@@ -199,7 +197,6 @@ static void refresh_line(state l)
     while (txtlenb < lenb && ch++ < l->cols) {
         txtlenb += u8_next(buf + txtlenb, 0);
     }
-    ab.b = NULL;
     ab.len = 0;
     ab_append(&ab, "\r", sizeof("\r") - 1);
     ab_append(&ab, chan, l->plenb);
@@ -215,7 +212,6 @@ static void refresh_line(state l)
     }
     if (write(STDOUT_FILENO, ab.b, ab.len) == -1) {
     }
-    free(ab.b);
 }
 
 static int edit_insert(state l, char *c)

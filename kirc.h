@@ -13,6 +13,8 @@
 #define MSG_MAX 512 /* irc rfc says lines are 512 char's max, but servers can accept more */
 #define CHA_MAX 200
 #define WRAP_LEN 26
+#define ABUF_LEN (sizeof("\r") - 1 + CHA_MAX + sizeof("> ") - 1 + MSG_MAX + sizeof("\x1b[0K") - 1 + 32 + 1)
+                                                              /* this is as big as the ab buffer can get */
 #define HIS_MAX 100
 #define FNM_MAX 255
 #define DIR_MAX 256
@@ -121,7 +123,7 @@ typedef struct STATE {
 } state_t, *state;
 
 struct abuf {
-    char *b;
+    char b[ABUF_LEN];
     int len;
 };
 
