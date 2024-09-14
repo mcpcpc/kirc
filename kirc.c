@@ -582,8 +582,23 @@ static int edit(state l)
 
 static inline void state_reset(state l)
 {
-    l->plenb = strnlen(chan, MSG_MAX);
-    l->plenu8 = u8_length(chan);
+    static char not_first_time = 0;
+    if (not_first_time) {
+        l->plenb = strnlen(chan, MSG_MAX);
+        l->plenu8 = u8_length(chan);
+    }
+    else {
+        not_first_time = 1;
+        char *tok = chan;
+        char *ptr;
+        for(ptr = chan; *ptr; ptr++) {
+            if ((*ptr == ',') || (*ptr == '|')) {
+                tok = ptr + 1;
+            }
+        }
+        l->plenb = ptr - tok;
+        l->plenu8 = u8_length(tok);
+    }
     l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
     l->history_index = 0;
     l->buf[0] = '\0';
@@ -602,37 +617,52 @@ static char *ctime_now(char *buf)
     return buf;
 }
 
+static void print_error(char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    printf("\r\x1b[31merror: ");
+    vprintf(fmt, ap);
+    printf("\x1b[0m\r\n");
+    va_end(ap);
+}
+
 static void log_append(char *str, char *path)
 {
     FILE *out;
     char buf[26];
+    static char append_failed;
     if ((out = fopen(path, "a")) == NULL) {
-        perror("fopen");
-        exit(1);
+        if (!append_failed) {
+            append_failed = 1;
+            print_error("fopen failed, logging disabled");
+            perror("fopen");
+        }
+        return;
+    }
+    if (append_failed) {
+        append_failed = 0;
+        print_error("logging back on");
     }
     ctime_now(buf);
-    fprintf(out, "%s:", buf);
-    while (*str != '\0') {
-        if (*str >= 32 && *str < 127) {
-            fwrite(str, sizeof(char), 1, out);
-        } else if (*str == 3 || *str == 4) {
-            str++;
-        } else if (*str == '\n') {
-            fwrite("\n", sizeof(char), 1, out);
+    char _o_str[MSG_MAX + 1]; /* str is at most this big */
+    char *o_str = _o_str;
+    while(*str != '\0') {
+        if ((*str >= 32 && *str < 127) || *str == '\n') {
+            *o_str = *str;
+            o_str++;
         }
         str++;
-    };
+    }
+    *o_str = '\0';
+    fprintf(out, "%s:%s", buf, _o_str);
     fclose(out);
 }
 
 static void raw(char *fmt, ...)
 {
     va_list ap;
-    char *cmd_str = malloc(MSG_MAX);
-    if (!cmd_str) {
-        perror("malloc");
-        exit(1);
-    }
+    char cmd_str[MSG_MAX + 1];
     va_start(ap, fmt);
     vsnprintf(cmd_str, MSG_MAX, fmt, ap);
     va_end(ap);
@@ -646,7 +676,6 @@ static void raw(char *fmt, ...)
         perror("write");
         exit(1);
     }
-    free(cmd_str);
 }
 
 static int connection_initialize(void)
@@ -730,16 +759,6 @@ static void param_print_join(param p)
     if (p->channel != NULL && strcmp(p->channel + 1, chan)) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
     }
-}
-
-static void print_error(char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    printf("\r\x1b[31merror: ");
-    vprintf(fmt, ap);
-    printf("\x1b[0m\r\n");
-    va_end(ap);
 }
 
 static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, unsigned long long *file_size)
@@ -915,8 +934,9 @@ static void handle_dcc(param p)
         }
 
         if (file_fd < 0) {
+            print_error("couldn't open file for writing");
             perror("open");
-            exit(1);
+            return;
         }
 
         if (file_size == bytes_read) {
@@ -1009,6 +1029,45 @@ static void handle_ctcp(param p)
     }
 }
 
+static void filter_colors(char *string)
+{
+    if (!filter || !string) {
+        return;
+    }
+    char _str1[MSG_MAX + 1]; /* string is at most this large */
+    char *str1 = _str1;
+    char *str = string;
+    while(*str) {
+        if (*str != '\003' && *str != '\004') {
+            *str1 = *str;
+            str1++;
+            str++;
+            continue;
+        }
+        /* color codes are ^Cxx,yy */
+        /* xx and yy are numbers, either 1 or 2 digits */
+        /* the ,yy part is optional */
+        str++;
+        char *p = str;
+        while (*p && *p != ',' && *p >= '0' && *p <= '9' && p < str + 2) {
+            p++;
+        }
+        str = p;
+        if (*str != ',') {
+            continue;
+        }
+        str++;
+        p = str;
+        while (*p && *p >= '0' && *p <= '9' && p < str + 2) {
+            p++;
+        }
+        str = p;
+    }
+    *str1 = '\0';
+    memcpy(string, _str1, str1 - _str1 + 1);
+    return;
+}
+
 static void param_print_private(param p)
 {
     time_t rawtime;
@@ -1097,6 +1156,7 @@ static void raw_parser(char *string)
         .maxcols = get_columns(ttyinfd, STDOUT_FILENO),
         .offset = 0
     };
+
     if (WRAP_LEN > p.maxcols / 3) {
         small_screen = 1;
         p.nicklen = p.maxcols / 3;
@@ -1105,12 +1165,29 @@ static void raw_parser(char *string)
         small_screen = 0;
         p.nicklen = WRAP_LEN;
     }
-    if (!memcmp(p.command, "001", sizeof("001") - 1) && *chan != '\0') {
-        char *tok;
-        for (tok = strtok(chan, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-            strcpy(chan, tok);
-            raw("JOIN #%s\r\n", tok);
+    if (*chan != '\0' && !memcmp(p.command, "001", sizeof("001") - 1)) {
+        static char not_first_time = 0;
+        if (not_first_time) {
+            raw("JOIN #%s\r\n", chan);
+            return;
         }
+        char *tok = chan;
+        char *ptr;
+        for(ptr = chan; *ptr; ptr++) {
+            if ((*ptr == ',') || (*ptr == '|')) {
+                *ptr = '\0';
+                if (ptr != tok) { /* the first encountered ',' or '|' */
+                    raw("JOIN #%s\r\n", tok);
+                }
+                tok = ptr + 1;
+            }
+        }
+        if (ptr == tok) { /* last char passed to -c was ',' or '|' */
+            *chan = '\0';
+            return;
+        }
+        raw("JOIN #%s\r\n", tok);
+        memmove(chan, tok, ptr - tok + 1);
         return;
     }
     if (!memcmp(p.command, "QUIT", sizeof("QUIT") - 1)) {
@@ -1130,6 +1207,7 @@ static void raw_parser(char *string)
         printf("\x1b[0m\r\n");
         return;
     }if ((!memcmp(p.command, "PRIVMSG", sizeof("PRIVMSG") - 1)) || (!memcmp(p.command, "NOTICE", sizeof("NOTICE") - 1))) {
+        filter_colors(p.message); /* this can be slow if -f is passed to kirc */
         param_print_private(&p);
         message_wrap(&p);
         printf("\x1b[0m\r\n");
@@ -1721,7 +1799,7 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dexvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dfexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
@@ -1740,6 +1818,9 @@ int main(int argc, char **argv)
             break;
         case 'd':
             dcc = 1;
+            break;
+        case 'f':
+            filter = 1;
             break;
         case 's':
             host = optarg;
@@ -1766,7 +1847,12 @@ int main(int argc, char **argv)
             pass = optarg;
             break;
         case 'c':
-            strcpy(chan, optarg);
+            if (strlen(optarg) < sizeof(chan)) {
+                strcpy(chan, optarg);
+            }
+            else {
+                print_error("argument to -c is too big");
+            }
             break;
         case 'D':
             dcc_dir = optarg;

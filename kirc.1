@@ -60,6 +60,9 @@ Connect via ipv6 only
 .BI \-d
 Toggle DCC support
 .TP
+.BI \-f
+Filter ansi color codes
+.TP
 .BI \-e
 Specifies SASL EXTERNAL mechanism
 .TP
@@ -78,7 +81,7 @@ received.
 .BI /<command>
 Send message to IRC host (e.g. /JOIN, /PART, /WHOIS, etc.)
 .TP
-.BI /setprivmsg <nick>
+.BI /query " <nick>"
 Set privmsg target. Useful when sending privmsg's to a nick instead of a chan.
 .TP
 .BI // " <text>"
