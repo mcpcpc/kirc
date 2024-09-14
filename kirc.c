@@ -372,30 +372,44 @@ static void edit_swap_character_w_previous(state l)
 
 static void edit_history(state l, int dir)
 {
-    if (history_len <= 1) {
+    int idx = (((history_len - 1 - l->history_index) >= 0) ? history_len - 1 - l->history_index
+                                                           : (history_wrap ? HIS_MAX + history_len - 1 - l->history_index : -1));
+    if (idx < 0) {
         return;
     }
-    free(history[history_len - (1 + l->history_index)]);
-    history[history_len - (1 + l->history_index)] = strdup(l->buf);
-    l->history_index += (dir == 1) ? 1 : -1;
+    free(history[idx]);
+    history[idx] = strdup(l->buf);
+    l->history_index += dir;
     if (l->history_index < 0) {
         l->history_index = 0;
         return;
     }
     if (l->history_index >= history_len) {
-        l->history_index = history_len - 1;
+        if (!history_wrap) {
+            l->history_index = history_len - 1;
+            return;
+        }
+        if (l->history_index >= HIS_MAX) {
+            l->history_index = HIS_MAX - 1;
+            return;
+        }
+    }
+    idx = (((history_len - 1 - l->history_index) >= 0) ? history_len - 1 - l->history_index
+                                                       : (history_wrap ? HIS_MAX + history_len - 1 - l->history_index : -1));
+    if (idx < 0) {
         return;
     }
-    l->lenb = l->posb = strnlen(history[history_len - (1 + l->history_index)], MSG_MAX);
-    l->lenu8 = l->posu8 = u8_length(l->buf);
-    memcpy(l->buf, history[history_len - (1 + l->history_index)], l->lenb + 1);
+    l->lenb = l->posb = strnlen(history[idx], MSG_MAX);
+    l->lenu8 = l->posu8 = u8_length(history[idx]);
+    memcpy(l->buf, history[idx], l->lenb + 1);
     refresh_line(l);
 }
 
 static int history_add(const char *line)
 {
     char *linecopy;
-    if (history_len && !strcmp(history[history_len - 1], line)) {
+    int idx = history_len ? history_len : (history_wrap ? HIS_MAX : 0);
+    if (idx && !strcmp(history[idx - 1], line)) {
         return 0;
     }
     linecopy = strdup(line);
@@ -404,8 +418,8 @@ static int history_add(const char *line)
     }
     if (history_len == HIS_MAX) {
         free(history[0]);
-        memmove(history, history + 1, sizeof(char *) * (HIS_MAX - 1));
-        history_len--;
+        history_len = 0;
+        history_wrap = 1;
     }
     history[history_len] = linecopy;
     history_len++;
@@ -415,6 +429,10 @@ static int history_add(const char *line)
 static inline void edit_enter(void)
 {
     history_len--;
+    if (history_len == -1 && history_wrap) {
+        history_len = HIS_MAX - 1;
+        history_wrap = 0;
+    }
     free(history[history_len]);
 }
 
@@ -455,7 +473,7 @@ static void edit_escape_sequence(state l, char seq[3])
         edit_history(l, 1);
         return;          /* Up */
     case 'B':
-        edit_history(l, 0);
+        edit_history(l, -1);
     return;          /* Down */
     case 'C':
         edit_move_right(l);
@@ -511,7 +529,7 @@ static int edit(state l)
         edit_delete_line_to_end(l);
         return 0;              /* Ctrl+k */
     case 14:
-        edit_history(l, 0);
+        edit_history(l, -1);
         return 0;              /* Ctrl+n */
     case 16:
         edit_history(l, 1);
@@ -525,6 +543,10 @@ static int edit(state l)
     case 4:                /* ctrl-d */
         if (l->lenu8 == 0) {
             history_len--;
+            if (history_len == -1 && history_wrap) {
+                history_len = HIS_MAX - 1;
+                history_wrap = 0;
+            }
             free(history[history_len]);
             return -1;
         }
