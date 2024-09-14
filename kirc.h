@@ -13,7 +13,7 @@
 #define MSG_MAX 512 /* irc rfc says lines are 512 char's max, but servers can accept more */
 #define CHA_MAX 200
 #define WRAP_LEN 26
-#define HIS_MAX 5
+#define HIS_MAX 100
 #define FNM_MAX 255
 #define DIR_MAX 256
 #define ERR_MAX 1 /* number of read/write errors before DCC slot is discarded */
@@ -89,7 +89,7 @@ static int ttyinfd = STDIN_FILENO;
 static struct termios orig;
 static int history_len = 0;
 static char history_wrap = 0;
-static char *history[HIS_MAX];
+static char history[HIS_MAX][MSG_MAX];
 static char small_screen;
 
 typedef struct PARAMETERS {

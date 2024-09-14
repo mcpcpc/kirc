@@ -377,8 +377,7 @@ static void edit_history(state l, int dir)
     if (idx < 0) {
         return;
     }
-    free(history[idx]);
-    history[idx] = strdup(l->buf);
+    strcpy(history[idx], l->buf);
     l->history_index += dir;
     if (l->history_index < 0) {
         l->history_index = 0;
@@ -407,21 +406,15 @@ static void edit_history(state l, int dir)
 
 static int history_add(const char *line)
 {
-    char *linecopy;
     int idx = history_len ? history_len : (history_wrap ? HIS_MAX : 0);
     if (idx && !strcmp(history[idx - 1], line)) {
         return 0;
     }
-    linecopy = strdup(line);
-    if (!linecopy) {
-        return 0;
-    }
     if (history_len == HIS_MAX) {
-        free(history[0]);
         history_len = 0;
         history_wrap = 1;
     }
-    history[history_len] = linecopy;
+    strcpy(history[history_len], line);
     history_len++;
     return 1;
 }
@@ -433,7 +426,6 @@ static inline void edit_enter(void)
         history_len = HIS_MAX - 1;
         history_wrap = 0;
     }
-    free(history[history_len]);
 }
 
 static void edit_escape_sequence(state l, char seq[3])
@@ -547,7 +539,6 @@ static int edit(state l)
                 history_len = HIS_MAX - 1;
                 history_wrap = 0;
             }
-            free(history[history_len]);
             return -1;
         }
         edit_delete(l);
