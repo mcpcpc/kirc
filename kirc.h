@@ -106,7 +106,6 @@ typedef struct PARAMETERS {
 
 typedef struct STATE {
     char buf[MSG_MAX];          /* Edited line buffer. */
-    size_t buflen;              /* Edited line buffer size. */
     size_t plenb;               /* Prompt length. */
     size_t plenu8;              /* Prompt length. */
     size_t posb;                /* Current cursor position. */

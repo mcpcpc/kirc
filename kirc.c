@@ -221,7 +221,7 @@ static void refresh_line(state l)
 static int edit_insert(state l, char *c)
 {
     size_t clenb = strlen(c);
-    if ((l->lenb + clenb) >= l->buflen) {
+    if ((l->lenb + clenb) >= MSG_MAX - 1) {
         return 0;
     }
     if (l->lenu8 != l->posu8) {
@@ -386,10 +386,9 @@ static void edit_history(state l, int dir)
         l->history_index = history_len - 1;
         return;
     }
-    strcpy(l->buf, history[history_len - (1 + l->history_index)]);
-    l->buf[l->buflen - 1] = '\0';
-    l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
+    l->lenb = l->posb = strnlen(history[history_len - (1 + l->history_index)], MSG_MAX);
     l->lenu8 = l->posu8 = u8_length(l->buf);
+    memcpy(l->buf, history[history_len - (1 + l->history_index)], l->lenb + 1);
     refresh_line(l);
 }
 
@@ -576,7 +575,6 @@ static inline void state_reset(state l)
     l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
     l->history_index = 0;
     l->buf[0] = '\0';
-    l->buflen--;
     history_add("");
 }
 
@@ -1883,7 +1881,6 @@ int main(int argc, char **argv)
     dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
     state_t l;
     memset(&l, 0, sizeof(l));
-    l.buflen = MSG_MAX;
     state_reset(&l);
     int rc, editReturnFlag = 0;
     if (enable_raw_mode(ttyinfd) == -1) {
