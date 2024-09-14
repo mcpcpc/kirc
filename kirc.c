@@ -617,13 +617,32 @@ static char *ctime_now(char *buf)
     return buf;
 }
 
+static void print_error(char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    printf("\r\x1b[31merror: ");
+    vprintf(fmt, ap);
+    printf("\x1b[0m\r\n");
+    va_end(ap);
+}
+
 static void log_append(char *str, char *path)
 {
     FILE *out;
     char buf[26];
+    static char append_failed;
     if ((out = fopen(path, "a")) == NULL) {
-        perror("fopen");
-        exit(1);
+        if (!append_failed) {
+            append_failed = 1;
+            print_error("fopen failed, logging disabled");
+            perror("fopen");
+        }
+        return;
+    }
+    if (append_failed) {
+        append_failed = 0;
+        print_error("logging back on");
     }
     ctime_now(buf);
     char _o_str[MSG_MAX + 1]; /* str is at most this big */
@@ -740,16 +759,6 @@ static void param_print_join(param p)
     if (p->channel != NULL && strcmp(p->channel + 1, chan)) {
         printf(" [\x1b[33m%s\x1b[0m] ", p->channel);
     }
-}
-
-static void print_error(char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    printf("\r\x1b[31merror: ");
-    vprintf(fmt, ap);
-    printf("\x1b[0m\r\n");
-    va_end(ap);
 }
 
 static sa_family_t parse_dcc_send_message(const char *message, char *filename, unsigned int *ip_addr, char *ipv6_addr, unsigned short *port, unsigned long long *file_size)
@@ -925,8 +934,9 @@ static void handle_dcc(param p)
         }
 
         if (file_fd < 0) {
+            print_error("couldn't open file for writing");
             perror("open");
-            exit(1);
+            return;
         }
 
         if (file_size == bytes_read) {
