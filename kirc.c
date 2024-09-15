@@ -5,24 +5,9 @@
 
 #include "kirc.h"
 
-static void free_history(void)
-{
-    if (!history) {
-        return;
-    }
-    int j;
-    for (j = 0; j < history_len; j++) {
-        free(history[j]);
-    }
-    free(history);
-}
-
 static void disable_raw_mode(void)
 {
-    if (rawmode && tcsetattr(ttyinfd, TCSAFLUSH, &orig) != -1) {
-        rawmode = 0;
-    }
-    free_history();
+    tcsetattr(ttyinfd, TCSAFLUSH, &orig);
 }
 
 static int enable_raw_mode(int fd)
@@ -30,13 +15,10 @@ static int enable_raw_mode(int fd)
     if (!isatty(ttyinfd)) {
         goto fatal;
     }
-    if (!atexit_registered) {
-        atexit(disable_raw_mode);
-        atexit_registered = 1;
-    }
     if (tcgetattr(fd, &orig) == -1) {
         goto fatal;
     }
+    atexit(disable_raw_mode);
     struct termios raw = orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
@@ -47,7 +29,6 @@ static int enable_raw_mode(int fd)
     if (tcsetattr(fd, TCSAFLUSH, &raw) < 0) {
         goto fatal;
     }
-    rawmode = 1;
     return 0;
  fatal:
     errno = ENOTTY;
@@ -184,12 +165,10 @@ static int setIsu8_C(int ifd, int ofd)
 
 static void ab_append(struct abuf *ab, const char *s, int len)
 {
-    char *new = realloc(ab->b, ab->len + len);
-    if (new == NULL) {
+    if (len + ab->len > (int)ABUF_LEN) {
         return;
     }
-    memcpy(new + ab->len, s, len);
-    ab->b = new;
+    memcpy(ab->b + ab->len, s, len);
     ab->len += len;
 }
 
@@ -218,7 +197,6 @@ static void refresh_line(state l)
     while (txtlenb < lenb && ch++ < l->cols) {
         txtlenb += u8_next(buf + txtlenb, 0);
     }
-    ab.b = NULL;
     ab.len = 0;
     ab_append(&ab, "\r", sizeof("\r") - 1);
     ab_append(&ab, chan, l->plenb);
@@ -234,13 +212,12 @@ static void refresh_line(state l)
     }
     if (write(STDOUT_FILENO, ab.b, ab.len) == -1) {
     }
-    free(ab.b);
 }
 
 static int edit_insert(state l, char *c)
 {
     size_t clenb = strlen(c);
-    if ((l->lenb + clenb) >= l->buflen) {
+    if ((l->lenb + clenb) >= MSG_MAX - 1) {
         return 0;
     }
     if (l->lenu8 != l->posu8) {
@@ -391,50 +368,49 @@ static void edit_swap_character_w_previous(state l)
 
 static void edit_history(state l, int dir)
 {
-    if (history_len <= 1) {
+    int idx = (((history_len - 1 - l->history_index) >= 0) ? history_len - 1 - l->history_index
+                                                           : (history_wrap ? HIS_MAX + history_len - 1 - l->history_index : -1));
+    if (idx < 0) {
         return;
     }
-    free(history[history_len - (1 + l->history_index)]);
-    history[history_len - (1 + l->history_index)] = strdup(l->buf);
-    l->history_index += (dir == 1) ? 1 : -1;
+    strcpy(history[idx], l->buf);
+    l->history_index += dir;
     if (l->history_index < 0) {
         l->history_index = 0;
         return;
     }
     if (l->history_index >= history_len) {
-        l->history_index = history_len - 1;
+        if (!history_wrap) {
+            l->history_index = history_len - 1;
+            return;
+        }
+        if (l->history_index >= HIS_MAX) {
+            l->history_index = HIS_MAX - 1;
+            return;
+        }
+    }
+    idx = (((history_len - 1 - l->history_index) >= 0) ? history_len - 1 - l->history_index
+                                                       : (history_wrap ? HIS_MAX + history_len - 1 - l->history_index : -1));
+    if (idx < 0) {
         return;
     }
-    strcpy(l->buf, history[history_len - (1 + l->history_index)]);
-    l->buf[l->buflen - 1] = '\0';
-    l->lenb = l->posb = strnlen(l->buf, MSG_MAX);
-    l->lenu8 = l->posu8 = u8_length(l->buf);
+    l->lenb = l->posb = strnlen(history[idx], MSG_MAX);
+    l->lenu8 = l->posu8 = u8_length(history[idx]);
+    memcpy(l->buf, history[idx], l->lenb + 1);
     refresh_line(l);
 }
 
 static int history_add(const char *line)
 {
-    char *linecopy;
-    if (history == NULL) {
-        history = malloc(sizeof(char *) * HIS_MAX);
-        if (history == NULL) {
-            return 0;
-        }
-        memset(history, 0, (sizeof(char *) * HIS_MAX));
-    }
-    if (history_len && !strcmp(history[history_len - 1], line)) {
-        return 0;
-    }
-    linecopy = strdup(line);
-    if (!linecopy) {
+    int idx = history_len ? history_len : (history_wrap ? HIS_MAX : 0);
+    if (idx && !strcmp(history[idx - 1], line)) {
         return 0;
     }
     if (history_len == HIS_MAX) {
-        free(history[0]);
-        memmove(history, history + 1, sizeof(char *) * (HIS_MAX - 1));
-        history_len--;
+        history_len = 0;
+        history_wrap = 1;
     }
-    history[history_len] = linecopy;
+    strcpy(history[history_len], line);
     history_len++;
     return 1;
 }
@@ -442,7 +418,10 @@ static int history_add(const char *line)
 static inline void edit_enter(void)
 {
     history_len--;
-    free(history[history_len]);
+    if (history_len == -1 && history_wrap) {
+        history_len = HIS_MAX - 1;
+        history_wrap = 0;
+    }
 }
 
 static void edit_escape_sequence(state l, char seq[3])
@@ -482,7 +461,7 @@ static void edit_escape_sequence(state l, char seq[3])
         edit_history(l, 1);
         return;          /* Up */
     case 'B':
-        edit_history(l, 0);
+        edit_history(l, -1);
     return;          /* Down */
     case 'C':
         edit_move_right(l);
@@ -538,7 +517,7 @@ static int edit(state l)
         edit_delete_line_to_end(l);
         return 0;              /* Ctrl+k */
     case 14:
-        edit_history(l, 0);
+        edit_history(l, -1);
         return 0;              /* Ctrl+n */
     case 16:
         edit_history(l, 1);
@@ -552,7 +531,10 @@ static int edit(state l)
     case 4:                /* ctrl-d */
         if (l->lenu8 == 0) {
             history_len--;
-            free(history[history_len]);
+            if (history_len == -1 && history_wrap) {
+                history_len = HIS_MAX - 1;
+                history_wrap = 0;
+            }
             return -1;
         }
         edit_delete(l);
@@ -602,7 +584,6 @@ static inline void state_reset(state l)
     l->oldposb = l->posb = l->oldposu8 = l->posu8 = l->lenb = l->lenu8 = 0;
     l->history_index = 0;
     l->buf[0] = '\0';
-    l->buflen--;
     history_add("");
 }
 
@@ -1909,7 +1890,6 @@ int main(int argc, char **argv)
     dcc_sessions.sock_fds[CON_MAX + 1] = (struct pollfd){.fd = conn,.events = POLLIN};
     state_t l;
     memset(&l, 0, sizeof(l));
-    l.buflen = MSG_MAX;
     state_reset(&l);
     int rc, editReturnFlag = 0;
     if (enable_raw_mode(ttyinfd) == -1) {

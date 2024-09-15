@@ -13,6 +13,8 @@
 #define MSG_MAX 512 /* irc rfc says lines are 512 char's max, but servers can accept more */
 #define CHA_MAX 200
 #define WRAP_LEN 26
+#define ABUF_LEN (sizeof("\r") - 1 + CHA_MAX + sizeof("> ") - 1 + MSG_MAX + sizeof("\x1b[0K") - 1 + 32 + 1)
+                                                              /* this is as big as the ab buffer can get */
 #define HIS_MAX 100
 #define FNM_MAX 255
 #define DIR_MAX 256
@@ -87,10 +89,9 @@ static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 
 static int ttyinfd = STDIN_FILENO;
 static struct termios orig;
-static int rawmode = 0;
-static int atexit_registered = 0;
 static int history_len = 0;
-static char **history = NULL;
+static char history_wrap = 0;
+static char history[HIS_MAX][MSG_MAX];
 static char small_screen;
 
 typedef struct PARAMETERS {
@@ -108,7 +109,6 @@ typedef struct PARAMETERS {
 
 typedef struct STATE {
     char buf[MSG_MAX];          /* Edited line buffer. */
-    size_t buflen;              /* Edited line buffer size. */
     size_t plenb;               /* Prompt length. */
     size_t plenu8;              /* Prompt length. */
     size_t posb;                /* Current cursor position. */
@@ -123,7 +123,7 @@ typedef struct STATE {
 } state_t, *state;
 
 struct abuf {
-    char *b;
+    char b[ABUF_LEN];
     int len;
 };
 
