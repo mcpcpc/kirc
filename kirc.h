@@ -119,7 +119,7 @@ typedef struct STATE {
     size_t lenu8;               /* Current edited line length. */
     size_t cols;                /* Number of columns in terminal. */
     int history_index;          /* Current line in the edit history */
-    char nick_privmsg;		/* whether or not we are sending messages to a chan or nick */
+    char nick_privmsg;          /* whether or not we are sending messages to a chan or nick */
     char chan_privmsg;          /* flag to toggle raw messages */
 } state_t, *state;
 
