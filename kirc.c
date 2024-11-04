@@ -869,7 +869,13 @@ static void handle_dcc(param p)
         slot_clear(slot);
 
         sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
-        if(sin_family == AF_UNSPEC) {
+        if (sin_family == AF_UNSPEC) {
+            return;
+        }
+
+        if (port == 0) {
+            /* don't cancel the transfer, just move on */
+            print_error("Reverse DCC not implemented");
             return;
         }
 
