@@ -68,7 +68,6 @@ static char *auth = NULL;       /* PLAIN SASL token */
 static char *real = NULL;       /* real name */
 static char *olog = NULL;       /* chat log path */
 static char *inic = NULL;       /* additional server command */
-static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 
 /* define function macros */
 #define htonll(x) ((1==htonl(1)) ? (x) : (((uint64_t)htonl((x) & 0xFFFFFFFFUL)) << 32) | htonl((uint32_t)((x) >> 32)))
