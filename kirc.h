@@ -22,7 +22,6 @@
 #define POLL_TIMEOUT 180000 /* 3 minutes */ /* argument is in miliseconds */
 #define CON_MAX 20
 #define BACKLOG 100 /* DCC SEND listen() backlog */
-#define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
 #define DCC_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 #define STR_(a) #a
@@ -69,7 +68,6 @@ static char *auth = NULL;       /* PLAIN SASL token */
 static char *real = NULL;       /* real name */
 static char *olog = NULL;       /* chat log path */
 static char *inic = NULL;       /* additional server command */
-static char cmds = 0;           /* indicates additional server commands */
 static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 
 /* define function macros */
