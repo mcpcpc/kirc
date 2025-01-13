@@ -8,7 +8,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING DCC"
-#define VERSION "0.3.2"
+#define VERSION "0.3.3"
 #define TESTCHARS "\xe1\xbb\xa4"
 #define MSG_MAX 512 /* irc rfc says lines are 512 char's max, but servers can accept more */
 #define CHA_MAX 200
