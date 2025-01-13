@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: MIT
- * Copyright (C) 2023 Michael Czigler
+ * Copyright (C) 2025 Michael Czigler
  */
 
 #include "kirc.h"
