@@ -8,7 +8,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 #define CTCP_CMDS "ACTION VERSION TIME CLIENTINFO PING DCC"
-#define VERSION "0.3.2"
+#define VERSION "0.3.3"
 #define TESTCHARS "\xe1\xbb\xa4"
 #define MSG_MAX 512 /* irc rfc says lines are 512 char's max, but servers can accept more */
 #define CHA_MAX 200
@@ -22,7 +22,6 @@
 #define POLL_TIMEOUT 180000 /* 3 minutes */ /* argument is in miliseconds */
 #define CON_MAX 20
 #define BACKLOG 100 /* DCC SEND listen() backlog */
-#define CBUF_SIZ 1024
 #define DCC_FLAGS (O_WRONLY | O_APPEND)
 #define DCC_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 #define STR_(a) #a
@@ -69,8 +68,6 @@ static char *auth = NULL;       /* PLAIN SASL token */
 static char *real = NULL;       /* real name */
 static char *olog = NULL;       /* chat log path */
 static char *inic = NULL;       /* additional server command */
-static char cmds = 0;           /* indicates additional server commands */
-static char cbuf[CBUF_SIZ];     /* additional stdin server commands */
 
 /* define function macros */
 #define htonll(x) ((1==htonl(1)) ? (x) : (((uint64_t)htonl((x) & 0xFFFFFFFFUL)) << 32) | htonl((uint32_t)((x) >> 32)))
