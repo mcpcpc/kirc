@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: MIT
- * Copyright (C) 2023 Michael Czigler
+ * Copyright (C) 2025 Michael Czigler
  */
 
 #include "kirc.h"
@@ -1866,7 +1866,6 @@ int main(int argc, char **argv)
             dcc_dir = optarg;
             break;
         case 'x':
-            cmds = 1;
             inic = argv[optind];
             break;
         case '?':
@@ -1876,12 +1875,6 @@ int main(int argc, char **argv)
     }
     if (dcc) {
         sigaction(SIGPIPE, &(struct sigaction){.sa_handler = SIG_IGN}, NULL);
-    }
-    if (cmds) {
-        int flag = 0;
-        for (int i = 0; i < CBUF_SIZ && flag > -1; i++) {
-            flag = read(STDIN_FILENO, &cbuf[i], 1);
-        }
     }
     if (!nick) {
         fputs("Nick not specified\n", stderr);
@@ -1902,13 +1895,8 @@ int main(int argc, char **argv)
     if (pass) {
         raw("PASS %s\r\n", pass);
     }
-    if (cmds > 0) {
-        for (char *tok = strtok(cbuf, "\n"); tok; tok = strtok(NULL, "\n")) {
-            raw("%s\r\n", tok);
-        }
-        if (inic) {
-            raw("%s\r\n", inic);
-        }
+    if (inic) {
+        raw("%s\r\n", inic);
     }
     for (int i = 0; i < CON_MAX; i++) {
         slot_clear(i);
