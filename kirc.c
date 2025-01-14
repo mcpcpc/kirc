@@ -874,7 +874,8 @@ static void handle_dcc(param p)
         }
 
         if (port == 0) {
-            /* don't cancel the transfer, just move on */
+            /* TODO: Maybe implement some day */
+            /* For now, just cancel the transfer and print some info */
             print_error("Reverse DCC not implemented");
             return;
         }
