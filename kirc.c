@@ -918,7 +918,7 @@ static void handle_dcc(param p)
         }
 
         if (!file_resume) {
-            file_fd = open(filename, DCC_FLAGS | O_CREAT, DCC_MODE);
+            file_fd = open(filename, DCC_FLAGS | O_CREAT, dcc_mode);
         }
 
         if (file_fd < 0) {
@@ -1808,7 +1808,7 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dfexvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:m:n:k:c:u:r:a:D:46dfexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
@@ -1848,6 +1848,9 @@ int main(int argc, char **argv)
             break;
         case 'o':
             olog = optarg;
+            break;
+        case 'm':
+            dcc_mode = (mode_t)strtol(optarg, NULL, 8);
             break;
         case 'n':
             nick = optarg;
