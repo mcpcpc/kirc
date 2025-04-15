@@ -58,6 +58,7 @@ static char isu8 = 0;           /* UTF-8 flag */
 static char dcc = 0;            /* DCC flag */
 static char filter = 0;	        /* flag to filter ansi colors */
 static char* dcc_dir = NULL;    /* DCC download directory */
+static mode_t dcc_mode = DCC_MODE; /* file permissions for downloaded files */
 static const char *host = "irc.libera.chat";  /* host address */
 static const char *port = "6667";     /* port */
 static char chan[MSG_MAX];      /* channel and prompt */
