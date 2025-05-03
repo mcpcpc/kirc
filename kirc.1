@@ -30,6 +30,9 @@ Overrides the default port (6697)
 .BI \-c " chan"
 Specifies the channel(s) to JOIN (delimited by "," or "|")
 .TP
+.BI \-m " mode"
+Specifies the permissions for downloaded files (in octal)
+.TP
 .BI \-n " nick"
 Specifies the NICK connection nickname
 .TP
@@ -86,6 +89,9 @@ Set privmsg target. Useful when sending privmsg's to a nick instead of a chan.
 .TP
 .BI // " <text>"
 Send text to current channel (useful when sending '@' and '/', usually to bots)
+.TP
+.BI /chan_privmsg
+Treat all text as a PRIVMSG, until the next /chan_privmsg
 .TP
 .BI /#<channel>
 Set default message channel to <channel>

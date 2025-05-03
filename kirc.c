@@ -869,7 +869,14 @@ static void handle_dcc(param p)
         slot_clear(slot);
 
         sa_family_t sin_family = parse_dcc_send_message(message, filename, &ip_addr, ipv6_addr, &port, &file_size);
-        if(sin_family == AF_UNSPEC) {
+        if (sin_family == AF_UNSPEC) {
+            return;
+        }
+
+        if (port == 0) {
+            /* TODO: Maybe implement some day */
+            /* For now, just cancel the transfer and print some info */
+            print_error("Reverse DCC not implemented");
             return;
         }
 
@@ -911,7 +918,7 @@ static void handle_dcc(param p)
         }
 
         if (!file_resume) {
-            file_fd = open(filename, DCC_FLAGS | O_CREAT, DCC_MODE);
+            file_fd = open(filename, DCC_FLAGS | O_CREAT, dcc_mode);
         }
 
         if (file_fd < 0) {
@@ -1239,7 +1246,7 @@ static int handle_server_message(void)
     }
 }
 
-static void join_command(state l)
+static inline void join_command(state l)
 {
     if (!strchr(l->buf, '#')){
         printf("\x1b[35m%s\x1b[0m\r\n", l->buf);
@@ -1253,7 +1260,7 @@ static void join_command(state l)
     l->nick_privmsg = 0;
 }
 
-static void part_command(state l)
+static inline void part_command(state l)
 {
     char *tok;
     tok = strchr(l->buf, '#');
@@ -1281,7 +1288,7 @@ static void part_command(state l)
     printf("\x1b[35mIllegal channel!\x1b[0m\r\n");
 }
 
-static void msg_command(state l)
+static inline void msg_command(state l)
 {
     char *tok;
     strtok_r(l->buf + sizeof("msg"), " ", &tok);
@@ -1295,7 +1302,7 @@ static void msg_command(state l)
     }
 }
 
-static void action_command(state l)
+static inline void action_command(state l)
 {
     int offset = 0;
     while (*(l->buf + sizeof("action") + offset) == ' ') {
@@ -1306,7 +1313,7 @@ static void action_command(state l)
     printf("\x1b[35mprivmsg #%s :ACTION %s\x1b[0m\r\n", chan, l->buf + sizeof("action") + offset);
 }
 
-static void query_command(state l)
+static inline void query_command(state l)
 {
     int offset = 0;
     while (*(l->buf + sizeof("query") + offset) == ' ') {
@@ -1320,7 +1327,7 @@ static void query_command(state l)
 }
 
 
-static void nick_command(state l)
+static inline void nick_command(state l)
 {
     char *tok;
     raw("%s\r\n", l->buf + 1);
@@ -1609,6 +1616,30 @@ close_fd:
     close(file_fd);
 }
 
+static inline void chan_privmsg(state l, char *channel, int offset)
+{
+    if(l->nick_privmsg == 0) {
+        raw("PRIVMSG #%s :%s\r\n", channel, l->buf + offset);
+        printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", channel, l->buf + offset);
+    }
+    else {
+        raw("PRIVMSG %s :%s\r\n", channel, l->buf + offset);
+        printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", channel, l->buf + offset);
+    }
+}
+
+static inline void chan_privmsg_command(state l)
+{
+    if (l->chan_privmsg) {
+        l->chan_privmsg = 0;
+        printf("\x1b[35mraw privmsg disabled\x1b[0m\r\n");
+    }
+    else {
+        l->chan_privmsg = 1;
+        printf("\x1b[35mraw privmsg enabled\x1b[0m\r\n");
+    }
+}
+
 static void handle_user_input(state l)
 {
     if (*l->buf == '\0') {
@@ -1620,6 +1651,14 @@ static void handle_user_input(state l)
         l->buf[msg_len - 1] = '\0';
     }
     printf("\r\x1b[0K");
+    if (!memcmp(l->buf, "/CHAN_PRIVMSG", sizeof("/CHAN_PRIVMSG") - 1) || !memcmp(l->buf, "/chan_privmsg", sizeof("/chan_privmsg") - 1)) {
+        chan_privmsg_command(l);
+        return;
+    }
+    if (l->chan_privmsg) {
+        chan_privmsg(l, chan, 0);
+        return;
+    }
     switch (l->buf[0]) {
     case '/':           /* send system command */
         if (!memcmp(l->buf + 1, "JOIN", sizeof("JOIN") - 1) || !memcmp(l->buf + 1, "join", sizeof("join") - 1)) {
@@ -1631,10 +1670,7 @@ static void handle_user_input(state l)
             return;
         }
         if (l->buf[1] == '/') {
-            raw(l->nick_privmsg ? "PRIVMSG %s :%s\r\n" :
-                                  "PRIVMSG #%s :%s\r\n", chan, l->buf + 2);
-            printf(l->nick_privmsg ? "\x1b[35mprivmsg %s :%s\x1b[0m\r\n" :
-                                     "\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf + 2);
+            chan_privmsg(l, chan, sizeof("//") - 1);
             return;
         }
         if (!memcmp(l->buf + 1, "MSG", sizeof("MSG") - 1) || !memcmp(l->buf + 1, "msg", sizeof("msg") - 1)) {
@@ -1657,7 +1693,6 @@ static void handle_user_input(state l)
             dcc_command(l);
             return;
         }
-
         if (l->buf[1] == '#') {
             strcpy(chan, l->buf + 2);
             l->nick_privmsg = 0;
@@ -1678,14 +1713,7 @@ static void handle_user_input(state l)
         printf("\x1b[35mprivmsg %s :ACTION %s\x1b[0m\r\n", l->buf + 2, tok);
         return;
     default:           /*  send private message to default channel */
-        if(l->nick_privmsg == 0) {
-            raw("PRIVMSG #%s :%s\r\n", chan, l->buf);
-            printf("\x1b[35mprivmsg #%s :%s\x1b[0m\r\n", chan, l->buf);
-        }
-        else {
-            raw("PRIVMSG %s :%s\r\n", chan, l->buf);
-            printf("\x1b[35mprivmsg %s :%s\x1b[0m\r\n", chan, l->buf);
-        }
+        chan_privmsg(l, chan, 0);
         return;
     }
 }
@@ -1780,7 +1808,7 @@ int main(int argc, char **argv)
 {
     char buf[BUFSIZ];
     int cval;
-    while ((cval = getopt(argc, argv, "s:p:o:n:k:c:u:r:a:D:46dfexvV")) != -1) {
+    while ((cval = getopt(argc, argv, "s:p:o:m:n:k:c:u:r:a:D:46dfexvV")) != -1) {
         switch (cval) {
         case 'v':
             version();
@@ -1820,6 +1848,9 @@ int main(int argc, char **argv)
             break;
         case 'o':
             olog = optarg;
+            break;
+        case 'm':
+            dcc_mode = (mode_t)strtol(optarg, NULL, 8);
             break;
         case 'n':
             nick = optarg;
