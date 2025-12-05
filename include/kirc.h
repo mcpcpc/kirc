@@ -14,16 +14,15 @@
 #define RFC1459_CHANNEL_MAX_LEN 200
 #endif
 
-typedef enum {
-    KIRC_OK = 0,
-    KIRC_ERROR_MEMORY,
-    KIRC_ERROR_NETWORK,
-    KIRC_ERROR_PROTOCOL,
-    KIRC_ERROR_AUTHENTICATION,
-} kirc_error_t;
-
 typedef struct {
-    int utf8_enabled;
-} kirc_context_t
+    terminal_context_t terminal;
+    utf8_context_t utf8;
+    history_context_t history;
+    editor_context_t editor;
+    network_context_t network;
+    parser_context_t parse;
+    render_context_t render;
+    logger_context_t logger;
+} kirc_context_t;
 
 #endif  // __KIRC_H

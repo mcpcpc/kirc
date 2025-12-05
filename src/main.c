@@ -1,28 +1,30 @@
-#include "kirc.h"
+#include "editor.h"
+#include "log.h"
+#include "network.h"
+#include "parse.h"
+#include "render.h"
+#include "terminal.h"
+#include "utf8.h"
 
-static int kirc_init(kirc_context_t *ctx)
+void kirc_init(kirc_context_t *ctx)
 {
-    memset(ctx, 0, sizeof(*ctx));
+}
 
-    size_t hostname_n = sizeof(ctx->hostname) - 1;
-    strncpy(ctx->hostname, "irc.libera.chat", hostname_n);
+void kirc_run(kirc_context_t *ctx)
+{
+}
 
-    size_t port_n = sizeof(ctx->port) - 1;
-    strncpy(ctx->port, "6667", port_n);
-
-    ctx->family_hint = AF_UNSPEC;
-
-    const char *env;
-    
-    return 0;
+void kirc_shutdown(kirc_context_t *ctx)
+{
 }
 
 int main(int argc, char *argv[])
 {
     kirc_context_t ctx;
-    kirc_error_t err = KIRC_OK;
 
     kirc_init(&ctx);
+    kirc_run(&ctx);
+    kirc_shutdown(&ctx);
     
-    return (err == KIRC_OK) ? 0 : 1;
+    return 0;
 }
