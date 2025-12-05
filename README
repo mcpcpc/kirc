@@ -1,0 +1,29 @@
+kirc
+====
+
+kirc (KISS for IRC) is a tiny IRC client.
+
+Install
+-------
+
+Building and installing from source.
+
+    $ git clone https://github.com/mcpcpc/kirc
+    $ cd kirc
+    $ make && make install
+
+Usage
+-----
+
+Consult man kirc for a full list and explanation of
+available arguments.
+
+    kirc [-s hostname] [-p port] [-c channels] [-n nickname]
+         [-r realname] [-a auth] [-u username] [-k password]
+         [-a token] [-o logfile] [-D directory] [-4|6|d|e|x]
+
+References
+----------
+
+* https://www.rfc-editor.org/rfc/rfc1459.html
+* https://www.rfc-editor.org/rfc/rfc2222.html
