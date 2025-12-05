@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <poll.h>
 
 #ifndef RFC1459_LINE_MAX_LEN
 #define RFC1459_LINE_MAX_LEN 512
@@ -31,7 +32,7 @@ typedef enum {
 
 typedef struct {
     char history[KIRC_HISTORY_MAX_N][RFC1459_LINE_MAX_LEN];
-    char sasl[KIRC_SASL_TOKEN_MAX_LEN];
+    char sasl_token[KIRC_SASL_TOKEN_MAX_LEN];
     int family_hint;
 } kirc_context_t
 
