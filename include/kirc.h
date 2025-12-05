@@ -6,20 +6,12 @@
 #include <string.h>
 #include <poll.h>
 
-#ifndef RFC1459_LINE_MAX_LEN
-#define RFC1459_LINE_MAX_LEN 512
+#ifndef RFC1459_MESSAGE_MAX_LEN
+#define RFC1459_MESSAGE_MAX_LEN 512
 #endif
 
-#ifndef KIRC_SASL_TOKEN_MAX_LEN
-#define KIRC_SASL_TOKEN_MAX_LEN 20
-#endif
-
-#ifndef KIRC_HISTORY_MAX_N
-#define KIRC_HISTORY_MAX_N 100
-#endif
-
-#ifndef KIRC_POLL_TIMEOUT_MS
-#define KIRC_POLL_TIMEOUT_MS 180000
+#ifndef RFC1459_CHANNEL_MAX_LEN
+#define RFC1459_CHANNEL_MAX_LEN 200
 #endif
 
 typedef enum {
@@ -31,9 +23,7 @@ typedef enum {
 } kirc_error_t;
 
 typedef struct {
-    char history[KIRC_HISTORY_MAX_N][RFC1459_LINE_MAX_LEN];
-    char sasl_token[KIRC_SASL_TOKEN_MAX_LEN];
-    int family_hint;
+    int utf8_enabled;
 } kirc_context_t
 
-#endif // KIRC_H
+#endif  // __KIRC_H
