@@ -36,7 +36,7 @@ static void handle_user_command(network_t *net,
         }
 
         size_t target_len = (size_t)(space - (line + 1));
-        char target[CHA_MAX];
+        char target[RFC1459_CHANNEL_MAX_LEN];
 
         if (target_len >= sizeof(target)) {
             return;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     if (history_init(&hist, HIS_MAX) == -1)
         return 1;
 
-    char editbuf[MSG_MAX];
+    char editbuf[RFC1459_MESSAGE_MAX_LEN];
 
     editor.prompt   = render.default_channel;
     editor.buffer   = editbuf;

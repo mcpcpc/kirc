@@ -21,6 +21,9 @@
 #include <fcntl.h>
 #include <ctype.h>
 
+#define NIC_MAX 26
+#define HIS_MAX 100
+
 #ifndef RFC1459_MESSAGE_MAX_LEN
 #define RFC1459_MESSAGE_MAX_LEN 512
 #endif
