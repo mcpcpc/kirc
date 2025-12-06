@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <poll.h>
+#include <errno.h>
+
 
 #ifndef RFC1459_MESSAGE_MAX_LEN
 #define RFC1459_MESSAGE_MAX_LEN 512
