@@ -17,12 +17,6 @@ static void usage(void)
     exit(2);
 }
 
-static void version(void)
-{
-    printf("kirc-%s (refactored)\n", VERSION);
-    exit(0);
-}
-
 static void handle_user_command(network_t *net,
         render_t  *render, const char *line)
 {
@@ -74,26 +68,54 @@ int main(int argc, char *argv[])
     log_t      log    = {0};
     network_t  net    = {0};
 
-    /* ---------------- CLI ---------------- */
-
     int opt;
-    while ((opt = getopt(argc, argv, "s:p:c:n:r:u:k:a:o:evV")) != -1) {
+    while ((opt = getopt(argc, argv, "s:p:c:n:r:u:k:a:o:ev")) != -1) {
         switch (opt) {
-        case 's': net.host = optarg; break;
-        case 'p': net.port = optarg; break;
-        case 'c': strncpy(render.default_channel,
-                           optarg,
-                           sizeof(render.default_channel) - 1);
-                  break;
-        case 'n': net.nick = optarg; break;
-        case 'r': net.real = optarg; break;
-        case 'u': net.user = optarg; break;
-        case 'k': net.pass = optarg; break;
-        case 'a': net.auth = optarg; break;
-        case 'o': log.path = optarg; break;
-        case 'e': net.sasl_enabled = 1; break;
-        case 'v': render.verbose = 1; break;
-        case 'V': version(); break;
+        case 's':
+            net.host = optarg;
+            break;
+
+        case 'p':
+            net.port = optarg;
+            break;
+
+        case 'c':
+            strncpy(render.default_channel, optarg,
+                sizeof(render.default_channel) - 1);
+            break;
+
+        case 'n':
+            net.nick = optarg;
+            break;
+
+        case 'r':
+            net.real = optarg;
+            break;
+
+        case 'u':
+            net.user = optarg;
+            break;
+        
+        case 'k':
+            net.pass = optarg;
+            break;
+        
+        case 'a':
+            net.auth = optarg;
+            break;
+
+        case 'o':
+            log.path = optarg;
+            break;
+
+        case 'e':
+            net.sasl_enabled = 1;
+            break;
+        
+        case 'v':
+            render.verbose = 1;
+            break;
+
         default:  usage();
         }
     }
