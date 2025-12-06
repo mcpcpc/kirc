@@ -7,6 +7,21 @@
 #include "terminal.h"
 #include "utf8.h"
 
+static void usage(void)
+{
+    fputs(
+        "kirc [-s host] [-p port] [-c channel] [-n nick] [-r realname]\n"
+        "     [-u username] [-k password] [-a token] [-o path]\n"
+        "     [-e] [-v]\n",
+        stderr);
+    exit(2);
+}
+
+static void version(void)
+{
+    printf("kirc-%s (refactored)\n", VERSION);
+    exit(0);
+}
 
 static void handle_user_command(network_t *net,
         render_t  *render, const char *line)
