@@ -106,6 +106,10 @@ static int kirc_run(kirc_t *ctx)
     network_send(ctx, "USER %s - - :%s\r\n",
         username, realname);
 
+    if (ctx->password != '\0') {
+        network_send("PASS %s\r\n", ctx->password);
+    }
+
     if (terminal_enable_raw(ctx) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
         return 1;
