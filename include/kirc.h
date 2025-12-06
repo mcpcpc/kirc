@@ -14,6 +14,7 @@
 #include <poll.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #ifndef RFC1459_MESSAGE_MAX_LEN
 #define RFC1459_MESSAGE_MAX_LEN 512
