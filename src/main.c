@@ -65,8 +65,8 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             return -1;
 
         case '?':
-            fprintf(stderr, "%s: unknown -%c argument\n",
-                argv[0], opt);
+            fprintf(stderr, "%s: unknown argument\n",
+                argv[0]);
             return -1;
 
         default:
