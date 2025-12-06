@@ -1,5 +1,5 @@
-#ifndef __KIRC_PARSE_H
-#define __KIRC_PARSE_H
+#ifndef __KIRC_PARSER_H
+#define __KIRC_PARSER_H
 
 #include "kirc.h"
 #include "event.h"
@@ -10,4 +10,4 @@ typedef struct {
 
 int parser_feed(parser_t *p, char *line, event_t *out_event);
 
-#endif  // __KIRC_PARSE_H
+#endif  // __KIRC_PARSER_H
