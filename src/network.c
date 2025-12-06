@@ -66,7 +66,7 @@ void network_send(network_t *net, const char *fmt, ...)
         return;
     }
 
-    char buf[MSG_MAX];
+    char buf[RFC1459_MESSAGE_MAX_LEN];
     va_list ap;
 
     va_start(ap, fmt);
