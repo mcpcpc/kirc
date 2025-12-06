@@ -6,6 +6,14 @@
 #include <unistd.h>
 
 typedef struct {
+    char *hostname;
+    char *port;
+    char *nickname;
+    char *realname;
+    char *username;
+    char *password;
+    char *token;
+    char *log;
 } kirc_t;
 
 #endif  // __KIRC_H
