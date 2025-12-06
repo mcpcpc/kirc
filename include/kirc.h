@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <stdarg.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <poll.h>
