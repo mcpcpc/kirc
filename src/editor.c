@@ -279,7 +279,7 @@ static void edit_history(editor_context_t *ectx, int dir)
     }
 
     /* Save current buffer into current history entry. */
-    int cur_index = hist->length - (1 + ed->history_index);
+    int cur_index = hist->length - (1 + ectx->history_index);
     if (cur_index < 0 || cur_index >= hist->length) {
         return;
     }
