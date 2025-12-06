@@ -87,7 +87,7 @@ static int kirc_run(kirc_t *ctx)
         return 1;
     }
 
-    network_send(ctx, "NICK %s\r\n", nick);
+    network_send(ctx, "NICK %s\r\n", ctx->nickname);
     
     char *username, *realname;
     
