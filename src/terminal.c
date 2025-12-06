@@ -39,5 +39,5 @@ void terminal_disable_raw(kirc_t *ctx)
     }
 
     tcsetattr(ctx->tty_fd, TCSAFLUSH, &ctx->original);
-    t->raw_mode_enabled = 0;
+    ctx->raw_mode_enabled = 0;
 }
