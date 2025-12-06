@@ -292,7 +292,7 @@ static void edit_history(editor_context_t *ectx, int dir)
 
     ectx->history_index += (dir == 1) ? 1 : -1;
 
-    if (ectx>history_index < 0) {
+    if (ectx->history_index < 0) {
         ectx->history_index = 0;
         return;
     } else if (ectx->history_index >= hist->length) {
