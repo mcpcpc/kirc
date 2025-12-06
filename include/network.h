@@ -20,6 +20,9 @@ typedef struct {
     int has_initial_cmds;
     char init_cmd_buffer[1024];
     char *init_cmd_tail;
+    
+    char rx_buffer[RFC1459_MESSAGE_MAX_LEN];
+    size_t rx_len
 } network_t;
 
 int network_connect(network_t *net);
