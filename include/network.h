@@ -24,6 +24,6 @@ typedef struct {
 
 int network_connect(network_t *net);
 void network_send(network_t *net, const char *fmt, ...);
-int network_pump(network_t *net, char *rxbuf, size_t rxcap);
+int network_poll(network_t *net);
 
 #endif  // __KIRC_NETWORK_H
