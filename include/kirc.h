@@ -6,6 +6,7 @@
 #endif
 
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,10 @@ typedef struct {
     char log[PATH_MAX];
 
     int conn;
+
+    int tty_fd;
+    int raw_mode_enabled;
+    struct termios original;
 } kirc_t;
 
 #endif  // __KIRC_H
