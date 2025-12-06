@@ -13,15 +13,16 @@
 #define RFC1459_MESSAGE_MAX_LEN 512
 #endif
 
+#inclyde <errno.h>
 #include <fcntl.h>
+#include <limits.h>
+#include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <termios.h>
-#include <limits.h>
-#include <netdb.h>
 #include <unistd.h>
 
 typedef struct {
