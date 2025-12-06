@@ -1,6 +1,6 @@
 #include "parse.h"
 
-static void reset_event(irc_event_t *ev)
+static void reset_event(event_t *ev)
 {
     if (!ev) {
         return;
