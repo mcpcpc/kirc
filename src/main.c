@@ -57,7 +57,7 @@ static int kirc_args(kirc_t *ctx, int *argc, char **argv[])
         case 'l':  /* log file path */
             size_t log_n = sizeof(ctx->log) - 1;
             strncpy(ctx->log, optarg, log_n);
-            break
+            break;
 
         case ':':
             fprintf(stderr, "%s: missing -%d value\n",
