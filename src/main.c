@@ -87,6 +87,11 @@ static int kirc_run(kirc_t *ctx)
         return 1;
     }
 
+    if (ctx->nickname[0] != '\0') {
+        fprintf(stderr, "nickname not specified\n");
+        return 1;
+    }
+
     network_send(ctx, "NICK %s\r\n", ctx->nickname);
     
     char *username, *realname;
