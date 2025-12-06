@@ -2,7 +2,7 @@
 
 void network_send(kirc_t *ctx, const char *fmt, ...)
 {
-    char buf[MSG_MAX];
+    char buf[RFC1459_MESSAGE_MAX_LEN];
     va_list ap;
 
     va_start(ap, fmt);

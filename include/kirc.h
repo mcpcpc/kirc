@@ -15,6 +15,14 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#ifndef RFC1459_CHANNEL_MAX_LEN
+#define RFC1459_CHANNEL_MAX_LEN 200
+#endif
+
+#ifndef RFC1459_MESSAGE_MAX_LEN
+#define RFC1459_MESSAGE_MAX_LEN 512
+#endif
+
 typedef struct {
     char hostname[HOST_NAME_MAX];
     char port[6];
