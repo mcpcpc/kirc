@@ -8,7 +8,7 @@ int network_connect(kirc_t *ctx)
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM
+    hints.ai_socktype = SOCK_STREAM;
 
     int status = getaddrinfo(ctx->hostname, ctx->port,
         &hints, &res);
