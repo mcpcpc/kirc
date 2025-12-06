@@ -1,6 +1,6 @@
 #include "network.h"
 
-int kirc_init(kirc_t *ctx)
+static int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
 
@@ -13,7 +13,7 @@ int kirc_init(kirc_t *ctx)
     return 0;
 }
 
-int kirc_args(kirc_t *ctx, int argc, char *argv)
+static int kirc_args(kirc_t *ctx, int argc, char *argv)
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
@@ -76,14 +76,14 @@ int kirc_args(kirc_t *ctx, int argc, char *argv)
     return 0;
 }
 
-int kirc_run(kirc_t *ctx)
+static int kirc_run(kirc_t *ctx)
 {
     return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    kirc_context_t ctx;
+    kirc_t ctx;
 
     if (kirc_init(&ctx) < 0) {
         return 1;
