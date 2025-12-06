@@ -5,6 +5,14 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#ifndef RFC1459_CHANNEL_MAX_LEN
+#define RFC1459_CHANNEL_MAX_LEN 200
+#endif
+
+#ifndef RFC1459_MESSAGE_MAX_LEN
+#define RFC1459_MESSAGE_MAX_LEN 512
+#endif
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -16,14 +24,6 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#ifndef RFC1459_CHANNEL_MAX_LEN
-#define RFC1459_CHANNEL_MAX_LEN 200
-#endif
-
-#ifndef RFC1459_MESSAGE_MAX_LEN
-#define RFC1459_MESSAGE_MAX_LEN 512
-#endif
-
 typedef struct {
     char hostname[HOST_NAME_MAX];
     char port[6];
@@ -32,9 +32,9 @@ typedef struct {
     char username[128];
     char password[128];
     char log[PATH_MAX];
-
+    /* network */
     int conn;
-
+    /* terminal */
     int tty_fd;
     int raw_mode_enabled;
     struct termios original;
