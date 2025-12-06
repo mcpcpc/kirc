@@ -48,7 +48,7 @@ static void print_nick(const char *nick, int nick_width)
            nick_width, n);
 }
 
-static void render_privmsg(render_t *r, const irc_event_t *ev,
+static void render_privmsg(render_t *r, const event_t *ev,
         int cols)
 {
     (void) r; /* r is kept for future tweaks (e.g., theme, verbosity) */
@@ -79,7 +79,7 @@ static void render_privmsg(render_t *r, const irc_event_t *ev,
     printf("\x1b[0m\r\n");
 }
 
-static void render_join(render_t *r, const irc_event_t *ev,
+static void render_join(render_t *r, const event_t *ev,
         int cols)
 {
     (void) r;
@@ -100,7 +100,7 @@ static void render_join(render_t *r, const irc_event_t *ev,
     printf("\x1b[0m\r\n");
 }
 
-static void render_part(render_t *r, const irc_event_t *ev,
+static void render_part(render_t *r, const event_t *ev,
         int cols)
 {
     (void) r;
@@ -121,7 +121,7 @@ static void render_part(render_t *r, const irc_event_t *ev,
     printf("\x1b[0m\r\n");
 }
 
-static void render_quit(render_t *r, const irc_event_t *ev,
+static void render_quit(render_t *r, const event_t *ev,
         int cols)
 {
     (void) r;
@@ -141,7 +141,7 @@ static void render_quit(render_t *r, const irc_event_t *ev,
     printf("\x1b[0m\r\n");
 }
 
-static void render_nick(render_t *r, const irc_event_t *ev,
+static void render_nick(render_t *r, const event_t *ev,
         int cols)
 {
     (void) r;
@@ -161,7 +161,7 @@ static void render_nick(render_t *r, const irc_event_t *ev,
     printf("\x1b[0m\r\n");
 }
 
-static void render_numeric(render_t *r, const irc_event_t *ev,
+static void render_numeric(render_t *r, const event_t *ev,
         int cols)
 {
     (void) cols;
@@ -177,7 +177,7 @@ static void render_numeric(render_t *r, const irc_event_t *ev,
         safe_str(ev->message));
 }
 
-static void render_raw(render_t *r, const irc_event_t *ev)
+static void render_raw(render_t *r, const event_t *ev)
 {
     if (!r->verbose) {
         return;
