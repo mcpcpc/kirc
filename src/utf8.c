@@ -32,7 +32,7 @@ static int utf8_get_cursor_position(int input_fd, int output_fd)
     return cols;
 }
 
-int utf8_detect(utf8_context_t *utf8, int input_fd, int output_fd)
+int utf8_detect(utf8_context_t *uctx, int input_fd, int output_fd)
 {
     static const char *test_chars[] = {
         "\xe1\xbb\xa4", /* some wide-ish UTF-8 char */
@@ -42,7 +42,7 @@ int utf8_detect(utf8_context_t *utf8, int input_fd, int output_fd)
     if (!utf8) {
         return -1;
     }
-    if (utf8->enabled) {
+    if (uctx->enabled) {
         return 0;
     }
 
@@ -87,25 +87,25 @@ int utf8_detect(utf8_context_t *utf8, int input_fd, int output_fd)
         }
     }
 
-    utf8->enabled = 1;
+    uctx->enabled = 1;
     return 0;
 }
 
-int utf8_is_char_start(utf8_context_t *utf8, char c)
+int utf8_is_char_start(utf8_context_t *uctx, char c)
 {
     /* If UTF-8 not enabled, every byte is treated as a char boundary. */
-    if (!utf8 || !utf8->enabled) {
+    if (!uctx || !uctx->enabled) {
         return 1;
     }
 
     return ((c & 0x80) == 0x00) || ((c & 0xC0) == 0xC0);
 }
 
-int utf8_char_size(utf8_context_t *utf8, char c)
+int utf8_char_size(utf8_context_t *uctx, char c)
 {
     int size = 1;
 
-    if (!utf8 || !utf8->enabled) {
+    if (!uctx || !uctx->enabled) {
         return 1;
     }
 
@@ -122,7 +122,7 @@ int utf8_char_size(utf8_context_t *utf8, char c)
     return size;
 }
 
-size_t utf8_strlen(utf8_context_t *utf8, const char *s)
+size_t utf8_strlen(utf8_context_t *uctx, const char *s)
 {
     size_t lenu8 = 0;
 
@@ -131,14 +131,14 @@ size_t utf8_strlen(utf8_context_t *utf8, const char *s)
     }
 
     while (*s != '\0') {
-        lenu8 += utf8_is_char_start(utf8, *s);
+        lenu8 += utf8_is_char_start(uctx, *s);
         s++;
     }
 
     return lenu8;
 }
 
-size_t utf8_prev(utf8_context_t *utf8, const char *s,
+size_t utf8_prev(utf8_context_t *uctx, const char *s,
         size_t byte_pos)
 {
     if (!s) {
@@ -148,13 +148,13 @@ size_t utf8_prev(utf8_context_t *utf8, const char *s,
     if (byte_pos != 0) {
         do {
             byte_pos--;
-        } while (byte_pos > 0 && !utf8_is_char_start(utf8, s[byte_pos]));
+        } while (byte_pos > 0 && !utf8_is_char_start(uctx, s[byte_pos]));
     }
 
     return byte_pos;
 }
 
-size_t utf8_next(utf8_context_t *utf8, const char *s,
+size_t utf8_next(utf8_context_t *uctx, const char *s,
         size_t byte_pos)
 {
     if (!s) {
@@ -165,7 +165,7 @@ size_t utf8_next(utf8_context_t *utf8, const char *s,
         do {
             byte_pos++;
         } while (s[byte_pos] != '\0' &&
-                 !utf8_is_char_start(utf8, s[byte_pos]));
+                 !utf8_is_char_start(uctx, s[byte_pos]));
     }
 
     return byte_pos;
