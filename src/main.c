@@ -81,7 +81,8 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 static int kirc_run(kirc_t *ctx)
 {
     network_connect(ctx);
-
+    terminal_enable_raw(ctx);
+    terminal_disable_raw(ctx);
     return 0;
 }
 
