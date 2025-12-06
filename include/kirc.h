@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 typedef struct {
-    char *hostname;
-    char *port;
+    char hostname[HOST_NAME_MAX];
+    char port[6];
     char *nickname;
     char *realname;
     char *username;
