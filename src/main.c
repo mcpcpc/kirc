@@ -87,7 +87,7 @@ static int kirc_run(kirc_t *ctx)
         return 1;
     }
 
-    network_send("NICK %s\r\n", nick);
+    network_send(ctx, "NICK %s\r\n", nick);
     
     char *username, realname;
     
@@ -103,8 +103,8 @@ static int kirc_run(kirc_t *ctx)
         realname = ctx->nickname;
     }
 
-    network_send("USER %s - - :%s\r\n", username,
-        realname);
+    network_send(ctx, "USER %s - - :%s\r\n",
+        username, realname);
 
     if (terminal_enable_raw(ctx) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
