@@ -1,4 +1,5 @@
 #include "network.h"
+#include "terminal.h"
 
 static int kirc_init(kirc_t *ctx)
 {
