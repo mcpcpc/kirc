@@ -10,5 +10,6 @@ typedef struct {
 } render_t;
 
 void render_event(render_t *r, event_t *ev);
+void render_editor_line(render_t *r, const editor_t *e);
 
 #endif  // __KIRC_RENDER_H
