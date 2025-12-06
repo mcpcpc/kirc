@@ -89,18 +89,18 @@ static int kirc_run(kirc_t *ctx)
 
     network_send(ctx, "NICK %s\r\n", nick);
     
-    char *username, realname;
+    char *username, *realname;
     
     if (ctx->username[0] != '\0') {
-        username = &ctx->username;
+        username = ctx->username;
     } else {
-        username = &ctx->nickname;
+        username = ctx->nickname;
     }
 
     if (ctx->realname[0] != '\0') {
-        realname = &ctx->realname;
+        realname = ctx->realname;
     } else {
-        realname = &ctx->nickname;
+        realname = ctx->nickname;
     }
 
     network_send(ctx, "USER %s - - :%s\r\n",
