@@ -2,6 +2,7 @@
 #define __KIRC_EDITOR_H
 
 #include "kirc.h"
+#include "history.h"
 #include "utf8.h"
 
 typedef struct {
