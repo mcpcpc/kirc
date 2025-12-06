@@ -111,7 +111,7 @@ static int kirc_run(kirc_t *ctx)
     network_send(ctx, "USER %s - - :%s\r\n",
         username, realname);
 
-    if (ctx->password != '\0') {
+    if (ctx->password[0] != '\0') {
         network_send("PASS %s\r\n", ctx->password);
     }
 
