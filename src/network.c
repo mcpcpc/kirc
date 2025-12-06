@@ -1,5 +1,21 @@
 #include "network.h"
 
+void network_send(kirc_t *ctx, const char *fmt, ...)
+{
+    char buf[MSG_MAX];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+
+    size_t len = strnlen(buf, sizeof(buf));
+
+    if (write(ctx->conn, buf, len) < 0) {
+        perror("write");
+    }
+}
+
 int network_connect(kirc_t *ctx)
 {
     struct addrinfo hints;
