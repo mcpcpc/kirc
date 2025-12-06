@@ -334,7 +334,7 @@ static void edit_escape_sequence(editor_context_t *ectx,
                 return;
             }
             if (seq[2] == '~' && seq[1] == '3') {
-                edit_delete(ed); /* Delete key */
+                edit_delete(ectx); /* Delete key */
             }
         } else {
             switch (seq[1]) {
