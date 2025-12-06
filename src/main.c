@@ -60,12 +60,12 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             break;
 
         case ':':
-            fprintf(stderr, "%s: missing -%d value\n",
+            fprintf(stderr, "%s: missing -%c value\n",
                 argv[0], opt);
             return -1;
 
         case '?':
-            fprintf(stderr, "%s: unknown -%d argument\n",
+            fprintf(stderr, "%s: unknown -%c argument\n",
                 argv[0], opt);
             return -1;
 
