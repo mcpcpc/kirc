@@ -1,4 +1,5 @@
 #include "editor.h"
+#include "event.h"
 #include "log.h"
 #include "network.h"
 #include "parser.h"
@@ -188,22 +189,20 @@ int main(int argc, char *argv[])
                         log_append(&log, start);
                     }
 
-                    irc_event_t ev;
+                    event_t ev;
                     if (parser_feed(&parser, start, &ev) > 0) {
 
-                        if (ev.type == IRC_EVENT_PING) {
-                            network_send(&net,
-                                         "PONG :%s\r\n",
-                                         ev.message ? ev.message : "");
+                        if (ev.type == EVENT_PING) {
+                            network_send(&net, "PONG :%s\r\n",
+                                ev.message ? ev.message : "");
                         }
 
-                        if (ev.type == IRC_EVENT_NUMERIC &&
+                        if (ev.type == EVENT_NUMERIC &&
                             ev.numeric == 1 &&
                             render.default_channel[0] != '\0')
                         {
-                            network_send(&net,
-                                         "JOIN #%s\r\n",
-                                         render.default_channel);
+                            network_send(&net, "JOIN #%s\r\n",
+                                render.default_channel);
                         }
 
                         render_event(&render, &ev,
