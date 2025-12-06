@@ -35,7 +35,7 @@ static int is_numeric_command(const char *cmd)
            isdigit((unsigned char)cmd[2]);
 }
 
-static void parse_prefix(char *prefix, irc_identity_t *id)
+static void parse_prefix(char *prefix, identity_t *id)
 {
     char *bang;
     char *at;
@@ -105,7 +105,7 @@ int parser_feed(parser_t *p, char *line, event_t *out)
     }
 
     if (strncmp(line, "PING", 4) == 0) {
-        out->type    = IRC_EVENT_PING;
+        out->type    = EVENT_PING;
         out->command = "PING";
 
         cur = line + 4;
