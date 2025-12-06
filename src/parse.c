@@ -6,7 +6,7 @@ static void reset_event(irc_event_t *ev)
         return;
     }
 
-    ev->type = IRC_EVENT_RAW;
+    ev->type = EVENT_RAW;
 
     ev->origin.nick = NULL;
     ev->origin.user = NULL;
@@ -83,7 +83,7 @@ static void trim_crlf(char *s)
     }
 }
 
-int parser_feed(parser_t *p, char *line, irc_event_t *out)
+int parser_feed(parser_t *p, char *line, event_t *out)
 {
     (void)p;  /* parser_t reserved for future use */
 
@@ -152,20 +152,20 @@ int parser_feed(parser_t *p, char *line, irc_event_t *out)
 
     /* Parse numeric vs. named command */
     if (is_numeric_command(cmd)) {
-        out->type    = IRC_EVENT_NUMERIC;
+        out->type = EVENT_NUMERIC;
         out->numeric = atoi(cmd);
     } else if (strcmp(cmd, "PRIVMSG") == 0) {
-        out->type = IRC_EVENT_PRIVMSG;
+        out->type = EVENT_PRIVMSG;
     } else if (strcmp(cmd, "JOIN") == 0) {
-        out->type = IRC_EVENT_JOIN;
+        out->type = EVENT_JOIN;
     } else if (strcmp(cmd, "PART") == 0) {
-        out->type = IRC_EVENT_PART;
+        out->type = EVENT_PART;
     } else if (strcmp(cmd, "QUIT") == 0) {
-        out->type = IRC_EVENT_QUIT;
+        out->type = EVENT_QUIT;
     } else if (strcmp(cmd, "NICK") == 0) {
-        out->type = IRC_EVENT_NICK;
+        out->type = EVENT_NICK;
     } else {
-        out->type = IRC_EVENT_RAW;
+        out->type = EVENT_RAW;
     }
 
     /* Parse prefix into identity fields */
