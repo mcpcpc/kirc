@@ -83,7 +83,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 static int kirc_run(kirc_t *ctx)
 {
     if (network_connect(ctx) < 0) {
-        fprintf(stderr, "network_connect: failed\n");
+        fprintf(stderr, "network_connect failed\n");
         return 1;
     }
 
@@ -119,6 +119,8 @@ static int kirc_run(kirc_t *ctx)
         fprintf(stderr, "terminal_enable_raw: failed\n");
         return 1;
     }
+
+    network_poll(ctx);
 
     terminal_disable_raw(ctx);
 
