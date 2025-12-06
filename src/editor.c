@@ -77,7 +77,7 @@ void editor_refresh(editor_context_t *ectx)
         return;
     }
 
-    ectx->cols = (size_t)terminal_get_columns(ed->terminal, STDOUT_FILENO);
+    ectx->cols = (size_t)terminal_get_columns(ectx->ctx->terminal, STDOUT_FILENO);
 
     /* Scroll horizontally if cursor would go beyond the right edge. */
     while ((plenu8 + posu8) >= ectx->cols && buf[0] != '\0') {
