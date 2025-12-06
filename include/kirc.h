@@ -6,6 +6,6 @@
 #include <unistd.h>
 
 typedef struct {
-} kirc_context_;
+} kirc_t;
 
 #endif  // __KIRC_H

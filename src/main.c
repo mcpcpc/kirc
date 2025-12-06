@@ -1,12 +1,16 @@
-#include "kirc.h"
+#include "network.h"
 
-int kirc_init(kirc_context_t *ctx)
+int kirc_init(kirc_t *ctx)
 {
     return 0;
 }
 
-int kirc_parse_args(kirc_context_t *ctx, int argc,
-    char *argv)
+int kirc_args(kirc_t *ctx, int argc, char *argv)
+{
+    return 0;
+}
+
+int kirc_run(kirc_t *ctx)
 {
     return 0;
 }
@@ -19,7 +23,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (kirc_parse_args(&ctx, argc, argv) < 0) {
+    if (kirc_args(&ctx, argc, argv) < 0) {
+        return 1;
+    }
+
+    if (kirc_run(&ctx) < 0) {
         return 1;
     }
 
