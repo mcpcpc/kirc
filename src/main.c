@@ -11,6 +11,8 @@ static int kirc_init(kirc_t *ctx)
     size_t port_n = sizeof(ctx->port) - 1;
     strncpy(ctx->port, "6667", port_n);
 
+    ctx->tty_fd = STDIN_FILENO;
+
     return 0;
 }
 
