@@ -22,7 +22,7 @@ typedef struct {
     char *init_cmd_tail;
     
     char rx_buffer[RFC1459_MESSAGE_MAX_LEN];
-    size_t rx_len
+    size_t rx_len;
 } network_t;
 
 int network_connect(network_t *net);
