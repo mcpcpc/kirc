@@ -4,6 +4,12 @@ int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
 
+    size_t hostname_n = sizeof(ctx->hostname) - 1;
+    strncpy(ctx->hostname, "irc.libera.chat", hostname_n);
+
+    size_t port_n = sizeof(ctx->port) - 1;
+    strncpy(ctx->port, "6667", port_n);
+
     return 0;
 }
 
@@ -19,11 +25,13 @@ int kirc_args(kirc_t *ctx, int argc, char *argv)
     while ((opt = getopt(argc, argv, "")) > 0) {
         switch (opt) {
         case 's':  /* hostname */
-            ctx->hostname = optarg;
+            size_t hostname_n = sizeof(ctx->hostname) - 1;
+            strncpy(ctx->hostname, optarg, hostname_n);
             break;
 
         case 'p':  /* port */
-            ctx->port = optarg;
+            size_t port_n = sizeof(ctx->port) - 1;
+            strncpy(ctx->port, optarg, port_n);
             break;
 
         case 'n':  /* nickname */
