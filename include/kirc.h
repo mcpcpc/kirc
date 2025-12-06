@@ -19,6 +19,8 @@ typedef struct {
     char username[128];
     char password[128];
     char log[PATH_MAX];
+
+    int conn;
 } kirc_t;
 
 #endif  // __KIRC_H

@@ -3,5 +3,6 @@
 
 #include "kirc.h"
 
+int network_connect(kirc_t *ctx);
 
 #endif  // __KIRC_NETWORK_H
