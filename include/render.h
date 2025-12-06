@@ -2,6 +2,7 @@
 #define __KIRC_RENDER_H
 
 #include "kirc.h"
+#include "editor.h"
 #include "event.h"
 
 typedef struct {
