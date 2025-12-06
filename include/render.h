@@ -10,7 +10,7 @@ typedef struct {
 } render_t;
 
 void render_event(render_t *r, const event_t *ev,
-        int terminal_cols)
+        int terminal_cols);
 void render_editor_line(render_t *r, const editor_t *e);
 
 #endif  // __KIRC_RENDER_H
