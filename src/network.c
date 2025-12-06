@@ -11,7 +11,7 @@ int network_connect(kirc_t *ctx)
     hints.ai_socktype = SOCK_STREAM
 
     int status = getaddrinfo(ctx->hostname, ctx->port,
-        &hints, &res)
+        &hints, &res);
 
     if (status != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
