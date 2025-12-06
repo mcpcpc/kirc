@@ -22,7 +22,7 @@ static int kirc_args(kirc_t *ctx, int *argc, char **argv[])
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "")) > 0) {
+    while ((opt = getopt(argc, argv, "s:p:n:r:u:k:l:")) > 0) {
         switch (opt) {
         case 's':  /* hostname */
             size_t hostname_n = sizeof(ctx->hostname) - 1;
