@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 typedef struct {
@@ -13,7 +14,7 @@ typedef struct {
     char *username;
     char *password;
     char *token;
-    char *log;
+    char log[PATH_MAX];
 } kirc_t;
 
 #endif  // __KIRC_H
