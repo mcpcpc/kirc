@@ -2,5 +2,13 @@
 #define __KIRC_RENDER_H
 
 #include "kirc.h"
+#include "event.h"
+
+typedef struct {
+    char default_channel[512];
+    int verbose;
+} render_t;
+
+void render_event(render_t *r, event_t *ev);
 
 #endif  // __KIRC_RENDER_H
