@@ -35,27 +35,28 @@ static int kirc_args(kirc_t *ctx, int *argc, char **argv[])
             break;
 
         case 'n':  /* nickname */
-            ctx->nickname = optarg;
+            size_t nickname_n = sizeof(ctx->nickname) - 1;
+            strncpy(ctx->nickname, optarg, nickname_n);
             break;
 
         case 'r':  /* realname */
-            ctx->realname = optarg;
+            size_t realname_n = sizeof(ctx->realname) - 1;
+            strncpy(ctx->realname, optarg, realname_n);
             break;
 
         case 'u':  /* username */
-            ctx->username = optarg;
+            size_t username_n = sizeof(ctx->username) - 1;
+            strncpy(ctx->username, optarg, username_n);
             break;
 
         case 'k':  /* password */
-            ctx->password = optarg;
+            size_t password_n = sizeof(ctx->password) - 1;
+            strncpy(ctx->password, optarg, password_n);
             break;
 
-        case 'a':  /* token */
-            ctx->token = optarg;
-            break
-
         case 'l':  /* log file path */
-            ctx->log = optarg;
+            size_t log_n = sizeof(ctx->log) - 1;
+            strncpy(ctx->log, optarg, log_n);
             break
 
         case ':':

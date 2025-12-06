@@ -13,11 +13,10 @@
 typedef struct {
     char hostname[HOST_NAME_MAX];
     char port[6];
-    char *nickname;
-    char *realname;
-    char *username;
-    char *password;
-    char *token;
+    char nickname[128];
+    char realname[128];
+    char username[128];
+    char password[128];
     char log[PATH_MAX];
 } kirc_t;
 
