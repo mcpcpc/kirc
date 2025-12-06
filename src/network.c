@@ -45,9 +45,9 @@ int network_connect(kirc_t *ctx)
     }
 
     /* Set non-blocking */
-    int flags = fcntl(sock, F_GETFL, 0);
+    int flags = fcntl(ctx->conn, F_GETFL, 0);
     if (flags != -1) {
-        fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+        fcntl(ctx->conn, F_SETFL, flags | O_NONBLOCK);
     }
 
     return 0;
