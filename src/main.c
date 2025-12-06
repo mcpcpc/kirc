@@ -13,7 +13,7 @@ static int kirc_init(kirc_t *ctx)
     return 0;
 }
 
-static int kirc_args(kirc_t *ctx, int *argc, char **argv[])
+static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (kirc_args(&ctx, &argc, &argv) < 0) {
+    if (kirc_args(&ctx, argc, argv) < 0) {
         return 1;
     }
 
