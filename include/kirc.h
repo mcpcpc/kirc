@@ -13,7 +13,7 @@
 #define RFC1459_MESSAGE_MAX_LEN 512
 #endif
 
-#inclyde <errno.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <netdb.h>
