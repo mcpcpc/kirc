@@ -259,7 +259,7 @@ static int edit_insert(editor_context_t *ectx, const char *c)
     } else {
         /* Insert in the middle. */
         buffer_position_move_end(ectx, (ssize_t)clenb, 0);
-        memmove(ectx>buf + ectx->posb, c, clenb);
+        memmove(ectx->buf + ectx->posb, c, clenb);
         ectx->posu8++;
         ectx->lenu8++;
         ectx->posb += clenb;
