@@ -150,10 +150,10 @@ static int kirc_run(kirc_t *ctx)
                     if (!eol) break; 
 
                     *eol = '\0';
-printf("loop!\n");
+
                     event_t event;
                     event_init(&event, msg);
-printf("loop-ish!\n");
+
                     if (event.type == EVENT_PING) {
                         network_send(ctx, "PONG\r\n");
                     }
