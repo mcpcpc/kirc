@@ -62,6 +62,7 @@ int network_connect(kirc_t *ctx)
 
     /* Set non-blocking */
     int flags = fcntl(ctx->socket_fd, F_GETFL, 0);
+
     if (flags != -1) {
         fcntl(ctx->socket_fd, F_SETFL, flags | O_NONBLOCK);
     }
