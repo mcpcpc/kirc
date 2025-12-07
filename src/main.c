@@ -159,10 +159,10 @@ static int kirc_run(kirc_t *ctx)
                     msg = eol += 2;
                 }
                 
-                size_t remain = ctx.socket_buffer
-                    + ctx.socket_len - msg;
-                memmove(ctx.socket_buffer, msg, remain);
-                ctx.socket_len = remain;
+                size_t remain = ctx->socket_buffer
+                    + ctx->socket_len - msg;
+                memmove(ctx->socket_buffer, msg, remain);
+                ctx->socket_len = remain;
             }
         }
 
