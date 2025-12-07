@@ -117,10 +117,10 @@ static int kirc_run(kirc_t *ctx)
         network_send(ctx, "PASS %s\r\n", ctx->password);
     }
 
-    if (terminal_enable_raw(ctx) < 0) {
-        fprintf(stderr, "terminal_enable_raw: failed\n");
-        return 1;
-    }
+    //if (terminal_enable_raw(ctx) < 0) {
+    //    fprintf(stderr, "terminal_enable_raw: failed\n");
+    //    return 1;
+    //}
 
     struct pollfd fds[2] = {
         { .fd = ctx->tty_fd, .events = POLLIN },
@@ -170,7 +170,7 @@ static int kirc_run(kirc_t *ctx)
 
     } 
 
-    terminal_disable_raw(ctx);
+    //terminal_disable_raw(ctx);
 
     return 0;
 }
