@@ -34,7 +34,7 @@ int network_connect(kirc_t *ctx)
         return -1;
     }
 
-    ctx->sock_fd = -1;
+    ctx->socket_fd = -1;
 
     for (p = res; p != NULL; p = p->ai_next) {
         ctx->socket_fd = socket(p->ai_family, p->ai_socktype,
