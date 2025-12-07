@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "event.h"
+#include "feed.h"
 #include "network.h"
 #include "terminal.h"
 
@@ -157,6 +158,8 @@ static int kirc_run(kirc_t *ctx)
                     if (event.type == EVENT_PING) {
                         network_send(ctx, "PONG\r\n");
                     }
+
+                    feed_render(&event);
 
                     msg = eol + 2;
                 }
