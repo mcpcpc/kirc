@@ -47,7 +47,6 @@ static void wordwrap(char *message, int cols)
     for (char *tok = strtok(message, " "); tok != NULL;
          tok = strtok(NULL, " ")) {
 
-        //wordwidth = strnlen(tok, RFC1459_MESSAGE_MAX_LEN);
         wordwidth = display_width(tok);
 
         if ((wordwidth + spacewidth) > spaceleft) {
