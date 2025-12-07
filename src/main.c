@@ -147,7 +147,7 @@ static int kirc_run(kirc_t *ctx)
 
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
-                    printf("%s\n", msg);
+
                     if (!eol) break;
 
                     event_t event;
@@ -157,6 +157,7 @@ static int kirc_run(kirc_t *ctx)
                         network_send(ctx, "PONG\r\n");
                     }
 
+                    printf("%s\n", msg);
                     msg = eol += 2;
                 }
                 
