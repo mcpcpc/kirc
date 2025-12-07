@@ -1,35 +1,43 @@
 #include "feed.h"
 
-static int is_ansi_escape(const char *s)
-{
-    return s[0] == '\x1b' && s[1] == '[';
-}
+#include <wchar.h>
+#include <wctype.h>
+#include <ctype.h>
 
-static size_t visible_width(const char *s)
+static size_t display_width(const char *s)
 {
     size_t width = 0;
-    mbstate_t st = {0};
-    wchar_t wc;
+    mbstate_t ps = {0};
 
     while (*s) {
-        if (is_ansi_escape(s)) {
-            s += 2;
-            while (*s && (*s < '@' || *s > '~'))
-                s++;
-            if (*s) s++;   // Final CSI byte
+        wchar_t wc;
+        size_t n = mbrtowc(&wc, s, MB_CUR_MAX, &ps);
+
+        /* Invalid byte sequence → treat as single printable */
+        if (n == (size_t)-1 || n == (size_t)-2) {
+            width++;
+            s++;
+            memset(&ps, 0, sizeof(ps));
             continue;
         }
 
-        size_t len = mbrtowc(&wc, s, MB_CUR_MAX, &st);
-        if (len == (size_t)-1 || len == (size_t)-2) {
-            ++s;
-            ++width;
+        /* Skip ANSI escape sequences */
+        if (*s == '\x1b') {
+            s++;
+            if (*s == '[') {
+                while (*s && !isalpha((unsigned char)*s))
+                    s++;
+                if (*s)
+                    s++;
+            }
             continue;
         }
 
         int w = wcwidth(wc);
-        width += (w > 0) ? w : 0;
-        s += len;
+        if (w > 0)
+            width += w;
+
+        s += n;
     }
 
     return width;
@@ -40,12 +48,14 @@ static void wordwrap(char *message, int cols)
     size_t wordwidth, spacewidth = 1, nicklen = 17;
     size_t spaceleft = cols - (nicklen + 1);
 
-    for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
+    for (char *tok = strtok(message, " "); tok != NULL;
+         tok = strtok(NULL, " ")) {
 
-        wordwidth = visible_width(tok);
+        wordwidth = display_width(tok);   // ✅ FIXED
 
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ", (int)nicklen + 1, " ", tok);
+            printf("\r\n%*.s%s ",
+                   (int)nicklen + 1, " ", tok);
             spaceleft = cols - (nicklen + 1);
         } else {
             printf("%s ", tok);
