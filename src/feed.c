@@ -1,5 +1,61 @@
 #include "feed.h"
 
+static int is_ansi_escape(const char *s)
+{
+    return s[0] == '\x1b' && s[1] == '[';
+}
+
+static size_t visible_width(const char *s)
+{
+    size_t width = 0;
+    mbstate_t st = {0};
+    wchar_t wc;
+
+    while (*s) {
+        if (is_ansi_escape(s)) {
+            s += 2;
+            while (*s && (*s < '@' || *s > '~'))
+                s++;
+            if (*s) s++;   // Final CSI byte
+            continue;
+        }
+
+        size_t len = mbrtowc(&wc, s, MB_CUR_MAX, &st);
+        if (len == (size_t)-1 || len == (size_t)-2) {
+            ++s;
+            ++width;
+            continue;
+        }
+
+        int w = wcwidth(wc);
+        width += (w > 0) ? w : 0;
+        s += len;
+    }
+
+    return width;
+}
+
+static void wordwrap(char *message, int cols)
+{
+    size_t wordwidth, spacewidth = 1, nicklen = 17;
+    size_t spaceleft = cols - (nicklen + 1);
+
+    for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
+
+        wordwidth = visible_width(tok);
+
+        if ((wordwidth + spacewidth) > spaceleft) {
+            printf("\r\n%*.s%s ", (int)nicklen + 1, " ", tok);
+            spaceleft = cols - (nicklen + 1);
+        } else {
+            printf("%s ", tok);
+        }
+
+        spaceleft -= wordwidth + spacewidth;
+    }
+}
+
+/*
 static void wordwrap(char *message, int cols)
 {
     size_t wordwidth, spacewidth = 1, nicklen = 17;
@@ -16,6 +72,7 @@ static void wordwrap(char *message, int cols)
         spaceleft -= wordwidth + spacewidth;
     }
 }
+*/
 
 static void feed_privmsg(event_t *event)
 {
