@@ -47,7 +47,8 @@ static void wordwrap(char *message, int cols)
     for (char *tok = strtok(message, " "); tok != NULL;
          tok = strtok(NULL, " ")) {
 
-        wordwidth = display_width(tok);   // ✅ FIXED
+        //wordwidth = strnlen(tok, RFC1459_MESSAGE_MAX_LEN);
+        wordwidth = display_width(tok);
 
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\r\n%*.s%s ",
@@ -60,25 +61,6 @@ static void wordwrap(char *message, int cols)
         spaceleft -= wordwidth + spacewidth;
     }
 }
-
-/*
-static void wordwrap(char *message, int cols)
-{
-    size_t wordwidth, spacewidth = 1, nicklen = 17;
-    size_t spaceleft = cols - (nicklen + 1);
-
-    for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
-        wordwidth = strnlen(tok, RFC1459_MESSAGE_MAX_LEN);
-        if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ", (int)nicklen + 1, " ", tok);
-            spaceleft = cols - (nicklen + 1);
-        } else {
-            printf("%s ", tok);
-        }
-        spaceleft -= wordwidth + spacewidth;
-    }
-}
-*/
 
 static void feed_privmsg(event_t *event)
 {
