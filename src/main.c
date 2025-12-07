@@ -165,6 +165,13 @@ static int kirc_run(kirc_t *ctx)
                         network_send(ctx, "PONG\r\n");
                     }
 
+                    if (event.type == EVENT_JOIN) {
+                        for (int i = 0; ctx->channel[i][0] != '\0'; ++i) {
+                            network_send(ctx, "JOIN #%s\r\n",
+                                ctx->channel[i]);
+                        }
+                    }
+
                     feed_render(&event);
 
                     msg = eol + 2;
