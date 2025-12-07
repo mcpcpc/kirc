@@ -123,7 +123,7 @@ static int kirc_run(kirc_t *ctx)
     struct pollfd fds[2] = {
         { .fd = ctx->tty_fd, .events = POLLIN },
         { .fd = ctx->socket_fd, .events = POLLIN }
-    }
+    };
 
     for (;;) {
         if (poll(fds, 2, -1) == -1) {
