@@ -148,7 +148,9 @@ static int kirc_run(kirc_t *ctx)
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
 
-                    if (!eol) break;
+                    if (!eol) break; 
+
+                    *eol = '\0';
 
                     event_t event;
                     event_init(&event, msg);
