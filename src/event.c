@@ -45,7 +45,7 @@ int event_init(event_t *event, char *line)
     char *params = strtok(NULL, ":\r");
     printf("params: %s\n", event->params);
 
-    if ((params[0] != '\0') || (params[0] != '\n')) {
+    if (params[0] != '\0') {
         size_t params_n = sizeof(event->params) - 1;
         strncpy(event->params, params, params_n);
     }
