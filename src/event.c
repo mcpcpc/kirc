@@ -4,8 +4,7 @@ int event_init(event_t *event, char *line)
 {
 
     memset(event, 0, sizeof(*event));
-
-    printf("event!\n");
+    a
     if (strncmp(line, "PING", 4) == 0) {
         event->type = EVENT_PING;
         return 0;
@@ -19,6 +18,7 @@ int event_init(event_t *event, char *line)
     char *channel = strtok(NULL, " \r");
     char *params = strtok(NULL, ":\r");
 
+    printf("event!\n");
     size_t message_n = sizeof(event->message) - 1;
     strncpy(event->message, message, message_n);
 
