@@ -1,13 +1,13 @@
 #include "feed.h"
 
-static void  feed_word_wrap(event_t *event)
+static void feed_wordwrap(event_t *event)
 {
 }
 
 static void feed_privmsg(event_t *event)
 {
     printf("%s: ", event->nickname);
-    feed_word_wrap(event);
+    feed_wordwrap(event);
 }
 
 static void feed_join(event_t *event)
