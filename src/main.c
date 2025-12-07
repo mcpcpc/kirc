@@ -148,13 +148,14 @@ static int kirc_run(kirc_t *ctx)
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
 
+                    printf("worked!\n");
+
                     if (!eol) break; 
 
                     *eol = '\0';
 
                     event_t event;
                     event_init(&event, msg);
-                    printf("worked!\n");
 
                     if (event.type == EVENT_PING) {
                         network_send(ctx, "PONG\r\n");
