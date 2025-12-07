@@ -42,7 +42,6 @@ static size_t display_width(const char *s)
 static void wordwrap(char *message, int cols)
 {
     size_t wordwidth, spacewidth = 1, nicklen = 16;
-    //size_t spaceleft = cols - (nicklen + 1);
     size_t spaceleft = cols - nicklen;
 
     for (char *tok = strtok(message, " "); tok != NULL;
@@ -69,7 +68,7 @@ static void feed_privmsg(event_t *event)
 
     char nickname[16] = {0};
     strncpy(nickname, event->nickname, 15);
-    printf("\033[1m%s\033[0m ", nickname);
+    printf("\033[36;1m%s\033[0m ", nickname);
 
     wordwrap(event->message, cols);
     printf("\x1b[0m\r\n");
@@ -104,9 +103,9 @@ static void feed_channel(event_t *event)
     int cols = terminal_columns(event->ctx);
 
     if (event->channel[0] != '\0') {
-        printf("\033[36;1m%s\033[0m ", event->channel);
+        printf("\033[1m%s\033[0m ", event->channel);
     } else {
-        printf("\033[33;1m%s\033[0m ", event->nickname);
+        printf("\033[1m%s\033[0m ", event->nickname);
     }
 
     wordwrap(event->message, cols);
