@@ -148,9 +148,8 @@ static int kirc_run(kirc_t *ctx)
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
 
-                    printf("%s\n", msg);
 
-                    if (!eol) break; 
+                    if (eol == NULL) break; 
 
                     *eol = '\0';
 
@@ -161,7 +160,7 @@ static int kirc_run(kirc_t *ctx)
                         network_send(ctx, "PONG\r\n");
                     }
 
-                    msg = eol += 2;
+                    msg = eol + 2;
                 }
                 
                 size_t remain = ctx->socket_buffer
