@@ -18,6 +18,14 @@ int event_init(event_t *event, char *line)
     char *channel = strtok(NULL, " \r");
     char *params = strtok(NULL, ":\r");
 
+    printf("%s\n", prefix);
+    printf("%s\n", suffix);
+    printf("%s\n", message);
+    printf("%s\n", nickname);
+    printf("%s\n", command);
+    printf("%s\n", channel);
+    printf("%s\n", prefix);
+
     if (message[0] != '\0') {
         size_t message_n = sizeof(event->message) - 1;
         strncpy(event->message, message, message_n);
@@ -42,7 +50,7 @@ int event_init(event_t *event, char *line)
         size_t params_n = sizeof(event->params) - 1;
         strncpy(event->params, params, params_n);
     }
-    printf("test!\n");
+
     if (!strncmp(command, "001", 3)) {
         event->type = EVENT_JOIN;
         return 0;
