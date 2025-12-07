@@ -17,6 +17,7 @@ int event_init(event_t *event, char *line)
     if (message[0] != '\0') {
         size_t message_n = sizeof(event->message) - 1;
         strncpy(event->message, message, message_n);
+        printf("message: %s\n", event->message);
     }
 
     char *nickname = strtok(prefix, "!");
@@ -24,6 +25,7 @@ int event_init(event_t *event, char *line)
     if (nickname[0] != '\0') {
         size_t nickname_n = sizeof(event->nickname) - 1;
         strncpy(event->nickname, nickname, nickname_n);
+        printf("nickname: %s\n", event->nickname);
     }
 
     char *command = strtok(suffix, "#& ");
