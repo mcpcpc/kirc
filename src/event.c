@@ -30,11 +30,10 @@ int event_init(event_t *event, char *line)
     size_t command_n = sizeof(event->command) - 1;
     strncpy(event->command, command, command_n);
 
-    printf("event!\n");
-
-    size_t params_n = sizeof(event->params) - 1;
-    printf("%s!\n", params);
-    strncpy(event->params, params, params_n);
+    if (params[0] != '\0') {
+        size_t params_n = sizeof(event->params) - 1;
+        strncpy(event->params, params, params_n);
+    }
 
     if (!strncmp(command, "001", 3)) {
         event->type = EVENT_JOIN;
