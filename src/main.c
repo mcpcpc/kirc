@@ -17,7 +17,7 @@ static void kirc_usage(const char *argv0)
         "  -r <value>  Real name\n"
         "  -u <value>  Username\n"
         "  -k <value>  Password\n"
-        "  -h          Show this help\n"
+        "  -h          Show this help\n",
         argv0);
 }
 
