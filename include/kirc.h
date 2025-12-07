@@ -36,6 +36,8 @@ typedef struct {
     char log[PATH_MAX];
     /* network */
     int socket_fd;
+    int socket_len;
+    char socket_buffer[RFC1459_MESSAGE_MAX_LEN];
     /* terminal */
     int tty_fd;
     int raw_mode_enabled;

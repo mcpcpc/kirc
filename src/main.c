@@ -134,6 +134,8 @@ static int kirc_run(kirc_t *ctx)
         if (fds[0].revents & POLLIN) {
         }
         if (fds[1].revents & POLLIN) {
+            if (network_receive(ctx) > 0) {
+            }
         }
     } 
 

@@ -16,6 +16,31 @@ void network_send(kirc_t *ctx, const char *fmt, ...)
     }
 }
 
+int network_receive(kirc_t *ctx) {
+    size_t socket_buffer_n = sizeof(ctx->socket_buffer) - 1;
+    ssize_t nread = read(ctx->socket_fd,
+        ctx->socket_buffer + ctx->socket_len,
+        socket_buffer_n - ctx->socket_len);
+
+    if (nread < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return 0;
+        } else {
+            perror("read");
+            return -1;
+        }
+    }
+
+    if (nread == 0) {
+        return -1;
+    }
+
+    ctx->socket_len += (int)nread;
+    ctx->socket_buffer[ctx->socket_len] = '\0';
+
+    return nread;
+}
+
 int network_connect(kirc_t *ctx)
 {
     struct addrinfo hints;
@@ -70,8 +95,4 @@ int network_connect(kirc_t *ctx)
     }
 
     return 0;
-}
-
-void network_receive(kirc_t *ctx) {
-    
 }
