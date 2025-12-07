@@ -26,7 +26,7 @@ int event_init(event_t *event, char *line)
 
     size_t channel_n = sizeof(event->channel) - 1;
     strncpy(event->channel, channel, channel_n);
-
+    printf("test!\n");
     size_t command_n = sizeof(event->command) - 1;
     strncpy(event->command, command, command_n);
 
@@ -34,7 +34,7 @@ int event_init(event_t *event, char *line)
         size_t params_n = sizeof(event->params) - 1;
         strncpy(event->params, params, params_n);
     }
-    printf("test!\n");
+
     if (!strncmp(command, "001", 3)) {
         event->type = EVENT_JOIN;
         return 0;
