@@ -1,7 +1,13 @@
 #include "feed.h"
 
+static void  feed_word_wrap(event_t *event)
+{
+}
+
 static void feed_privmsg(event_t *event)
 {
+    printf("%s: ", event->nickname);
+    feed_word_wrap(event);
 }
 
 static void feed_join(event_t *event)
@@ -37,5 +43,6 @@ void feed_render(event_t *event)
     } else if (event->type == EVENT_NICK) {
         feed_nick(event);
     }
+
     printf("\x1b[0m\r\n");
 }
