@@ -30,21 +30,23 @@ int network_connect(kirc_t *ctx)
         &hints, &res);
 
     if (status != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        fprintf(stderr, "getaddrinfo: %s\n",
+            gai_strerror(status));
         return -1;
     }
 
     ctx->socket_fd = -1;
 
     for (p = res; p != NULL; p = p->ai_next) {
-        ctx->socket_fd = socket(p->ai_family, p->ai_socktype,
-            p->ai_protocol);
+        ctx->socket_fd = socket(p->ai_family,
+            p->ai_socktype, p->ai_protocol);
 
         if (ctx->socket_fd == -1) {
             continue;
         }
 
-        if (connect(ctx->socket_fd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (connect(ctx->socket_fd, p->ai_addr,
+            p->ai_addrlen) == -1) {
             ctx->socket_fd = -1;
             close(ctx->socket_fd);
             continue;
