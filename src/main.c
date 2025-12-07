@@ -15,7 +15,7 @@ static int kirc_init(kirc_t *ctx)
     strncpy(ctx->port, "6667", port_n);
 
     size_t channel_n = sizeof(ctx->channel[0]) - 1;
-    strncpy(ctx->channel[0], "#chat", channel_n);
+    strncpy(ctx->channel[0], "chat", channel_n);
 
     ctx->tty_fd = STDIN_FILENO;
 
@@ -167,7 +167,7 @@ static int kirc_run(kirc_t *ctx)
 
                     if (event.type == EVENT_JOIN) {
                         for (int i = 0; ctx->channel[i][0] != '\0'; ++i) {
-                            network_send(ctx, "JOIN #%s\r\n",
+                            network_send(ctx, "JOIN %s\r\n",
                                 ctx->channel[i]);
                         }
                     }
