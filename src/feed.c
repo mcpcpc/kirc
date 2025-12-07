@@ -103,9 +103,9 @@ static void feed_channel(event_t *event)
     int cols = terminal_columns(event->ctx);
 
     if (event->channel[0] != '\0') {
-        printf("\033[1m%s\033[0m ", event->channel);
+        printf("\x1b[1m%s\x1b[0m ", event->channel);
     } else {
-        printf("\033[1m%s\033[0m ", event->nickname);
+        printf("\x1b[1m%s\x1b[0m ", event->nickname);
     }
 
     wordwrap(event->message, cols);
