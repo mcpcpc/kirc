@@ -21,8 +21,8 @@ static void feed_privmsg(event_t *event)
 {
     int cols = terminal_columns(event->ctx);
 
-    char nickname[15] = {0};
-    strncpy(nickname, event->nickname, 14);
+    char nickname[14] = {0};
+    strncpy(nickname, event->nickname, 13);
     printf("%s: ", nickname);
 
     wordwrap(event->message, cols);
