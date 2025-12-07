@@ -71,26 +71,31 @@ static void feed_privmsg(event_t *event)
     printf("%s: ", nickname);
 
     wordwrap(event->message, cols);
+    printf("\x1b[0m\r\n");
 }
 
 static void feed_join(event_t *event)
 {
     printf("--> %s", event->nickname);
+    printf("\x1b[0m\r\n");
 }
 
 static void feed_part(event_t *event)
 {
     printf("<-- %s", event->nickname);
+    printf("\x1b[0m\r\n");
 }
 
 static void feed_quit(event_t *event)
 {
     printf("<<< %s", event->nickname);
+    printf("\x1b[0m\r\n");
 }
 
 static void feed_nick(event_t *event)
 {
     printf("%s --> %s", event->nickname, event->message);
+    printf("\x1b[0m\r\n");
 }
 
 static void feed_channel(event_t *event)
@@ -104,6 +109,7 @@ static void feed_channel(event_t *event)
     }
 
     wordwrap(event->message, cols);
+    printf("\x1b[0m\r\n");
 }
 
 void feed_render(event_t *event)
@@ -114,32 +120,26 @@ void feed_render(event_t *event)
 
     case EVENT_PRIVMSG:
         feed_privmsg(event);
-        printf("\x1b[0m\r\n");
         break;
 
     case EVENT_JOIN:
         feed_join(event);
-        printf("\x1b[0m\r\n");
         break;
 
     case EVENT_PART:
         feed_part(event);
-        printf("\x1b[0m\r\n");
         break;
 
     case EVENT_QUIT:
         feed_quit(event);
-        printf("\x1b[0m\r\n");
         break;
 
     case EVENT_NICK:
         feed_nick(event);
-        printf("\x1b[0m\r\n");
         break;
 
     default:
         feed_channel(event);
-        printf("\x1b[0m\r\n");
         break;
     }
 }
