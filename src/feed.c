@@ -71,7 +71,7 @@ static void feed_privmsg(event_t *event)
     printf("\x1b[7m%s\x1b[0m ", nickname);
 
     wordwrap(event->message, cols);
-    printf("\x1b[0m\r\n");
+    printf("\r\n");
 }
 
 static void feed_join(event_t *event)
@@ -109,7 +109,7 @@ static void feed_channel(event_t *event)
     }
 
     wordwrap(event->message, cols);
-    printf("\x1b[0m\r\n");
+    printf("\r\n");
 }
 
 void feed_render(event_t *event)
