@@ -21,12 +21,15 @@ int event_init(event_t *event, char *line)
     size_t message_n = sizeof(event->message) - 1;
     strncpy(event->message, message, message_n);
 
-    size_t nickname_n = sizeof(event->nickname) - 1;
-    strncpy(event->nickname, nickname, nickname_n);
+    if (nickname[0] != '\0') {
+        size_t nickname_n = sizeof(event->nickname) - 1;
+        strncpy(event->nickname, nickname, nickname_n);
+    }
 
-    printf("test!");
-    size_t channel_n = sizeof(event->channel) - 1;
-    strncpy(event->channel, channel, channel_n);
+    if (channel[0] != '\0') {
+        size_t channel_n = sizeof(event->channel) - 1;
+        strncpy(event->channel, channel, channel_n);
+    }
 
     if (command[0] != '\0') {
         size_t command_n = sizeof(event->command) - 1;
