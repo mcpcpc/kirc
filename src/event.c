@@ -33,7 +33,7 @@ int event_init(event_t *event, char *line)
     printf("event!\n");
 
     size_t params_n = sizeof(event->params) - 1;
-    printf("event2!\n");
+    printf("%s!\n", params);
     strncpy(event->params, params, params_n);
 
     if (!strncmp(command, "001", 3)) {
