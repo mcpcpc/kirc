@@ -34,7 +34,7 @@ typedef struct {
     char password[128];
     char log[PATH_MAX];
     /* network */
-    int conn;
+    int socket_fd;
     /* terminal */
     int tty_fd;
     int raw_mode_enabled;

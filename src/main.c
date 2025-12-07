@@ -120,7 +120,22 @@ static int kirc_run(kirc_t *ctx)
         return 1;
     }
 
-    network_poll(ctx);
+    struct pollfd fds[2] = {
+        { .fd = ctx->tty_fd, .events = POLLIN },
+        { .fd = ctx->socket_fd, .events = POLLIN }
+    }
+
+    for (;;) {
+        if (poll(fds, 2, -1) == -1) {
+            if (errno == EINTR) continue;
+            perror("poll");
+            break;
+        }
+        if (fds[0].revents & POLLIN) {
+        }
+        if (fds[1].revents & POLLIN) {
+        }
+    } 
 
     terminal_disable_raw(ctx);
 

@@ -34,19 +34,19 @@ int network_connect(kirc_t *ctx)
         return -1;
     }
 
-    ctx->conn = -1;
+    ctx->sock_fd = -1;
 
     for (p = res; p != NULL; p = p->ai_next) {
-        ctx->conn = socket(p->ai_family, p->ai_socktype,
+        ctx->socket_fd = socket(p->ai_family, p->ai_socktype,
             p->ai_protocol);
 
-        if (ctx->conn == -1) {
+        if (ctx->socket_fd == -1) {
             continue;
         }
 
-        if (connect(ctx->conn, p->ai_addr, p->ai_addrlen) == -1) {
-            ctx->conn = -1;
-            close(ctx->conn);
+        if (connect(ctx->socket_fd, p->ai_addr, p->ai_addrlen) == -1) {
+            ctx->socket_fd = -1;
+            close(ctx->socket_fd);
             continue;
         }
 
@@ -55,15 +55,15 @@ int network_connect(kirc_t *ctx)
 
     freeaddrinfo(res);
 
-    if (ctx->conn == -1) {
+    if (ctx->socket_fd == -1) {
         fprintf(stderr, "failed to connect\n");
         return -1;
     }
 
     /* Set non-blocking */
-    int flags = fcntl(ctx->conn, F_GETFL, 0);
+    int flags = fcntl(ctx->socket_fd, F_GETFL, 0);
     if (flags != -1) {
-        fcntl(ctx->conn, F_SETFL, flags | O_NONBLOCK);
+        fcntl(ctx->socket_fd, F_SETFL, flags | O_NONBLOCK);
     }
 
     return 0;
