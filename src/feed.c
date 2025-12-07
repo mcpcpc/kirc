@@ -1,6 +1,6 @@
 #include "feed.h"
 
-static void feed_wordwrap(char *message, int cols)
+static void wordwrap(char *message, int cols)
 {
     size_t wordwidth, spacewidth = 1, nicklen = 16;
     size_t spaceleft = cols - nicklen;
@@ -21,9 +21,11 @@ static void feed_privmsg(event_t *event)
 {
     int cols = terminal_columns(event->ctx);
 
-    printf("%s: ", event->nickname);
+    char nickname[16] = {0};
+    strncpy(nickname, event->nickname, 15);
+    printf("%s: ", nickname);
 
-    feed_wordwrap(event->message, cols);
+    wordwrap(event->message, cols);
 }
 
 static void feed_join(event_t *event)
@@ -58,7 +60,7 @@ static void feed_channel(event_t *event)
         printf("%s: ", event->nickname);
     }
 
-    feed_wordwrap(event->message, cols);
+    wordwrap(event->message, cols);
 }
 
 void feed_render(event_t *event)
