@@ -33,6 +33,7 @@ int event_init(event_t *event, char *line)
     if (command[0] != '\0') {
         size_t command_n = sizeof(event->command) - 1;
         strncpy(event->command, command, command_n);
+        printf("command: %s\n", event->command);
     }
 
     char *channel = strtok(NULL, " \r");
@@ -40,6 +41,7 @@ int event_init(event_t *event, char *line)
     if (channel[0] != '\0') {
         size_t channel_n = sizeof(event->channel) - 1;
         strncpy(event->channel, channel, channel_n);
+        printf("channel: %s\n", event->channel);
     }
 
     char *params = strtok(NULL, ":\r");
