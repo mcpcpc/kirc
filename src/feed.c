@@ -76,7 +76,7 @@ static void feed_privmsg(event_t *event)
 
 static void feed_join(event_t *event)
 {
-    printf("--> %s", event->nickname);
+    printf("%s -->", event->nickname);
     printf("\x1b[0m\r\n");
 }
 
