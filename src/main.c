@@ -4,6 +4,23 @@
 #include "network.h"
 #include "terminal.h"
 
+static void kirc_usage(const char *argv0)
+{
+    fprintf(stderr,
+        "Usage: %s [args]\n"
+        "\n"
+        "Arguments:\n"
+        "  -s <value>  Server hostname (default: irc.libera.chat)\n"
+        "  -p <value>  Server port (default: 6667)\n"
+        "  -n <value>  nickname\n"
+        "  -c <value>  Channel(s) (default: #chat)\n"
+        "  -r <value>  Real name\n"
+        "  -u <value>  Username\n"
+        "  -k <value>  Password\n"
+        "  -h          Show this help\n"
+        argv0);
+}
+
 static int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
@@ -31,8 +48,12 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "s:p:n:r:u:k:c:")) > 0) {
+    while ((opt = getopt(argc, argv, "s:p:n:r:u:k:c:h")) > 0) {
         switch (opt) {
+        case 'h':  /* help */
+            kirc_usage(argv[0]);
+            return -1;
+
         case 's':  /* hostname */
             size_t hostname_n = sizeof(ctx->hostname) - 1;
             strncpy(ctx->hostname, optarg, hostname_n);
@@ -137,7 +158,7 @@ static int kirc_run(kirc_t *ctx)
     for (;;) {
         if (poll(fds, 2, -1) == -1) {
             if (errno == EINTR) continue;
-            perror("poll");
+            //perror("poll");
             break;
         }
 
