@@ -4,7 +4,7 @@ int event_init(event_t *event, char *line)
 {
 
     memset(event, 0, sizeof(*event));
-    a
+
     if (strncmp(line, "PING", 4) == 0) {
         event->type = EVENT_PING;
         return 0;
