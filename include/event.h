@@ -16,7 +16,7 @@ typedef enum {
 } event_type_t;
 
 typedef struct {
-    kirc_t ctx;
+    kirc_t *ctx;
     event_type_t type;
     char channel[RFC1459_CHANNEL_MAX_LEN];
     char message[RFC1459_MESSAGE_MAX_LEN];
