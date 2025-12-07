@@ -1,9 +1,13 @@
 #ifndef __KIRC_H
 #define __KIRC_H
 
+/*
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
+*/
+
+#define _XOPEN_SOURCE 700
 
 #ifndef RFC1459_CHANNEL_MAX_LEN
 #define RFC1459_CHANNEL_MAX_LEN 200
