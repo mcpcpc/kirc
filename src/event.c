@@ -16,7 +16,7 @@ int event_init(event_t *event, char *line)
     memset(event, 0, sizeof(*event));
 
     if (strncmp(line, "PING", 4) == 0) {
-        event->state = EVENT_PING;
+        event->type = EVENT_PING;
         return 0;
     }
 
@@ -44,22 +44,22 @@ int event_init(event_t *event, char *line)
     strncpy(event->params, params, params_n);
 
     if (!strncmp(command, "001", 3)) {
-        event->state = EVENT_JOIN;
+        event->type = EVENT_JOIN;
         return 0;
     } else if (!strncmp(command, "QUIT", 4)) {
-        event->state = EVENT_QUIT;
+        event->type = EVENT_QUIT;
         return 0;
     } else if (!strncmp(command, "PART", 4)) {
-        event->state = EVENT_PART;
+        event->type = EVENT_PART;
         return 0;
     } else if (!strncmp(command, "JOIN", 4)) {
-        event->state = EVENT_JOIN;
+        event->type = EVENT_JOIN;
         return 0;
     } else if (!strncmp(command, "NICK", 4)) {
-        event->state = EVENT_NICK;
+        event->type = EVENT_NICK;
         return 0;
     } else if (!strncmp(command, "PRIVMSG", 7)) {
-        event->state = EVENT_PRIVMSG;
+        event->type = EVENT_PRIVMSG;
         return 0;
     } else {
         return 1;
