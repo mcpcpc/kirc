@@ -1,5 +1,6 @@
 #include "feed.h"
 
+#define _XOPEN_SOURCE 700
 #include <wchar.h>
 #include <wctype.h>
 #include <ctype.h>
