@@ -133,6 +133,10 @@ static int kirc_run(kirc_t *ctx)
             break;
         }
         if (fds[0].revents & POLLIN) {
+            int rc = editor_process_key(ctx);
+            if (rc < 0) {
+                break;
+            }
         }
         if (fds[1].revents & POLLIN) {
             if (network_receive(ctx) > 0) {
