@@ -11,7 +11,7 @@ void network_send(kirc_t *ctx, const char *fmt, ...)
 
     size_t len = strnlen(buf, sizeof(buf));
 
-    if (write(ctx->conn, buf, len) < 0) {
+    if (write(ctx->socket_fd, buf, len) < 0) {
         perror("write");
     }
 }
