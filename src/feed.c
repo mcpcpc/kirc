@@ -2,7 +2,7 @@
 
 static void feed_wordwrap(char *message, int cols)
 {
-    size_t wordwidth, spacewidth = 1, nicklen = 20;
+    size_t wordwidth, spacewidth = 1, nicklen = 16;
     size_t spaceleft = cols - nicklen;
     
     for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
