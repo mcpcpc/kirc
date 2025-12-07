@@ -1,13 +1,15 @@
 #include "feed.h"
 
-static void feed_wordwrap(event_t *event)
+static void feed_wordwrap(char *message, int cols)
 {
 }
 
 static void feed_privmsg(event_t *event)
 {
+    int cols = get_columns(event->ctx);
+
     printf("%s: ", event->nickname);
-    feed_wordwrap(event);
+    feed_wordwrap(event->message, cols);
 }
 
 static void feed_join(event_t *event)
