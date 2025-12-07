@@ -65,7 +65,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
         case 'c':  /* channel(s) */
             size_t idx = 0, channel_n = sizeof(ctx->channel[0]) - 1;
-            for (chat *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
+            for (char *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
                 strncpy(ctx->channel[idx], tok, channel_n);
                 idx += 1;
             }
