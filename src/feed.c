@@ -32,6 +32,15 @@ static void feed_nick(event_t *event)
     printf("%s --> %s", event->nickname, event->message);
 }
 
+static void feed_channel(event_t *event)
+{
+    if (event->channel != NULL) {
+        printf("%s: ", event->channel);
+    } else {
+        printf("%s: ", event->nickname);
+    }
+}
+
 void feed_render(event_t *event)
 {
     if (event->type == EVENT_PRIVMSG) {
@@ -44,7 +53,9 @@ void feed_render(event_t *event)
         feed_quit(event);
     } else if (event->type == EVENT_NICK) {
         feed_nick(event);
-    }
+    } else {
+        feed_channel(event);
+    } 
 
     printf("\x1b[0m\r\n");
 }
