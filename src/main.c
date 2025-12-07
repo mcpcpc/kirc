@@ -146,10 +146,9 @@ static int kirc_run(kirc_t *ctx)
                 char *msg = ctx->socket_buffer;
 
                 for (;;) {
+                    printf("loop!\n");
                     char *eol = strstr(msg, "\r\n");
-
-
-                    if (eol == NULL) break; 
+                    if (!eol) break; 
 
                     *eol = '\0';
 
