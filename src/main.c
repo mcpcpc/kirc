@@ -148,7 +148,7 @@ static int kirc_run(kirc_t *ctx)
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
 
-                    printf("worked!\n");
+                    printf("%s\n", msg);
 
                     if (!eol) break; 
 
