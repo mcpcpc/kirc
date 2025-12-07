@@ -3,7 +3,6 @@
 static void wordwrap(char *message, int cols)
 {
     size_t wordwidth, spacewidth = 1, nicklen = 17;
-    //size_t spaceleft = cols - nicklen;
     size_t spaceleft = cols - (nicklen + 1);
 
     for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
