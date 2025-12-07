@@ -1,5 +1,5 @@
 #include "editor.h"
-#include "feed.h"
+#include "event.h"
 #include "network.h"
 #include "terminal.h"
 
