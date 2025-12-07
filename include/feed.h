@@ -3,7 +3,6 @@
 
 #include "kirc.h"
 #include "event.h"
-#include "network.h"
 
 void feed_render(event_t *event);
 
