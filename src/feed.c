@@ -1,9 +1,5 @@
 #include "feed.h"
 
-#include <wchar.h>
-#include <wctype.h>
-#include <ctype.h>
-
 static size_t display_width(const char *s)
 {
     size_t width = 0;

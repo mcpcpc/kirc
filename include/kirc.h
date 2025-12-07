@@ -1,13 +1,9 @@
 #ifndef __KIRC_H
 #define __KIRC_H
 
-/*
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
-*/
-
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
+#endif
 
 #ifndef RFC1459_CHANNEL_MAX_LEN
 #define RFC1459_CHANNEL_MAX_LEN 200
@@ -21,6 +17,7 @@
 #define KIRC_CHANLIMIT 100
 #endif
 
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -33,6 +30,8 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <wchar.h>
+#include <wctype.h>
 
 typedef struct {
     char hostname[HOST_NAME_MAX];
