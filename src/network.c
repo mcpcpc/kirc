@@ -72,6 +72,6 @@ int network_connect(kirc_t *ctx)
     return 0;
 }
 
-void network_poll(kirc_t *ctx) {
+void network_receive(kirc_t *ctx) {
     
 }

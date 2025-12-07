@@ -4,7 +4,7 @@
 #include "kirc.h"
 
 void network_send(kirc_t *ctx, const char *fmt, ...);
-void network_poll(kirc_t *ctx);
+void network_receive(kirc_t *ctx);
 int network_connect(kirc_t *ctx);
 
 
