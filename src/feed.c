@@ -4,7 +4,8 @@ static void feed_wordwrap(char *message, int cols)
 {
     size_t wordwidth, spacewidth = 1, nicklen = 20;
     size_t spaceleft = cols - nicklen;
-    for (tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
+    
+    for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strnlen(tok, RFC1459_MESSAGE_MAX_LEN);
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\r\n%*.s%s ", (int)nicklen + 1, " ", tok);
