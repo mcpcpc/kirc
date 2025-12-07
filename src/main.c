@@ -145,6 +145,8 @@ static int kirc_run(kirc_t *ctx)
             if (network_receive(ctx) > 0) {
                 char *msg = ctx->socket_buffer;
 
+                printf("%s\n", msg);
+
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
                     if (!eol) break;
