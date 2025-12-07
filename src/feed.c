@@ -28,12 +28,14 @@ static void feed_privmsg(event_t *event)
 
 static void feed_join(event_t *event)
 {
-    printf("--> %s", event->nickname);
+    printf("--> %s [%s]", event->nickname,
+        event->channel);
 }
 
 static void feed_part(event_t *event)
 {
-    printf("<-- %s", event->nickname);
+    printf("<-- %s [%s]", event->nickname,
+        event->channel);
 }
 
 static void feed_quit(event_t *event)
