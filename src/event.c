@@ -10,16 +10,13 @@ int event_init(event_t *event, char *line)
         return 0;
     }
 
-    char *prefix, *suffix, *message, *nickname;
-    char *command, *channel, *params;
-
-    prefix = strtok(line, " ") + 1;
-    suffix = strtok(NULL, ":");
-    message = strtok(NULL, "\r");
-    nickname = strtok(prefix, "!");
-    command = strtok(suffix, "#& ");
-    channel = strtok(NULL, " \r");
-    params = strtok(NULL, ":\r");
+    char *prefix = strtok(line, " ") + 1;
+    char *suffix = strtok(NULL, ":");
+    char *message = strtok(NULL, "\r");
+    char *nickname = strtok(prefix, "!");
+    char *command = strtok(suffix, "#& ");
+    char *channel = strtok(NULL, " \r");
+    char *params = strtok(NULL, ":\r");
 
     size_t message_n = sizeof(event->message) - 1;
     strncpy(event->message, message, message_n);
