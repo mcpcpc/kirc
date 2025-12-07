@@ -3,6 +3,7 @@
 
 #include "kirc.h"
 
+int terminal_columns(kirc_t *ctx);
 int terminal_enable_raw(kirc_t *ctx);
 void terminal_disable_raw(kirc_t *ctx);
 
