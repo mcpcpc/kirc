@@ -1,4 +1,5 @@
 #include "editor.h"
+#include "feed.h"
 #include "network.h"
 #include "terminal.h"
 
