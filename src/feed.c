@@ -34,7 +34,7 @@ static void feed_nick(event_t *event)
 
 static void feed_channel(event_t *event)
 {
-    if (event->channel != NULL) {
+    if (event->channel[0] != '\0') {
         printf("%s: ", event->channel);
     } else {
         printf("%s: ", event->nickname);
