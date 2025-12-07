@@ -34,11 +34,15 @@ static void feed_nick(event_t *event)
 
 static void feed_channel(event_t *event)
 {
+    int cols = terminal_columns(event->ctx);
+
     if (event->channel[0] != '\0') {
         printf("%s: ", event->channel);
     } else {
         printf("%s: ", event->nickname);
     }
+
+    feed_wordwrap(event->message, cols);
 }
 
 void feed_render(event_t *event)
