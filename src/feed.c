@@ -3,8 +3,9 @@
 static void wordwrap(char *message, int cols)
 {
     size_t wordwidth, spacewidth = 1, nicklen = 16;
-    size_t spaceleft = cols - nicklen;
-    
+    //size_t spaceleft = cols - nicklen;
+    size_t spaceleft = cols - (nicklen + 1);
+
     for (char *tok = strtok(message, " "); tok != NULL; tok = strtok(NULL, " ")) {
         wordwidth = strnlen(tok, RFC1459_MESSAGE_MAX_LEN);
         if ((wordwidth + spacewidth) > spaceleft) {
@@ -21,8 +22,8 @@ static void feed_privmsg(event_t *event)
 {
     int cols = terminal_columns(event->ctx);
 
-    char nickname[14] = {0};
-    strncpy(nickname, event->nickname, 13);
+    char nickname[16] = {0};
+    strncpy(nickname, event->nickname, 15);
     printf("%s: ", nickname);
 
     wordwrap(event->message, cols);
