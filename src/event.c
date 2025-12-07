@@ -1,15 +1,5 @@
 #include "event.h"
 
-int q
-{
-    event->state = EVENT_NONE;
-    event->message[0] = '\0';
-    event->channel[0] = '\0';
-    event->command[0] = '\0';
-    event->params[0] = '\0';
-    return 0;
-}
-
 int event_init(event_t *event, char *line)
 {
 
