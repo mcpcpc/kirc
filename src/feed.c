@@ -6,7 +6,7 @@ static void feed_wordwrap(char *message, int cols)
 
 static void feed_privmsg(event_t *event)
 {
-    int cols = get_columns(event->ctx);
+    int cols = terminal_columns(event->ctx);
 
     printf("%s: ", event->nickname);
     feed_wordwrap(event->message, cols);
