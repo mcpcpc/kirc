@@ -17,9 +17,10 @@ typedef enum {
 
 typedef struct {
     event_type_t type;
-    char *command;
     char channel[RFC1459_CHANNEL_MAX_LEN];
-    char message[RFC1459_MESSAGE_MAX_LEN]; 
+    char message[RFC1459_MESSAGE_MAX_LEN];
+    char *command;
+    char *nickname;
     char *params;
 } event_t;
 

@@ -24,6 +24,9 @@ int event_init(event_t *event, char *line)
     size_t message_n = sizeof(event->message) - 1;
     strncpy(event->message, message, message_n);
 
+    size_t nickname_n = sizeof(event->nickname) - 1;
+    strncpy(event->nickname, nickname, nickname_n);
+
     size_t channel_n = sizeof(event->channel) - 1;
     strncpy(event->channel, channel, channel_n);
 
