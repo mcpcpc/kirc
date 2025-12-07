@@ -157,7 +157,6 @@ static int kirc_run(kirc_t *ctx)
                         network_send(ctx, "PONG\r\n");
                     }
 
-                    printf("%s\n", msg);
                     msg = eol += 2;
                 }
                 
