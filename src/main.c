@@ -133,16 +133,39 @@ static int kirc_run(kirc_t *ctx)
             perror("poll");
             break;
         }
+
         if (fds[0].revents & POLLIN) {
             int rc = editor_process_key(ctx);
             if (rc < 0) {
                 break;
             }
         }
+
         if (fds[1].revents & POLLIN) {
             if (network_receive(ctx) > 0) {
+                char *msg = ctx->socket_buffer;
+
+                for (;;) {
+                    char *eol = strstr(msg, "\r\n");
+                    if (!eol) break;
+
+                    event_t event;
+                    event_init(&event, &line);
+
+                    if (event.type == EVENT_PING) {
+                        network_send(ctx, "PONG\r\n");
+                    }
+
+                    msg = eol += 2;
+                }
+                
+                size_t remain = ctx.socket_buffer
+                    + ctx.socket_len - msg;
+                memmove(ctx.socket_buffer, msg, remain);
+                ctx.socket_len = remain;
             }
         }
+
     } 
 
     terminal_disable_raw(ctx);
