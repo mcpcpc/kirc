@@ -26,9 +26,11 @@ int event_init(event_t *event, char *line)
 
     size_t channel_n = sizeof(event->channel) - 1;
     strncpy(event->channel, channel, channel_n);
-    printf("test!\n");
-    size_t command_n = sizeof(event->command) - 1;
-    strncpy(event->command, command, command_n);
+
+    if (command[0] != '\0') {
+        size_t command_n = sizeof(event->command) - 1;
+        strncpy(event->command, command, command_n);
+    }
 
     if (params[0] != '\0') {
         size_t params_n = sizeof(event->params) - 1;
