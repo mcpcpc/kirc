@@ -1,3 +1,4 @@
+#include "editor.h"
 #include "network.h"
 #include "terminal.h"
 
