@@ -63,19 +63,38 @@ static void feed_channel(event_t *event)
 
 void feed_render(event_t *event)
 {
-    if (event->type == EVENT_PRIVMSG) {
-        feed_privmsg(event);
-    } else if (event->type == EVENT_JOIN) {
-        feed_join(event);
-    } else if (event->type == EVENT_PART) {
-        feed_part(event);
-    } else if (event->type == EVENT_QUIT) {
-        feed_quit(event);
-    } else if (event->type == EVENT_NICK) {
-        feed_nick(event);
-    } else {
-        feed_channel(event);
-    } 
+    switch (event->type) {
+    case EVENT_PING:
+        break;
 
-    printf("\x1b[0m\r\n");
+    case EVENT_PRIVMSG:
+        feed_privmsg(event);
+        printf("\x1b[0m\r\n");
+        break;
+
+    case EVENT_JOIN:
+        feed_join(event);
+        printf("\x1b[0m\r\n");
+        break;
+
+    case EVENT_PART:
+        feed_part(event);
+        printf("\x1b[0m\r\n");
+        break;
+
+    case EVENT_QUIT:
+        feed_quit(event);
+        printf("\x1b[0m\r\n");
+        break;
+
+    case EVENT_NICK:
+        feed_nick(event);
+        printf("\x1b[0m\r\n");
+        break;
+
+    default:
+        feed_channel(event);
+        printf("\x1b[0m\r\n");
+        break;
+    }
 }
