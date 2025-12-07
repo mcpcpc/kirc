@@ -13,60 +13,56 @@ int event_init(event_t *event, char *line)
     char *prefix = strtok(line, " ") + 1;
     char *suffix = strtok(NULL, ":");
     char *message = strtok(NULL, "\r");
-    char *nickname = strtok(prefix, "!");
-    char *command = strtok(suffix, "#& ");
-    char *channel = strtok(NULL, " \r");
-    char *params = strtok(NULL, ":\r");
-
-    printf("%s\n", prefix);
-    printf("%s\n", suffix);
-    printf("%s\n", message);
-    printf("%s\n", nickname);
-    printf("%s\n", command);
-    printf("%s\n", channel);
-    printf("%s\n", prefix);
 
     if (message[0] != '\0') {
         size_t message_n = sizeof(event->message) - 1;
         strncpy(event->message, message, message_n);
     }
 
+    char *nickname = strtok(prefix, "!");
+
     if (nickname[0] != '\0') {
         size_t nickname_n = sizeof(event->nickname) - 1;
         strncpy(event->nickname, nickname, nickname_n);
     }
 
-    if (channel[0] != '\0') {
-        size_t channel_n = sizeof(event->channel) - 1;
-        strncpy(event->channel, channel, channel_n);
-    }
+    char *command = strtok(suffix, "#& ");
 
     if (command[0] != '\0') {
         size_t command_n = sizeof(event->command) - 1;
         strncpy(event->command, command, command_n);
     }
 
+    char *channel = strtok(NULL, " \r");
+
+    if (channel[0] != '\0') {
+        size_t channel_n = sizeof(event->channel) - 1;
+        strncpy(event->channel, channel, channel_n);
+    }
+
+    char *params = strtok(NULL, ":\r");
+
     if (params[0] != '\0') {
         size_t params_n = sizeof(event->params) - 1;
         strncpy(event->params, params, params_n);
     }
 
-    if (!strncmp(command, "001", 3)) {
+    if (!strncmp(event->command, "001", 3)) {
         event->type = EVENT_JOIN;
         return 0;
-    } else if (!strncmp(command, "QUIT", 4)) {
+    } else if (!strncmp(event->command, "QUIT", 4)) {
         event->type = EVENT_QUIT;
         return 0;
-    } else if (!strncmp(command, "PART", 4)) {
+    } else if (!strncmp(event->command, "PART", 4)) {
         event->type = EVENT_PART;
         return 0;
-    } else if (!strncmp(command, "JOIN", 4)) {
+    } else if (!strncmp(event->command, "JOIN", 4)) {
         event->type = EVENT_JOIN;
         return 0;
-    } else if (!strncmp(command, "NICK", 4)) {
+    } else if (!strncmp(event->command, "NICK", 4)) {
         event->type = EVENT_NICK;
         return 0;
-    } else if (!strncmp(command, "PRIVMSG", 7)) {
+    } else if (!strncmp(event->command, "PRIVMSG", 7)) {
         event->type = EVENT_PRIVMSG;
         return 0;
     } else {
