@@ -68,7 +68,7 @@ static void feed_privmsg(event_t *event)
 
     char nickname[16] = {0};
     strncpy(nickname, event->nickname, 15);
-    printf("%s: ", nickname);
+    printf("\033[0m%s\033[0m: ", nickname);
 
     wordwrap(event->message, cols);
     printf("\x1b[0m\r\n");
