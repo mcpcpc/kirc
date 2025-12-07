@@ -19,8 +19,8 @@ typedef struct {
     event_type_t type;
     char channel[RFC1459_CHANNEL_MAX_LEN];
     char message[RFC1459_MESSAGE_MAX_LEN];
-    char command[9];
-    char nickname[30];
+    char command[RFC1459_MESSAGE_MAX_LEN];
+    char nickname[RFC1459_MESSAGE_MAX_LEN];
     char params[RFC1459_MESSAGE_MAX_LEN];
 } event_t;
 
