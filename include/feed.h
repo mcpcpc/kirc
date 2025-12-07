@@ -3,6 +3,7 @@
 
 #include "kirc.h"
 #include "event.h"
+#include "terminal.h"
 
 void feed_render(event_t *event);
 

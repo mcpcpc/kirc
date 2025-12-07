@@ -153,7 +153,7 @@ static int kirc_run(kirc_t *ctx)
                     *eol = '\0';
 
                     event_t event;
-                    event_init(&event, msg);
+                    event_init(&event, ctx, msg);
 
                     if (event.type == EVENT_PING) {
                         network_send(ctx, "PONG\r\n");
