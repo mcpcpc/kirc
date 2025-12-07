@@ -154,6 +154,7 @@ static int kirc_run(kirc_t *ctx)
 
                     event_t event;
                     event_init(&event, msg);
+                    print("worked!\n");
 
                     if (event.type == EVENT_PING) {
                         network_send(ctx, "PONG\r\n");
