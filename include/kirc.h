@@ -13,6 +13,10 @@
 #define RFC1459_MESSAGE_MAX_LEN 512
 #endif
 
+#ifndef KIRC_CHANLIMIT
+#define KIRC_CHANLIMIT 100
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -29,11 +33,11 @@
 typedef struct {
     char hostname[HOST_NAME_MAX];
     char port[6];
-    char nickname[128];
-    char realname[128];
-    char username[128];
-    char password[128];
-    char log[PATH_MAX];
+    char nickname[RFC1459_MESSAGE_MAX_LEN];
+    char realname[RFC1459_MESSAGE_MAX_LEN];
+    char username[RFC1459_MESSAGE_MAX_LEN];
+    char password[RFC1459_MESSAGE_MAX_LEN];
+    char channel[KIRC_CHANLIMIT][RFC1459_CHANNEL_MAX_LEN];
     /* network */
     int socket_fd;
     int socket_len;

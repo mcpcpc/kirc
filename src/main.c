@@ -14,6 +14,9 @@ static int kirc_init(kirc_t *ctx)
     size_t port_n = sizeof(ctx->port) - 1;
     strncpy(ctx->port, "6667", port_n);
 
+    size_t channel_n = sizeof(ctx->channel[0]) - 1;
+    strncpy(ctx->channel[0], "#chat", channel_n);
+
     ctx->tty_fd = STDIN_FILENO;
 
     return 0;
@@ -28,7 +31,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "s:p:n:r:u:k:l:")) > 0) {
+    while ((opt = getopt(argc, argv, "s:p:n:r:u:k:c:")) > 0) {
         switch (opt) {
         case 's':  /* hostname */
             size_t hostname_n = sizeof(ctx->hostname) - 1;
@@ -60,9 +63,12 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             strncpy(ctx->password, optarg, password_n);
             break;
 
-        case 'l':  /* log file path */
-            size_t log_n = sizeof(ctx->log) - 1;
-            strncpy(ctx->log, optarg, log_n);
+        case 'c':  /* channel(s) */
+            size_t idx = 0, channel_n = sizeof(ctx->channel[0]) - 1;
+            for (chat *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
+                strncpy(ctx->channel[idx], tok, channel_n);
+                idx += 1;
+            }
             break;
 
         case ':':
