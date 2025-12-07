@@ -14,7 +14,7 @@ int event_init(event_t *event, char *line)
     char *suffix = strtok(NULL, ":");
     char *message = strtok(NULL, "\r");
 
-    if (message[0] != '\0') {
+    if (message != NULL) {
         size_t message_n = sizeof(event->message) - 1;
         strncpy(event->message, message, message_n);
         printf("message: %s\n", event->message);
@@ -22,7 +22,7 @@ int event_init(event_t *event, char *line)
 
     char *nickname = strtok(prefix, "!");
 
-    if (nickname[0] != '\0') {
+    if (nickname != NULL) {
         size_t nickname_n = sizeof(event->nickname) - 1;
         strncpy(event->nickname, nickname, nickname_n);
         printf("nickname: %s\n", event->nickname);
@@ -30,21 +30,21 @@ int event_init(event_t *event, char *line)
 
     char *command = strtok(suffix, "#& ");
 
-    if (command[0] != '\0') {
+    if (command != NULL) {
         size_t command_n = sizeof(event->command) - 1;
         strncpy(event->command, command, command_n);
     }
 
     char *channel = strtok(NULL, " \r");
 
-    if (channel[0] != '\0') {
+    if (channel != NULL) {
         size_t channel_n = sizeof(event->channel) - 1;
         strncpy(event->channel, channel, channel_n);
     }
 
     char *params = strtok(NULL, ":\r");
 
-    if (params[0] != '\0') {
+    if (params != NULL) {
         size_t params_n = sizeof(event->params) - 1;
         strncpy(event->params, params, params_n);
     }
