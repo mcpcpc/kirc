@@ -39,9 +39,9 @@ static size_t display_width(const char *s)
     return width;
 }
 
-static void wordwrap(char *message, int cols)
+static void wordwrap(char *message, int cols, int lwidth)
 {
-    size_t wordwidth, spacewidth = 1, nicklen = 16;
+    size_t wordwidth, spacewidth = 1;
     size_t spaceleft = cols - nicklen;
 
     for (char *tok = strtok(message, " "); tok != NULL;
@@ -51,8 +51,8 @@ static void wordwrap(char *message, int cols)
 
         if ((wordwidth + spacewidth) > spaceleft) {
             printf("\r\n%*.s%s ",
-                   (int)nicklen + 1, " ", tok);
-            spaceleft = cols - (nicklen + 1);
+                   (int)lwidth + 1, " ", tok);
+            spaceleft = cols - (lwidth + 1);
         } else {
             printf("%s ", tok);
         }
@@ -74,7 +74,7 @@ static void feed_privmsg(event_t *event)
     printf("\x1b[7m%-*s\x1b[0m ",
         lwidth, nickname);
 
-    wordwrap(event->message, cols);
+    wordwrap(event->message, cols, lwidth);
     printf("\r\n");
 }
 
@@ -121,7 +121,7 @@ static void feed_channel(event_t *event)
             lwidth, nickname);
     }
 
-    wordwrap(event->message, cols);
+    wordwrap(event->message, cols, lwidth);
     printf("\r\n");
 }
 
