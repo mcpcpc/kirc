@@ -66,8 +66,13 @@ static void feed_privmsg(event_t *event)
     int cols = terminal_columns(event->ctx);
     int lwidth = event->ctx->lwidth;
 
-    printf("\x1b[7m%-*s\x1b[0m ", lwidth,
-        event->nickname);
+    if (strcmp(event->channel, event->nickname) == 0) {
+        printf("\x1b[7m%-*s\x1b[0m ", lwidth,
+            event->nickname);
+    } else {
+        printf("\x1b[1m%-*s\x1b[0m ", lwidth,
+            event->nickname);
+    }
 
     wordwrap(event->message, cols, lwidth);
     printf("\r\n");
