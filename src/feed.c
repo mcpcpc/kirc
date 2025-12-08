@@ -68,9 +68,9 @@ static void feed_privmsg(event_t *event)
 
     //char nickname[16] = {0};
     char nickname[lwidth];
+    memset(nickname, 0, sizeof(*nickname));
 
-    strncpy(nickname, event->nickname,
-        lwidth - 1);
+    strncpy(nickname, event->nickname, lwidth - 1);
     printf("\x1b[7m%-*s\x1b[0m ",
         lwidth, nickname);
 
@@ -109,15 +109,14 @@ static void feed_channel(event_t *event)
 
     //char nickname[16] = {0};
     char nickname[lwidth];
+    memset(nickname, 0, sizeof(*nickname));
 
     if (event->channel[0] != '\0') {
-        strncpy(nickname, event->channel,
-            lwidth - 1);
+        strncpy(nickname, event->channel, lwidth - 1);
         printf("\x1b[1m%-*s\x1b[0m ",
             lwidth, nickname);
     } else {
-        strncpy(nickname, event->nickname,
-            lwidth - 1);
+        strncpy(nickname, event->nickname, lwidth - 1);
         printf("\x1b[1m%-*s\x1b[0m ",
             lwidth, nickname);
     }
