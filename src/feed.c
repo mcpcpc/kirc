@@ -113,12 +113,16 @@ static void feed_channel(event_t *event)
 
     if (event->channel[0] != '\0') {
         strncpy(nickname, event->channel, lwidth - 1);
+        //printf("\x1b[1m%-*s\x1b[0m ",
+        //    lwidth, nickname);
         printf("\x1b[1m%-*s\x1b[0m ",
-            lwidth, nickname);
+            lwidth, event->channel);
     } else {
         strncpy(nickname, event->nickname, lwidth - 1);
+        //printf("\x1b[1m%-*s\x1b[0m ",
+        //    lwidth, nickname);
         printf("\x1b[1m%-*s\x1b[0m ",
-            lwidth, nickname);
+            lwidth, event->nickname);
     }
 
     wordwrap(event->message, cols, lwidth);
