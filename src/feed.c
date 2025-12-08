@@ -50,8 +50,8 @@ static void wordwrap(char *message, int cols, int lwidth)
         wordwidth = display_width(tok);
 
         if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ",
-                   (int)lwidth + 1, " ", tok);
+            printf("\r\n%*.s%s ", (int)lwidth + 1,
+                " ", tok);
             spaceleft = cols - (lwidth + 1);
         } else {
             printf("%s ", tok);
