@@ -164,9 +164,10 @@ static int kirc_run(kirc_t *ctx)
         }
 
         if (fds[0].revents & POLLIN) {
-            int rc = editor_process_key(ctx);
-            if (rc < 0) {
+            if (editor_process_key(ctx) < 0) {
                 break;
+            } else {
+                editor_render(ctx);
             }
         }
 

@@ -114,3 +114,8 @@ int editor_process_key(kirc_t *ctx)
 
     return 0;
 }
+
+int editor_render(kirc_t *ctx)
+{
+    int cols = terminal_columns(event->ctx);
+}
