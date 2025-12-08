@@ -18,7 +18,7 @@
 #endif
 
 #ifndef KIRC_LEFT_WIDTH
-#define KIRC_LEFT_WIDTH 18
+#define KIRC_LEFT_WIDTH 12
 #endif
 
 #include <ctype.h>

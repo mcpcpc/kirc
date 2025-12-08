@@ -66,13 +66,8 @@ static void feed_privmsg(event_t *event)
     int cols = terminal_columns(event->ctx);
     int lwidth = event->ctx->lwidth;
 
-    //char nickname[16] = {0};
-    char nickname[lwidth];
-    memset(nickname, 0, sizeof(*nickname));
-
-    strncpy(nickname, event->nickname, lwidth - 1);
-    printf("\x1b[7m%-*s\x1b[0m ",
-        lwidth, nickname);
+    printf("\x1b[7m%-*s\x1b[0m ", lwidth,
+        event->nickname);
 
     wordwrap(event->message, cols, lwidth);
     printf("\r\n");
@@ -107,22 +102,12 @@ static void feed_channel(event_t *event)
     int cols = terminal_columns(event->ctx);
     int lwidth = event->ctx->lwidth;
 
-    //char nickname[16] = {0};
-    char nickname[lwidth];
-    memset(nickname, 0, sizeof(*nickname));
-
     if (event->channel[0] != '\0') {
-        strncpy(nickname, event->channel, lwidth - 1);
-        //printf("\x1b[1m%-*s\x1b[0m ",
-        //    lwidth, nickname);
-        printf("\x1b[1m%-*s\x1b[0m ",
-            lwidth, event->channel);
+        printf("\x1b[1m%-*s\x1b[0m ", lwidth,
+            event->channel);
     } else {
-        strncpy(nickname, event->nickname, lwidth - 1);
-        //printf("\x1b[1m%-*s\x1b[0m ",
-        //    lwidth, nickname);
-        printf("\x1b[1m%-*s\x1b[0m ",
-            lwidth, event->nickname);
+        printf("\x1b[1m%-*s\x1b[0m ", lwidth,
+            event->nickname);
     }
 
     wordwrap(event->message, cols, lwidth);
