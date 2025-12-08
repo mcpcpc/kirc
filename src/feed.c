@@ -67,7 +67,7 @@ static void feed_privmsg(event_t *event)
     int lwidth = event->ctx->lwidth;
 
     if (strcmp(event->channel, event->nickname) == 0) {
-        printf("\x1b[7m%-*s\x1b[0m ", lwidth,
+        printf("\x1b[7m%-*s\x1b[0m:", lwidth,
             event->nickname);
     } else {
         printf("\x1b[1m%-*s\x1b[0m ", lwidth,
