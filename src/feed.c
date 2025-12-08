@@ -42,7 +42,7 @@ static size_t display_width(const char *s)
 static void wordwrap(char *message, int cols, int lwidth)
 {
     size_t wordwidth, spacewidth = 1;
-    size_t spaceleft = cols - nicklen;
+    size_t spaceleft = cols - lwidth;
 
     for (char *tok = strtok(message, " "); tok != NULL;
          tok = strtok(NULL, " ")) {
