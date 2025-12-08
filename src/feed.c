@@ -104,7 +104,7 @@ static void feed_channel(event_t *event)
     int cols = terminal_columns(event->ctx);
     int lwidth = event->ctx->lwidth;
 
-    char nickname[16] = {0};
+    char nickname[lwidth] = {0};
 
     if (event->channel[0] != '\0') {
         strncpy(nickname, event->channel, 15);
