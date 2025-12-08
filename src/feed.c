@@ -64,11 +64,12 @@ static void wordwrap(char *message, int cols)
 static void feed_privmsg(event_t *event)
 {
     int cols = terminal_columns(event->ctx);
+    int lwidth = event->ctx->lwidth;
 
     char nickname[16] = {0};
     strncpy(nickname, event->nickname, 15);
     printf("\x1b[7m%-*s\x1b[0m ",
-        16, nickname);
+        lwidth, nickname);
 
     wordwrap(event->message, cols);
     printf("\r\n");
@@ -101,17 +102,18 @@ static void feed_nick(event_t *event)
 static void feed_channel(event_t *event)
 {
     int cols = terminal_columns(event->ctx);
+    int lwidth = event->ctx->lwidth;
 
     char nickname[16] = {0};
 
     if (event->channel[0] != '\0') {
         strncpy(nickname, event->channel, 15);
         printf("\x1b[1m%-*s\x1b[0m ",
-            16, nickname);
+            lwidth, nickname);
     } else {
         strncpy(nickname, event->nickname, 15);
         printf("\x1b[1m%-*s\x1b[0m ",
-            16, nickname);
+            lwidth, nickname);
     }
 
     wordwrap(event->message, cols);

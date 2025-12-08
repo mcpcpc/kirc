@@ -47,6 +47,7 @@ typedef struct {
     char socket_buffer[RFC1459_MESSAGE_MAX_LEN];
     /* terminal */
     int tty_fd;
+    int lwidth;
     int raw_mode_enabled;
     struct termios original;
 } kirc_t;

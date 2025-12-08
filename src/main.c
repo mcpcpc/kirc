@@ -15,8 +15,8 @@ static void kirc_usage(const char *argv0)
         "  -n <nick>  Server nickname\n"
         "  -c <chan>  List of channel(s) (default: #chat)\n"
         "  -r <real>  User real name\n"
-        "  -u <user>  Username\n"
-        "  -k <pass>  Password\n"
+        "  -u <user>  Account username\n"
+        "  -k <pass>  Account password\n"
         "  -h         Show this help\n",
         argv0);
 }
@@ -35,6 +35,7 @@ static int kirc_init(kirc_t *ctx)
     strncpy(ctx->channel[0], "#chat", channel_n);
 
     ctx->tty_fd = STDIN_FILENO;
+    ctx->lwidth = 16;
 
     return 0;
 }
