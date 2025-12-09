@@ -10,14 +10,14 @@ static void kirc_usage(const char *argv0)
         "Usage: %s [args]\n"
         "\n"
         "Arguments:\n"
-        "  -s <host>  Server hostname (default: irc.libera.chat)\n"
-        "  -p <port>  Server port (default: 6667)\n"
-        "  -n <nick>  Server nickname\n"
-        "  -c <chan>  List of channel(s) (default: #chat)\n"
-        "  -r <real>  User real name\n"
-        "  -u <user>  Account username\n"
-        "  -k <pass>  Account password\n"
-        "  -h         Show this help\n",
+        "  -s <hostname>  Server hostname (default: irc.libera.chat)\n"
+        "  -p <port>      Server port (default: 6667)\n"
+        "  -n <nickname>  Server nickname\n"
+        "  -c <channel>   List of channel(s) (default: #chat)\n"
+        "  -r <realname>  User real name\n"
+        "  -u <username>  Account username\n"
+        "  -k <pass>      Account password\n"
+        "  -h             Show this help\n",
         argv0);
 }
 
