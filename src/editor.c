@@ -143,4 +143,10 @@ int editor_process_key(editor_t *editor)
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
+    int scratch_max = editor->scratch_max;
+    int scratch_size = editor->scratch_size;
+    int loc = (scratch_size + 1) % scratch_max;
+    int offset = cols - 1;
+    printf(">%.*s, editor->scratch[loc], cols, offset);
+    return 0;
 }
