@@ -1,18 +1,6 @@
 #include "editor.h"
 
-int editor_init(editor_t *editor, kirc_t *ctx)
-{
-    memset(editor, 0, sizeof(*editor));
-
-    editor->ctx = ctx;
-    editor->scratch_max = KIRC_SCRATCH_MAX;
-    editor->scratch_size = 0;
-    editor->scratch_current = 0;
-
-    return 0;
-}
-
-void editor_scratch_append(editor_t *editor, const char *value)
+static void editor_scratch_append(editor_t *editor, const char *value)
 {
     int scratch_max = editor->scratch_max;
     int scratch_size = editor->scratch_size;
@@ -104,6 +92,17 @@ static void editor_escape(editor_t *editor)
     }
 }
 
+int editor_init(editor_t *editor, kirc_t *ctx)
+{
+    memset(editor, 0, sizeof(*editor));
+
+    editor->ctx = ctx;
+    editor->scratch_max = KIRC_SCRATCH_MAX;
+    editor->scratch_size = 0;
+    editor->scratch_current = 0;
+
+    return 0;
+}
 
 int editor_process_key(editor_t *editor)
 {
