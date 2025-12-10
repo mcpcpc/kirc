@@ -69,7 +69,7 @@ static void editor_escape(editor_t *editor)
 
     if (seq[0] == '[') {
         if (seq[1] >= '0' && seq[1] <= '9') {
-            if (read(ctx->tty_fd, &seq[2], 1) != 1)
+            if (read(tty_fd, &seq[2], 1) != 1)
                 return;
             if (seq[1] == '3' && seq[2] == '~') {
                 editor_delete(editor);
