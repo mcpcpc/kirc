@@ -147,6 +147,6 @@ int editor_render(editor_t *editor)
     int scratch_size = editor->scratch_size;
     int loc = (scratch_size + 1) % scratch_max;
     int offset = cols - 1;
-    printf(">%.*s", editor->scratch[loc], offset);
+    printf(">%.*s", offset, editor->scratch[loc]);
     return 0;
 }
