@@ -2,7 +2,7 @@
 
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
-    memset(event, 0, sizeof(*event));
+    memset(editor, 0, sizeof(*editor));
 
     editor->ctx = ctx;
     editor->scratch_max = KIRC_SCRATCH_MAX;
