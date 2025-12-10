@@ -21,6 +21,10 @@
 #define KIRC_LEFT_WIDTH 12
 #endif
 
+#ifndef KIRC_SCRATCH_MAX
+#define KIRC_SCRATCH_MAX 128
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>

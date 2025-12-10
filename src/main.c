@@ -113,6 +113,13 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
 static int kirc_run(kirc_t *ctx)
 {
+    editor_t editor;
+
+    if (editor_init(&editor, ctx) < 0) {
+        fprintf(stderr, "editor_init failed\n");
+        return 1;
+    } 
+
     if (network_connect(ctx) < 0) {
         fprintf(stderr, "network_connect failed\n");
         return 1;
@@ -164,10 +171,10 @@ static int kirc_run(kirc_t *ctx)
         }
 
         if (fds[0].revents & POLLIN) {
-            if (editor_process_key(ctx) < 0) {
+            if (editor_process_key(editor) < 0) {
                 break;
             } else {
-                editor_render(ctx);
+                editor_render(editor);
             }
         }
 

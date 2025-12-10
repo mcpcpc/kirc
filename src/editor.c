@@ -1,46 +1,69 @@
 #include "editor.h"
 
-static void editor_backspace(kirc_t *ctx)
+int editor_init(editor_t *editor, kirc_t *ctx)
+{
+    memset(event, 0, sizeof(*event));
+
+    editor->ctx = ctx;
+    editor->scratch_max = KIRC_SCRATCH_MAX;
+    editor->scratch_size = 0;
+    editor->scratch_current = 0;
+
+    return 0;
+}
+
+void editor_scratch_append(editor_t *editor, const char *value)
+{
+    int scratch_max = editor->scratch_max;
+    int scratch_size = editor->scratch_size;
+    int loc = (scratch_size + 1) % scratch_max;
+    int loc_n = sizeof(editor->scratch[loc]) - 1;
+
+    strncpy(editor->scratch[loc], value, loc_n);
+}
+
+static void editor_backspace(editor_t *editor)
 {
 }
 
-static void editor_enter(kirc_t *ctx)
+static void editor_enter(editor_t *editor)
 {
 }
 
-static void editor_delete(kirc_t *ctx)
+static void editor_delete(editor_t *editor)
 {
 }
 
-static void editor_history(kirc_t *ctx, int dir)
+static void editor_history(editor_t *editor, int dir)
 {
 }
 
-static void editor_move_right(kirc_t *ctx)
+static void editor_move_right(editor_t *editor)
 {
 }
 
-static void editor_move_left(kirc_t *ctx)
+static void editor_move_left(editor_t *editor)
 {
 }
 
-static void editor_move_home(kirc_t *ctx)
+static void editor_move_home(editor_t *editor)
 {
 }
 
-static void editor_move_end(kirc_t *ctx)
+static void editor_move_end(editor_t *editor)
 {
 }
 
-static void editor_escape(kirc_t *ctx)
+static void editor_escape(editor_t *editor)
 {
     char seq[3];
+    int tty_fd = editor->ctx->tty_fd;
 
-    if (read(ctx->tty_fd, &seq[0], 1) != 1) {
+    if (read(tty_fd, &seq[0], 1) != 1) {
         return;
     }
 
-    if (read(ctx->tty_fd, &seq[1], 1) != 1) {
+    if (read(tty_fd, &seq[1], 1) != 1) {
         return;
     }
 
@@ -49,32 +72,32 @@ static void editor_escape(kirc_t *ctx)
             if (read(ctx->tty_fd, &seq[2], 1) != 1)
                 return;
             if (seq[1] == '3' && seq[2] == '~') {
-                editor_delete(ctx);
+                editor_delete(editor);
             }
         } else {
             switch (seq[1]) {
             case 'A':
-                editor_history(ctx, 1);
+                editor_history(editor, 1);
                 break;
 
             case 'B':
-                editor_history(ctx, -1);
+                editor_history(editor, -1);
                 break;
 
             case 'C':
-                editor_move_right(ctx);
+                editor_move_right(editor);
                 break;
 
             case 'D':
-                editor_move_left(ctx);
+                editor_move_left(editor);
                 break;
 
             case 'H':
-                editor_move_home(ctx);
+                editor_move_home(editor);
                 break;
 
             case 'F':
-                editor_move_end(ctx);
+                editor_move_end(editor);
                 break;
             }
         }
@@ -82,11 +105,12 @@ static void editor_escape(kirc_t *ctx)
 }
 
 
-int editor_process_key(kirc_t *ctx)
+int editor_process_key(editor_t *editor)
 {
     char c;
+    int tty_fd = editor->ctx->tty_fd;
     
-    if (read(ctx->tty_fd, &c, 1) < 1) {
+    if (read(tty_fd, &c, 1) < 1) {
         return 1; 
     }
 
@@ -97,15 +121,15 @@ int editor_process_key(kirc_t *ctx)
 
     case 127:  /* ESCAPE */
     case 8:  /* DEL */ 
-        editor_backspace(ctx);
+        editor_backspace(editor);
         break;
 
     case 13:  /* ENTER */
-        editor_enter(ctx);
+        editor_enter(editor);
         break;
 
     case 27:  /* ESCAPE */
-        editor_escape(ctx);
+        editor_escape(editor);
         break;
 
     default:
@@ -115,7 +139,7 @@ int editor_process_key(kirc_t *ctx)
     return 0;
 }
 
-int editor_render(kirc_t *ctx)
+int editor_render(editor_t *editor)
 {
-    int cols = terminal_columns(ctx);
+    int cols = terminal_columns(editor->ctx);
 }
