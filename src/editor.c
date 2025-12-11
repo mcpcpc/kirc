@@ -94,6 +94,10 @@ static void editor_escape(editor_t *editor)
     }
 }
 
+static void editor_insert(editor_t *editor, char c)
+{
+}
+
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));
@@ -134,6 +138,7 @@ int editor_process_key(editor_t *editor)
         break;
 
     default:
+        editor_insert(editor, c);
         break;
     }
 
