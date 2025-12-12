@@ -156,7 +156,7 @@ int editor_render(editor_t *editor)
     printf("\r>%.*s\x1b[0K", offset, editor->scratch[loc]);
 
     if (editor->scratch_cursor > 0) {
-        printf("\r\x1b[%zuC", editor->scratch_cursor + 1);
+        printf("\r\x1b[%dC", editor->scratch_cursor + 1);
     } else {
         printf("\r");
     }
