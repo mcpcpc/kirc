@@ -10,6 +10,7 @@ typedef struct {
     int scratch_max;
     int scratch_size;
     int scratch_current;
+    int scratch_cursor;
 } editor_t;
 
 int editor_init(editor_t *editor, kirc_t *ctx);

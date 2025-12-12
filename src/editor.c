@@ -106,6 +106,7 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     editor->scratch_max = KIRC_SCRATCH_MAX;
     editor->scratch_size = 0;
     editor->scratch_current = 0;
+    editor->scratch_cursor = 0;
 
     return 0;
 }
