@@ -212,6 +212,7 @@ static int kirc_run(kirc_t *ctx)
                 memmove(ctx->socket_buffer, msg, remain);
                 ctx->socket_len = remain;
             }
+            editor_render(&editor);
         }
 
     } 
