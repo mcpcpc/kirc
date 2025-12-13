@@ -44,10 +44,16 @@ static void editor_move_right(editor_t *editor)
 
 static void editor_move_left(editor_t *editor)
 {
+    if (editor->cursor - 1 < 0) {
+        return;
+    }
+
+    editor->cursor--;
 }
 
 static void editor_move_home(editor_t *editor)
 {
+    editor->cursor = 0;
 }
 
 static void editor_move_end(editor_t *editor)
