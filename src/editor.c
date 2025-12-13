@@ -203,7 +203,6 @@ int editor_render(editor_t *editor)
     int cols = terminal_columns(editor->ctx);
     int len = strlen(editor->scratch);
 
-    //printf("\r~%.*s\x1b[0K", limit, editor->scratch);
     printf("\r%03d/%03d:%.*s \x1b[0K",
         editor->cursor, len, cols - 1, editor->scratch);
     printf("\r\x1b[%dC", editor->cursor + 8);
