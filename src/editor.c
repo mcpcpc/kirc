@@ -172,6 +172,6 @@ int editor_render(editor_t *editor)
         printf("\r\x1b[%dC", 1);
     }
 
-    fflush(stdout);
+    //fflush(stdout);
     return 0;
 }
