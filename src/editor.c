@@ -4,7 +4,7 @@ static void editor_backspace(editor_t *editor)
 {
     int len = strlen(editor->scratch);
 
-    if (editor->cursor > len || editor->cursor - 1 < 0) {
+    if (editor->cursor - 1 < 0) {
         return;  /* nothing to delete or out of range */
     }
 
@@ -17,8 +17,10 @@ static void editor_backspace(editor_t *editor)
 
 static void editor_enter(editor_t *editor)
 {
+    int siz = sizeof(editor->scratch) - 1;
+
     strncpy(editor->history[editor->head],
-        editor->scratch, RFC1459_MESSAGE_MAX_LEN - 1);
+        editor->scratch, siz);
 
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
 
@@ -40,13 +42,15 @@ static void editor_history(editor_t *editor, int dir)
 
 static void editor_move_right(editor_t *editor)
 {
-    if (editor->cursor + 1 > RFC1459_MESSAGE_MAX_LEN) {
-        return;
+    int siz = sizeof(editor->scratch) - 1;
+ 
+    if (editor->cursor >= siz) {
+        return;  /* at end of scratch */
     }
 
     int len = strlen(editor->scratch);
 
-    if (len == 0 || editor->cursor > len) {
+    if (editor->cursor > len) {
         return;
     }
 
@@ -69,9 +73,7 @@ static void editor_move_home(editor_t *editor)
 
 static void editor_move_end(editor_t *editor)
 {
-    int len = strlen(editor->scratch);
-
-    editor->cursor = len + 1;
+    editor->cursor = strlen(editor->scratch);
 }
 
 static void editor_escape(editor_t *editor)
@@ -128,14 +130,16 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
-    if (editor->cursor >= RFC1459_MESSAGE_MAX_LEN - 1) {
-        return;
+    int siz = sizeof(editor->scratch) - 1;
+
+    if (editor->cursor >= siz) {
+        return;  /* at end of scratch */
     }
 
     int len = strlen(editor->scratch);
 
-    if (len + 1 >= RFC1459_MESSAGE_MAX_LEN - 1) {
-        return;
+    if (len + 1 >= siz) {
+        return;  /* scratch full */
     }
 
     memmove(editor->scratch + editor->cursor + 1,
