@@ -22,7 +22,7 @@ static void editor_enter(editor_t *editor)
     }
 
     editor->scratch[0] = '\0';
-    editor->cursor[0];
+    editor->cursor = 0;
 }
 
 static void editor_delete(editor_t *editor)
@@ -113,7 +113,7 @@ static void editor_insert(editor_t *editor, char c)
         return;
     }
 
-    memmov(editor->scratch + editor->cursor + 1,
+    memmove(editor->scratch + editor->cursor + 1,
         editor->scratch + editor->cursor,
         len - editor->cursor + 1);
 
