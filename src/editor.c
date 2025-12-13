@@ -201,14 +201,12 @@ int editor_process_key(editor_t *editor)
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
-    //int limit = cols - 1;
-    int limit = cols - 10;
     int len = strlen(editor->scratch);
 
     //printf("\r~%.*s\x1b[0K", limit, editor->scratch);
-    printf("\r:%.*s\x1b[0K  %03d/%03d",
-        limit, editor->scratch, editor->cursor, len);
-    printf("\r\x1b[%dC", editor->cursor + 1);
+    printf("\r%03d/%03d:%.*s \x1b[0K",
+        editor->cursor, len, cols - 1, editor->scratch);
+    printf("\r\x1b[%dC", editor->cursor + 8);
 
     fflush(stdout);
 
