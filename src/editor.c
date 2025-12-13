@@ -6,11 +6,12 @@ static void editor_backspace(editor_t *editor)
         return;
     }
 
+    editor->scratch_cursor--;
+
     int scratch_max = editor->scratch_max;
     int scratch_size = editor->scratch_size;
     int loc = (scratch_size + 1) % scratch_max;
 
-    editor->scratch_cursor--;
     editor->scratch[loc][editor->scratch_cursor] = '\0';
 }
 
