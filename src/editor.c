@@ -210,7 +210,7 @@ int editor_render(editor_t *editor)
     int len = strlen(editor->scratch);
 
     printf("\r%03d/%03d:%.*s \x1b[0K",
-        editor->cursor, len, cols - 1, editor->scratch);
+        editor->cursor, len, cols - 8, editor->scratch);
     printf("\r\x1b[%dC", editor->cursor + 8);
 
     fflush(stdout);
