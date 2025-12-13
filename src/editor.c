@@ -208,7 +208,7 @@ int editor_render(editor_t *editor)
     //printf("\r~%.*s\x1b[0K", limit, editor->scratch);
     printf("\r~%.*s\x1b[0K %03d/%03d",
         limit, editor->scratch, editor->cursor, len);
-    printf("\r\x1b[%dC", editor->cursor);
+    printf("\r\x1b[%dC", editor->cursor + 1);
 
     fflush(stdout);
 
