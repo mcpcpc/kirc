@@ -41,7 +41,7 @@ static void editor_history(editor_t *editor, int dir)
     }
 
     int len = sizeof(editor->scratch[idx]) - 1;
-    int cursor = strnlen(editor->scratch, len);
+    int cursor = strnlen(editor->scratch[idx], len);
 
     editor->scratch_cursor = cursor;
 }
