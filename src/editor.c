@@ -44,13 +44,14 @@ static void editor_move_right(editor_t *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
  
-    if (editor->cursor >= siz) {
+    if (editor->cursor > siz) {
         return;  /* at end of scratch */
     }
 
     int len = strlen(editor->scratch);
 
-    if (editor->cursor >= len) { /* test */
+    //if (editor->cursor >= len) { /* test */
+    if (editor->cursor + 1 > len) {
         return;
     }
 
