@@ -1,15 +1,5 @@
 #include "editor.h"
 
-static void editor_scratch_append(editor_t *editor, const char *value)
-{
-    int scratch_max = editor->scratch_max;
-    int scratch_size = editor->scratch_size;
-    int loc = (scratch_size + 1) % scratch_max;
-    int loc_n = sizeof(editor->scratch[loc]) - 1;
-
-    strncpy(editor->scratch[loc], value, loc_n);
-}
-
 static void editor_backspace(editor_t *editor)
 {
 }
@@ -96,12 +86,23 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
+    int scratch_max = editor->scratch_max;
+    int scratch_size = editor->scratch_size;
+    int loc = (scratch_size + 1) % scratch_max;
+    int len = sizeof(editor->scratch[loc]) - 1;
+
+    if (editor->scratch_cursor >= len) {
+        return;
+    }
+
+    editor->scratch[loc][editor->scratch_cursor] = c;
+    editor->scratch_cursor++;
 }
 
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));
-
+    
     editor->ctx = ctx;
     editor->scratch_max = KIRC_SCRATCH_MAX;
     editor->scratch_size = 0;
@@ -158,7 +159,6 @@ int editor_render(editor_t *editor)
     if (editor->scratch_cursor > 0) {
         printf("\r\x1b[%dC", editor->scratch_cursor + 1);
     } else {
-        //printf("\r");
         printf("\r\x1b[%dC", 1);
     }
 
