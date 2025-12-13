@@ -40,7 +40,7 @@ static void editor_history(editor_t *editor, int dir)
 
 static void editor_move_right(editor_t *editor)
 {
-    if (editor->cursor + 1 >= RFC1459_MESSAGE_MAX_LEN) {
+    if (editor->cursor + 1 > RFC1459_MESSAGE_MAX_LEN) {
         return;
     }
 
