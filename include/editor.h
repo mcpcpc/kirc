@@ -8,8 +8,7 @@ typedef struct {
     kirc_t *ctx;
     char scratch[KIRC_SCRATCH_MAX][RFC1459_MESSAGE_MAX_LEN];
     int scratch_max;
-    int scratch_size;
-    int scratch_current;
+    int scratch_index;
     int scratch_cursor;
 } editor_t;
 

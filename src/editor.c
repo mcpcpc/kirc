@@ -8,11 +8,9 @@ static void editor_backspace(editor_t *editor)
 
     editor->scratch_cursor--;
 
-    int scratch_max = editor->scratch_max;
-    int scratch_size = editor->scratch_size;
-    int loc = (scratch_size + 1) % scratch_max;
+    int idx = editor->scratch_index;
 
-    editor->scratch[loc][editor->scratch_cursor] = '\0';
+    editor->scratch[idx][editor->scratch_cursor] = '\0';
 }
 
 static void editor_enter(editor_t *editor)
@@ -97,16 +95,14 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
-    int scratch_max = editor->scratch_max;
-    int scratch_size = editor->scratch_size;
-    int loc = (scratch_size + 1) % scratch_max;
-    int len = sizeof(editor->scratch[loc]) - 1;
+    int idx = editor->scratch_index;
+    int len = sizeof(editor->scratch[idx]) - 1;
 
     if (editor->scratch_cursor >= len) {
         return;
     }
 
-    editor->scratch[loc][editor->scratch_cursor] = c;
+    editor->scratch[idx][editor->scratch_cursor] = c;
     editor->scratch_cursor++;
 }
 
@@ -116,8 +112,7 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     
     editor->ctx = ctx;
     editor->scratch_max = KIRC_SCRATCH_MAX;
-    editor->scratch_size = 0;
-    editor->scratch_current = 0;
+    editor->scratch_index = 0;
     editor->scratch_cursor = 0;
 
     return 0;
@@ -161,12 +156,10 @@ int editor_process_key(editor_t *editor)
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
-    int scratch_max = editor->scratch_max;
-    int scratch_size = editor->scratch_size;
-    int loc = (scratch_size + 1) % scratch_max;
+    int idx = editor->scratch_index;
     int offset = cols - 1;
 
-    printf("\r:%.*s\x1b[0K", offset, editor->scratch[loc]);
+    printf("\r:%.*s\x1b[0K", offset, editor->scratch[idx]);
     fflush(stdout);
 
     return 0;
