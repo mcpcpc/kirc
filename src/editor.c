@@ -132,7 +132,7 @@ static void editor_insert(editor_t *editor, char c)
 {
     int siz = sizeof(editor->scratch) - 1;
 
-    if (editor->cursor >= siz) {
+    if (editor->cursor > siz) { /* test2 */
         return;  /* at end of scratch */
     }
 
