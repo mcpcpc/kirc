@@ -2,6 +2,16 @@
 
 static void editor_backspace(editor_t *editor)
 {
+    if ((editor->scratch_cursor - 1) < 0) {
+        return;
+    }
+
+    int scratch_max = editor->scratch_max;
+    int scratch_size = editor->scratch_size;
+    int loc = (scratch_size + 1) % scratch_max;
+
+    editor->scratch_cursor--;
+    editor->scratch[loc][editor->scratch_cursor] = '\0';
 }
 
 static void editor_enter(editor_t *editor)
