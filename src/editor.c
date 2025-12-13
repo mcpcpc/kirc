@@ -24,26 +24,6 @@ static void editor_delete(editor_t *editor)
 
 static void editor_history(editor_t *editor, int dir)
 {
-    int idx = editor->scratch_index;
-
-    if (dir > 0) {
-        if (idx + 1 > editor->scratch_max - 1) {
-            editor->scratch_index = 0;
-        } else {
-            editor->scratch_index = idx + 1;
-        }
-    } else {
-        if (idx - 1 < 0) {
-            editor->scratch_index = editor->scratch_max - 1;
-        } else {
-            editor->scratch_index = idx - 1;
-        }
-    }
-
-    int len = sizeof(editor->scratch[idx]) - 1;
-    int cursor = strnlen(editor->scratch[idx], len);
-
-    editor->scratch_cursor = cursor;
 }
 
 static void editor_move_right(editor_t *editor)
