@@ -132,7 +132,7 @@ static void editor_insert(editor_t *editor, char c)
 {
     int siz = sizeof(editor->scratch) - 1;
 
-    if (editor->cursor > siz) { /* test2 */
+    if (editor->cursor >= siz) { /* test2 */
         return;  /* at end of scratch */
     }
 
@@ -201,12 +201,12 @@ int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
     //int limit = cols - 1;
-    int limit = cols - 4;
+    int limit = cols - 9;
     int len = strlen(editor->scratch);
 
     //printf("\r~%.*s\x1b[0K", limit, editor->scratch);
-    printf("\r~%.*s\x1b[0K%03d",
-        limit, editor->scratch, len);
+    printf("\r~%.*s\x1b[0K %03d/%03d",
+        limit, editor->scratch, editor->cursor, len);
     printf("\r\x1b[%dC", editor->cursor);
 
     fflush(stdout);
