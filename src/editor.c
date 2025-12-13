@@ -46,7 +46,7 @@ static void editor_move_right(editor_t *editor)
 
     int len = strlen(editor->scratch);
 
-    if (editor->cursor > len) {
+    if (len == 0 || editor->cursor > len) {
         return;
     }
 
