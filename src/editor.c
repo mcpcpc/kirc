@@ -158,7 +158,8 @@ int editor_render(editor_t *editor)
     if (editor->scratch_cursor > 0) {
         printf("\r\x1b[%dC", editor->scratch_cursor + 1);
     } else {
-        printf("\r");
+        //printf("\r");
+        printf("\r\x1b[%dC", 1);
     }
 
     fflush(stdout);
