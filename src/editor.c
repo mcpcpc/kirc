@@ -26,7 +26,7 @@ static void editor_history(editor_t *editor, int dir)
 {
     int idx = editor->scratch_index;
 
-    if (dur > 0) {
+    if (dir > 0) {
         if (idx + 1 > editor->scratch_max - 1) {
             editor->scratch_index = 0;
         } else {
@@ -41,7 +41,7 @@ static void editor_history(editor_t *editor, int dir)
     }
 
     int len = sizeof(editor->scratch[idx]) - 1;
-    int cursor = strnlen(editor->scratch);
+    int cursor = strnlen(editor->scratch, len);
 
     editor->scratch_cursor = cursor;
 }
