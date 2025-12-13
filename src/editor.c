@@ -202,7 +202,9 @@ int editor_render(editor_t *editor)
     int cols = terminal_columns(editor->ctx);
     int limit = cols - 1;
 
-    printf("\r~%.*s\x1b[0K", limit, editor->scratch);
+    printf("\r\x1b[7m~%.*s\x1b[0K\x1b[0m",
+        limit, editor->scratch);
+    //printf("\r~%.*s\x1b[0K", limit, editor->scratch);
     printf("\r\x1b[%dC", editor->cursor);
 
     fflush(stdout);
