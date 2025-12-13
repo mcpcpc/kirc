@@ -12,6 +12,17 @@ static void editor_backspace(editor_t *editor)
 
 static void editor_enter(editor_t *editor)
 {
+    strncpy(editory->history[editor->head],
+        editor->scratch, RFC1459_MESSAGE_MAX_LEN - 1);
+
+    editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
+
+    if (editor->head < KIRC_HISTORY_SIZE) {
+        editor->head++;
+    }
+
+    editor->scratch[0] = '\0';
+    editor->cursor[0];
 }
 
 static void editor_delete(editor_t *editor)
@@ -92,11 +103,19 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
-    int len = sizeof(editor->scratch) - 1;
-
-    if (editor->cursor >= len) {
+    if (editor->cursor >= RFC1459_MESSAGE_MAX_LEN - 1) {
         return;
     }
+
+    int len = strlen(editor->scratch);
+
+    if (len + 1 >= RFC1459_MESSAGE_MAX_LEN - 1) {
+        return;
+    }
+
+    memmov(editor->scratch + editor->cursor + 1,
+        editor->scratch + editor->cursor,
+        len - editor->cursor + 1);
 
     editor->scratch[editor->cursor] = c;
     editor->cursor++;

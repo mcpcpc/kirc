@@ -21,8 +21,8 @@
 #define KIRC_LEFT_WIDTH 12
 #endif
 
-#ifndef KIRC_HISTORY_MAX
-#define KIRC_HISTORY_MAX 128
+#ifndef KIRC_HISTORY_SIZE
+#define KIRC_HISTORY_SIZE 128
 #endif
 
 #include <ctype.h>
