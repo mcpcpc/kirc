@@ -6,10 +6,10 @@
 
 typedef struct {
     kirc_t *ctx;
-    char scratch[KIRC_SCRATCH_MAX][RFC1459_MESSAGE_MAX_LEN];
-    int scratch_max;
-    int scratch_index;
-    int scratch_cursor;
+    char history[KIRC_HISTORY_MAX][RFC1459_MESSAGE_MAX_LEN];
+    int head;
+    int count;
+    int cursor;
 } editor_t;
 
 int editor_init(editor_t *editor, kirc_t *ctx);
