@@ -161,7 +161,6 @@ int editor_render(editor_t *editor)
     int offset = cols - 1;
 
     printf("\r:%.*s\x1b[0K", offset, editor->scratch[idx]);
-    printf("\r\x1b[%dC", editor->scratch_cursor + 1);
 
     fflush(stdout);
 
