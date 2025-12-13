@@ -9,8 +9,9 @@ static void editor_backspace(editor_t *editor)
     editor->scratch_cursor--;
 
     int idx = editor->scratch_index;
+    int cur = editor->scratch_cursor;
 
-    editor->scratch[idx][editor->scratch_cursor] = '\0';
+    editor->scratch[idx][cur] = '\0';
 }
 
 static void editor_enter(editor_t *editor)
@@ -23,6 +24,26 @@ static void editor_delete(editor_t *editor)
 
 static void editor_history(editor_t *editor, int dir)
 {
+    int idx = editor->scratch_index;
+
+    if (dur > 0) {
+        if (idx + 1 > editor->scratch_max - 1) {
+            editor->scratch_index = 0;
+        } else {
+            editor->scratch_index = idx + 1;
+        }
+    } else {
+        if (idx - 1 < 0) {
+            editor->scratch_index = editor->scratch_max - 1;
+        } else {
+            editor->scratch_index = idx - 1;
+        }
+    }
+
+    int len = sizeof(editor->scratch[idx]) - 1;
+    int cursor = strnlen(editor->scratch);
+
+    editor->scratch_cursor = cursor;
 }
 
 static void editor_move_right(editor_t *editor)
