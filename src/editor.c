@@ -151,6 +151,11 @@ static void editor_insert(editor_t *editor, char c)
     editor->cursor++;
 }
 
+static void editor_clear(editor_t *editor)
+{
+    printf("\r\x1b[0K");
+}
+
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));
@@ -175,6 +180,7 @@ int editor_process_key(editor_t *editor)
     switch(c) {
     case 3:  /* CTRL-C */
         errno = EAGAIN;
+        editor_clear(editor);
         return -1;
 
     case 127:  /* BACKSPACE */
