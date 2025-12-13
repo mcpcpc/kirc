@@ -165,16 +165,9 @@ int editor_render(editor_t *editor)
     int scratch_size = editor->scratch_size;
     int loc = (scratch_size + 1) % scratch_max;
     int offset = cols - 1;
+
     printf("\r:%.*s\x1b[0K", offset, editor->scratch[loc]);
-
-    /*
-    if (editor->scratch_cursor > 0) {
-        printf("\r\x1b[%dC", editor->scratch_cursor + 1);
-    } else {
-        printf("\r\x1b[%dC", 1);
-    }
-    */
-
     fflush(stdout);
+
     return 0;
 }
