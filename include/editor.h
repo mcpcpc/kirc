@@ -6,6 +6,7 @@
 
 typedef struct {
     kirc_t *ctx;
+    char scratch[RFC1459_MESSAGE_MAX_LEN];
     char history[KIRC_HISTORY_MAX][RFC1459_MESSAGE_MAX_LEN];
     int head;
     int count;

@@ -7,11 +7,7 @@ static void editor_backspace(editor_t *editor)
     }
 
     editor->cursor--;
-
-    int idx = editor->head;
-    int cur = editor->cursor;
-
-    editor->history[idx][cur] = '\0';
+    editor->scratch[editor->cursor] = '\0';
 }
 
 static void editor_enter(editor_t *editor)
@@ -96,14 +92,13 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
-    int idx = editor->head;
-    int len = sizeof(editor->history[idx]) - 1;
+    int len = sizeof(editor->scratch) - 1;
 
     if (editor->cursor >= len) {
         return;
     }
 
-    editor->history[idx][editor->cursor] = c;
+    editor->scratch[editor->cursor] = c;
     editor->cursor++;
 }
 
@@ -157,10 +152,9 @@ int editor_process_key(editor_t *editor)
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
-    int head = editor->head;
-    int offset = cols - 1;
+    int limit = cols - 1;
 
-    printf("\r:%.*s\x1b[0K", offset, editor->history[head]);
+    printf("\r:%.*s\x1b[0K", limit, editor->scratch);
     printf("\r\x1b[%dC", editor->cursor);
 
     fflush(stdout);
