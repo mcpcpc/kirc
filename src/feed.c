@@ -66,6 +66,8 @@ static void feed_privmsg(event_t *event)
     int cols = terminal_columns(event->ctx);
     int lwidth = event->ctx->lwidth;
 
+    printf("\r\x1b[0K");
+
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
         printf("\x1b[7m%-*s\x1b[0m ", lwidth,
             event->nickname);
@@ -75,30 +77,31 @@ static void feed_privmsg(event_t *event)
     }
 
     wordwrap(event->message, cols, lwidth);
+
     printf("\r\n");
 }
 
 static void feed_join(event_t *event)
 {
-    printf("\x1b[2m--> %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m--> %s\x1b[0m\r\n",
         event->nickname);
 }
 
 static void feed_part(event_t *event)
 {
-    printf("\x1b[2m<-- %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m<-- %s\x1b[0m\r\n",
         event->nickname);
 }
 
 static void feed_quit(event_t *event)
 {
-    printf("\x1b[2m<<< %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m<<< %s\x1b[0m\r\n",
         event->nickname);
 }
 
 static void feed_nick(event_t *event)
 {
-    printf("\x1b[2m%s --> %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m%s --> %s\x1b[0m\r\n",
         event->nickname, event->message);
 }
 
@@ -106,6 +109,8 @@ static void feed_channel(event_t *event)
 {
     int cols = terminal_columns(event->ctx);
     int lwidth = event->ctx->lwidth;
+
+    printf("\r\x1b[0K");
 
     if (event->channel[0] != '\0') {
         printf("\x1b[1m%-*s\x1b[0m ", lwidth,
@@ -116,6 +121,7 @@ static void feed_channel(event_t *event)
     }
 
     wordwrap(event->message, cols, lwidth);
+
     printf("\r\n");
 }
 
