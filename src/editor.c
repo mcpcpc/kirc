@@ -50,7 +50,7 @@ static void editor_move_right(editor_t *editor)
 
     int len = strlen(editor->scratch);
 
-    if (editor->cursor > len) {
+    if (editor->cursor >= len) { /* test */
         return;
     }
 
@@ -155,9 +155,9 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     memset(editor, 0, sizeof(*editor));
     
     editor->ctx = ctx;
-    editor->head = 0;
     editor->count = 0;
     editor->cursor = 0;
+    editor->head = 0;
 
     return 0;
 }
