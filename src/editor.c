@@ -208,9 +208,14 @@ int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
     int len = strlen(editor->scratch);
+    int pos = editor->cursor % (cols - 8);
+    int start = editor->cursor - (cols - 8) < 0 ?
+        0 : editor->cursor - (cols - 8) < 0;
+ 
+    printf("\r\x1b[7m%03d/%03d\x1b0m:%.*s \x1b[0K",
+        editor->cursor, len,
+        cols - 8, editor->scratch + start);
 
-    printf("\r%03d/%03d:%.*s \x1b[0K",
-        editor->cursor, len, cols - 8, editor->scratch);
     printf("\r\x1b[%dC", editor->cursor + 8);
 
     fflush(stdout);
