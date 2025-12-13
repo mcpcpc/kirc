@@ -2,12 +2,17 @@
 
 static void editor_backspace(editor_t *editor)
 {
-    if ((editor->cursor - 1) < 0) {
-        return;
+    if (editor->cursor > len || editor->cursor - 1 < 0) {
+        return;  /* nothing to delete or out of range */
     }
 
+    int len = strlen(editor->scratch);
+
     editor->cursor--;
-    editor->scratch[editor->cursor] = '\0';
+
+    memmove(editor->scratch + editor->cursor,
+        editor->scratch + editor->cursor + 1,
+        len - editor->cursor);
 }
 
 static void editor_enter(editor_t *editor)
@@ -147,7 +152,7 @@ int editor_process_key(editor_t *editor)
         errno = EAGAIN;
         return -1;
 
-    case 127:  /* ESCAPE */
+    case 127:  /* BACKSPACE */
     case 8:  /* DEL */ 
         editor_backspace(editor);
         break;
