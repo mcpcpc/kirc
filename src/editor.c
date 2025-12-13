@@ -12,7 +12,7 @@ static void editor_backspace(editor_t *editor)
 
 static void editor_enter(editor_t *editor)
 {
-    strncpy(editory->history[editor->head],
+    strncpy(editor->history[editor->head],
         editor->scratch, RFC1459_MESSAGE_MAX_LEN - 1);
 
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
