@@ -2,11 +2,11 @@
 
 static void editor_backspace(editor_t *editor)
 {
+    int len = strlen(editor->scratch);
+
     if (editor->cursor > len || editor->cursor - 1 < 0) {
         return;  /* nothing to delete or out of range */
     }
-
-    int len = strlen(editor->scratch);
 
     editor->cursor--;
 
