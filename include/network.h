@@ -3,8 +3,16 @@
 
 #include "kirc.h"
 
-void network_send(kirc_t *ctx, const char *fmt, ...);
-int network_receive(kirc_t *ctx);
-int network_connect(kirc_t *ctx);
+typedef struct {
+    kirc_t *ctx;
+    char buffer[RFC1459_MESSAGE_MAX_LEN];
+    int len;
+    int fd;
+} network_t;
+
+void network_send(network_t *network, const char *fmt, ...);
+int network_receive(network_t *network);
+int network_connect(network_t *network);
+int network_init(network_t *network, kirc_c *ctx);
 
 #endif  // __KIRC_NETWORK_H

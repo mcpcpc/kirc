@@ -49,10 +49,6 @@ typedef struct {
     char username[RFC1459_MESSAGE_MAX_LEN];
     char password[RFC1459_MESSAGE_MAX_LEN];
     char channel[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
-    /* network */
-    int socket_fd;
-    int socket_len;
-    char socket_buffer[RFC1459_MESSAGE_MAX_LEN];
     /* terminal */
     int tty_fd;
     int lwidth;

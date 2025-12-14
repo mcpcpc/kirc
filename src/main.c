@@ -117,20 +117,27 @@ static int kirc_run(kirc_t *ctx)
 
     if (editor_init(&editor, ctx) < 0) {
         fprintf(stderr, "editor_init failed\n");
-        return 1;
-    } 
+        return -1;
+    }
 
-    if (network_connect(ctx) < 0) {
+    network_t network;
+
+    if (network_init(&network, ctx) < 0) {
+        fprintf(stderr, "network_init failed\n");
+        return -1;
+    }
+
+    if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
-        return 1;
+        return -1;
     }
 
     if (ctx->nickname[0] == '\0') {
         fprintf(stderr, "nickname not specified\n");
-        return 1;
+        return -1;
     }
 
-    network_send(ctx, "NICK %s\r\n", ctx->nickname);
+    network_send(&network, "NICK %s\r\n", ctx->nickname);
     
     char *username, *realname;
     
@@ -146,11 +153,12 @@ static int kirc_run(kirc_t *ctx)
         realname = ctx->nickname;
     }
 
-    network_send(ctx, "USER %s - - :%s\r\n",
+    network_send(&network, "USER %s - - :%s\r\n",
         username, realname);
 
     if (ctx->password[0] != '\0') {
-        network_send(ctx, "PASS %s\r\n", ctx->password);
+        network_send(&network, "PASS %s\r\n",
+            ctx->password);
     }
 
     if (terminal_enable_raw(ctx) < 0) {
@@ -178,7 +186,7 @@ static int kirc_run(kirc_t *ctx)
         }
 
         if (fds[1].revents & POLLIN) {
-            if (network_receive(ctx) > 0) {
+            if (network_receive(&network) > 0) {
                 char *msg = ctx->socket_buffer;
 
                 for (;;) {
@@ -191,12 +199,12 @@ static int kirc_run(kirc_t *ctx)
                     event_init(&event, ctx, msg);
 
                     if (event.type == EVENT_PING) {
-                        network_send(ctx, "PONG\r\n");
+                        network_send(&network, "PONG\r\n");
                     }
 
                     if (event.type == EVENT_JOIN) {
                         for (int i = 0; ctx->channel[i][0] != '\0'; ++i) {
-                            network_send(ctx, "JOIN %s\r\n",
+                            network_send(&network, "JOIN %s\r\n",
                                 ctx->channel[i]);
                         }
                     }

@@ -1,6 +1,6 @@
 #include "network.h"
 
-void network_send(kirc_t *ctx, const char *fmt, ...)
+void network_send(network_t *network, const char *fmt, ...)
 {
     char buf[RFC1459_MESSAGE_MAX_LEN];
     va_list ap;
@@ -11,16 +11,16 @@ void network_send(kirc_t *ctx, const char *fmt, ...)
 
     size_t len = strnlen(buf, sizeof(buf));
 
-    if (write(ctx->socket_fd, buf, len) < 0) {
+    if (write(network->fd, buf, len) < 0) {
         perror("write");
     }
 }
 
-int network_receive(kirc_t *ctx) {
-    size_t socket_buffer_n = sizeof(ctx->socket_buffer) - 1;
-    ssize_t nread = read(ctx->socket_fd,
-        ctx->socket_buffer + ctx->socket_len,
-        socket_buffer_n - ctx->socket_len);
+int network_receive(network_t *network) {
+    size_t buffer_n = sizeof(network->buffer) - 1;
+    ssize_t nread = read(network->fd,
+        network->buffer + network->len,
+        buffer_n - network->len);
 
     if (nread < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -35,13 +35,13 @@ int network_receive(kirc_t *ctx) {
         return -1;
     }
 
-    ctx->socket_len += (int)nread;
-    ctx->socket_buffer[ctx->socket_len] = '\0';
+    network->len += (int)nread;
+    network->buffer[network->len] = '\0';
 
     return nread;
 }
 
-int network_connect(kirc_t *ctx)
+int network_connect(network_t *network)
 {
     struct addrinfo hints;
     struct addrinfo *res = NULL;
@@ -51,8 +51,8 @@ int network_connect(kirc_t *ctx)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    int status = getaddrinfo(ctx->hostname, ctx->port,
-        &hints, &res);
+    int status = getaddrinfo(network->ctx->hostname,
+        network->ctx->port, &hints, &res);
 
     if (status != 0) {
         fprintf(stderr, "getaddrinfo: %s\n",
@@ -60,20 +60,20 @@ int network_connect(kirc_t *ctx)
         return -1;
     }
 
-    ctx->socket_fd = -1;
+    network->fd = -1;
 
     for (p = res; p != NULL; p = p->ai_next) {
         ctx->socket_fd = socket(p->ai_family,
             p->ai_socktype, p->ai_protocol);
 
-        if (ctx->socket_fd == -1) {
+        if (network->fd == -1) {
             continue;
         }
 
-        if (connect(ctx->socket_fd, p->ai_addr,
+        if (connect(network->fd, p->ai_addr,
             p->ai_addrlen) == -1) {
-            ctx->socket_fd = -1;
-            close(ctx->socket_fd);
+            network->fd = -1;
+            close(network->fd);
             continue;
         }
 
@@ -82,17 +82,29 @@ int network_connect(kirc_t *ctx)
 
     freeaddrinfo(res);
 
-    if (ctx->socket_fd == -1) {
+    if (network->fd == -1) {
         fprintf(stderr, "failed to connect\n");
         return -1;
     }
 
     /* Set non-blocking */
-    int flags = fcntl(ctx->socket_fd, F_GETFL, 0);
+    int flags = fcntl(network->fd, F_GETFL, 0);
 
     if (flags != -1) {
-        fcntl(ctx->socket_fd, F_SETFL, flags | O_NONBLOCK);
+        fcntl(network->fd, F_SETFL, flags | O_NONBLOCK);
     }
+
+    return 0;
+}
+
+int network_init(network_t *network, kirc_c *ctx)
+{
+    memset(network, 0, sizeof(*network));   
+
+    network->ctx = ctx;
+
+    network->fd = -1;
+    network->len = 0;
 
     return 0;
 }
