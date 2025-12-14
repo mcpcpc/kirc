@@ -63,7 +63,7 @@ int network_connect(network_t *network)
     network->fd = -1;
 
     for (p = res; p != NULL; p = p->ai_next) {
-        ctx->socket_fd = socket(p->ai_family,
+        network->fd = socket(p->ai_family,
             p->ai_socktype, p->ai_protocol);
 
         if (network->fd == -1) {
