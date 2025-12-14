@@ -219,13 +219,13 @@ int editor_render(editor_t *editor)
 
     printf("\r\x1b[%dC", editor->cursor + 8);
     */
-    int start = editor->cursor - (cols - 1) < 0 ?
-        0 : editor->cursor - (cols - 1);
+    int start = editor->cursor - (cols - 2) < 0 ?
+        0 : editor->cursor - (cols - 2);
 
-    printf("\r%.*s \x1b[0K", cols - 1,
+    printf("\r:%.*s \x1b[0K", cols - 2,
         editor->scratch + start);
 
-    printf("\r\x1b[%dC", editor->cursor);
+    printf("\r\x1b[%dC", editor->cursor + 2);
 
     fflush(stdout);
 
