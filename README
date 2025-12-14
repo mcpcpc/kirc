@@ -19,8 +19,13 @@ Only a nickname needs to be specified to connect. Consult
 the manpage for a full list and explanation of available
 arguments and default values.
 
-    kirc [-s hostname] [-p port] [-c channel] [-r realname]
+    kirc [-s hostname] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-h] <nickname>
+
+Bugs and Issues
+---------------
+
+Please submit via Github.
 
 References
 ----------

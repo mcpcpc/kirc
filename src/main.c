@@ -12,10 +12,10 @@ static void kirc_usage(const char *argv0)
         "Optional hArguments:\n"
         "  -s <hostname>  Server hostname (default: irc.libera.chat)\n"
         "  -p <port>      Server port (default: 6667)\n"
-        "  -c <channel>   List of channel(s) (default: #chat)\n"
+        "  -c <channels>  List of channel(s) (default: #chat)\n"
         "  -r <realname>  User real name\n"
         "  -u <username>  Account username\n"
-        "  -k <pass>      Account password\n"
+        "  -k <password>  Account password\n"
         "  -h             Show this help\n",
         argv0);
 }
@@ -30,11 +30,50 @@ static int kirc_init(kirc_t *ctx)
     size_t port_n = sizeof(ctx->port) - 1;
     strncpy(ctx->port, "6667", port_n);
 
-    size_t channel_n = sizeof(ctx->channel[0]) - 1;
-    strncpy(ctx->channel[0], "#chat", channel_n);
+    size_t channels_n = sizeof(ctx->channels[0]) - 1;
+    strncpy(ctx->channels[0], "#chat", channels_n);
 
     ctx->tty_fd = STDIN_FILENO;
     ctx->lwidth = KIRC_LEFT_WIDTH;
+
+    const char *env;
+
+    env = getenv("KIRC_HOSTNAME");
+    if (env && *env) {
+        strncpy(ctx->hostname, env, hostname_n);
+    }
+
+    env = getenv("KIRC_PORT");
+    if (env && *env) {
+        strncpy(ctx->port, env, port_n);
+    }
+
+    env = getenv("KIRC_CHANNELS");
+    if (env && *env) {
+        size_t idx = 0;
+        for (char *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
+            strncpy(ctx->channels[idx], tok, channels_n);
+            idx++;
+        }
+    }
+
+    env = getenv("KIRC_REALNAME");
+    if (env && *env) {
+        size_t realname_n = sizeof(ctx->realname) - 1;
+        strncpy(ctx->realname, env, realname_n);
+    }
+
+    env = getenv("KIRC_USERNAME");
+    if (env && *env) {
+        size_t username_n = sizeof(ctx->username) - 1;
+        strncpy(ctx->username, env, username_n);
+    }
+
+    env = getenv("KIRC_PASSWORD");
+    if (env && *env) {
+        size_t password_n = sizeof(ctx->password) - 1;
+        strncpy(ctx->password, env, password_n);
+    }
 
     return 0;
 }
@@ -80,7 +119,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             break;
 
         case 'c':  /* channel(s) */
-            size_t idx = 0, channel_n = sizeof(ctx->channel[0]) - 1;
+            size_t idx = 0, channels_n = sizeof(ctx->channels[0]) - 1;
             for (char *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
                 strncpy(ctx->channel[idx], tok, channel_n);
                 idx += 1;
@@ -205,9 +244,9 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     }
 
                     if (event.type == EVENT_JOIN) {
-                        for (int i = 0; ctx->channel[i][0] != '\0'; ++i) {
+                        for (int i = 0; ctx->channels[i][0] != '\0'; ++i) {
                             network_send(&network, "JOIN %s\r\n",
-                                ctx->channel[i]);
+                                ctx->channels[i]);
                         }
                     }
 
