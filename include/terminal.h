@@ -9,7 +9,7 @@ typedef struct {
     struct termios original;
 } terminal_t;
 
-int terminal_columns(kirc_t *ctx);
+int terminal_columns(int tty_fd);
 
 int terminal_init(terminal_t *terminal, kirc_t *ctx);
 int terminal_enable_raw(terminal_t *terminal);

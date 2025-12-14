@@ -63,7 +63,7 @@ static void wordwrap(char *message, int cols, int lwidth)
 
 static void feed_privmsg(event_t *event)
 {
-    int cols = terminal_columns(event->ctx);
+    int cols = terminal_columns(event->ctx->tty_fd);
     int lwidth = event->ctx->lwidth;
 
     printf("\r\x1b[0K");
@@ -107,7 +107,7 @@ static void feed_nick(event_t *event)
 
 static void feed_channel(event_t *event)
 {
-    int cols = terminal_columns(event->ctx);
+    int cols = terminal_columns(event->ctx->tty_fd);
     int lwidth = event->ctx->lwidth;
 
     printf("\r\x1b[0K");

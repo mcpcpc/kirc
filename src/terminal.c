@@ -34,16 +34,16 @@ static int terminal_get_cursor_column(int in_fd, int out_fd)
     return col;
 }
 
-int terminal_columns(kirc_t *ctx)
+int terminal_columns(int tty_fd)
 {
     struct winsize ws;
 
-    if (ioctl(ctx->tty_fd, TIOCGWINSZ, &ws) != -1 && ws.ws_col > 0) {
+    if (ioctl(tty_fd, TIOCGWINSZ, &ws) != -1 && ws.ws_col > 0) {
         return ws.ws_col;
     }
 
     /* Fallback: manual probing */
-    int start = terminal_get_cursor_column(ctx->tty_fd,
+    int start = terminal_get_cursor_column(tty_fd,
         STDOUT_FILENO);
 
     if (start == -1) {
@@ -55,7 +55,7 @@ int terminal_columns(kirc_t *ctx)
         return 80;
     }
 
-    int end = terminal_get_cursor_column(ctx->tty_fd,
+    int end = terminal_get_cursor_column(tty_fd,
         STDOUT_FILENO);
 
     if (end == -1) {
@@ -120,9 +120,9 @@ void terminal_disable_raw(terminal_t *terminal)
 
 int terminal_init(terminal_t *terminal, kirc_t *ctx)
 {
-    memset(network, 0, sizeof(*network));   
+    memset(terminal, 0, sizeof(*terminal));   
 
-    network->ctx = ctx;
+    terminal->ctx = ctx;
 
     return 0;
 }

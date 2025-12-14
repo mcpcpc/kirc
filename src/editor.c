@@ -205,7 +205,7 @@ int editor_process_key(editor_t *editor)
 
 int editor_render(editor_t *editor)
 {
-    int cols = terminal_columns(editor->ctx);
+    int cols = terminal_columns(editor->ctx->tty_fd);
     int start = editor->cursor - (cols - 2) < 0 ?
         0 : editor->cursor - (cols - 2);
 
