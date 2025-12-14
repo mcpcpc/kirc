@@ -1,6 +1,6 @@
 #include "feed.h"
 
-static void get_time(char *hhmmss)
+static void get_time(char *hhmmss[9])
 {
     time_t current;
     time(&current);
