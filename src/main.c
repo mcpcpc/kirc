@@ -47,9 +47,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     }
 
     int opt;
-/*
-    while ((opt = getopt(argc, argv, "s:p:n:r:u:k:c:h")) > 0) {
-*/
+
     while ((opt = getopt(argc, argv, "s:p:r:u:k:c:h")) > 0) {
         switch (opt) {
         case 'h':  /* help */
@@ -65,12 +63,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             size_t port_n = sizeof(ctx->port) - 1;
             strncpy(ctx->port, optarg, port_n);
             break;
-/*
-        case 'n':
-            size_t nickname_n = sizeof(ctx->nickname) - 1;
-            strncpy(ctx->nickname, optarg, nickname_n);
-            break;
-*/
+
         case 'r':  /* realname */
             size_t realname_n = sizeof(ctx->realname) - 1;
             strncpy(ctx->realname, optarg, realname_n);
@@ -110,7 +103,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     }
 
     if (optind >= argc) {
-        fprintf(stderr, "nickname required\n");
+        fprintf(stderr, "nickname not specified\n");
         return -1;
     }
 
