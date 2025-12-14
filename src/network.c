@@ -97,7 +97,7 @@ int network_connect(network_t *network)
     return 0;
 }
 
-int network_init(network_t *network, kirc_c *ctx)
+int network_init(network_t *network, kirc_t *ctx)
 {
     memset(network, 0, sizeof(*network));   
 

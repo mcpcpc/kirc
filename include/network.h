@@ -13,6 +13,6 @@ typedef struct {
 void network_send(network_t *network, const char *fmt, ...);
 int network_receive(network_t *network);
 int network_connect(network_t *network);
-int network_init(network_t *network, kirc_c *ctx);
+int network_init(network_t *network, kirc_t *ctx);
 
 #endif  // __KIRC_NETWORK_H
