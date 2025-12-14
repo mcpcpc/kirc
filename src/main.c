@@ -202,7 +202,14 @@ static kirc_error_t kirc_run(kirc_t *ctx)
             ctx->password);
     }
 
-    if (terminal_enable_raw(ctx) < 0) {
+    terminal_t terminal;
+
+    if (terminal_init(&terminal, ctx) < 0) {
+        fprintf(stderr, "terminal_init failed\n");
+        return KIRC_ERR_INTERNAL;
+    }
+
+    if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
         return KIRC_ERR_IO;
     }
@@ -265,7 +272,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
     } 
 
-    terminal_disable_raw(ctx);
+    terminal_disable_raw(&terminal);
 
     return KIRC_OK;
 }

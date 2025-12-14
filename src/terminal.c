@@ -73,21 +73,22 @@ int terminal_columns(kirc_t *ctx)
     return (end > 0) ? end : 80;
 }
 
-int terminal_enable_raw(kirc_t *ctx)
+int terminal_enable_raw(terminal_t *terminal)
 {
-    if (!isatty(ctx->tty_fd)) {
+    if (!isatty(terminal->ctx->tty_fd)) {
         return -1;
     }
 
-    if (ctx->raw_mode_enabled) {
+    if (terminal->raw_mode_enabled) {
         return 0;
     }
     
-    if (tcgetattr(ctx->tty_fd, &ctx->original) == -1) {
+    if (tcgetattr(terminal->ctx->tty_fd,
+        &terminal->original) == -1) {
         return -1;
     }
 
-    struct termios raw = ctx->original;
+    struct termios raw = terminal->original;
 
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
@@ -96,21 +97,32 @@ int terminal_enable_raw(kirc_t *ctx)
     raw.c_cc[VMIN]  = 1;
     raw.c_cc[VTIME] = 0;
 
-    if (tcsetattr(ctx->tty_fd, TCSAFLUSH, &raw) == -1) {
+    if (tcsetattr(terminal->ctx->tty_fd,
+        TCSAFLUSH, &raw) == -1) {
         return -1;
     }
 
-    ctx->raw_mode_enabled = 1;
+    terminal->raw_mode_enabled = 1;
 
     return 0;
 }
 
-void terminal_disable_raw(kirc_t *ctx)
+void terminal_disable_raw(terminal_t *terminal)
 {
-    if (!ctx->raw_mode_enabled) {
+    if (!terminal->raw_mode_enabled) {
         return;
     }
 
-    tcsetattr(ctx->tty_fd, TCSAFLUSH, &ctx->original);
-    ctx->raw_mode_enabled = 0;
+    tcsetattr(terminal->ctx->tty_fd, TCSAFLUSH,
+        &terminal->original);
+    terminal->raw_mode_enabled = 0;
+}
+
+int terminal_init(terminal_t *terminal, kirc_t *ctx)
+{
+    memset(network, 0, sizeof(*network));   
+
+    network->ctx = ctx;
+
+    return 0;
 }

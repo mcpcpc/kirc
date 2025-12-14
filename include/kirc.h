@@ -61,8 +61,6 @@ typedef struct {
     /* terminal */
     int tty_fd;
     int lwidth;
-    int raw_mode_enabled;
-    struct termios original;
 } kirc_t;
 
 #endif  // __KIRC_H
