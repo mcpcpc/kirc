@@ -4,7 +4,7 @@
 #include "kirc.h"
 
 typedef struct {
-    kirc_t ctx;
+    kirc_t *ctx;
     int raw_mode_enabled;
     struct termios original;
 } terminal_t;
