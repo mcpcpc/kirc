@@ -219,8 +219,8 @@ int editor_render(editor_t *editor)
 
     printf("\r\x1b[%dC", editor->cursor + 8);
     */
-    int start = editor->cursor - cols < 0 ?
-        0 : editor->cursor - cols;
+    int start = editor->cursor - (cols - 1) < 0 ?
+        0 : editor->cursor - (cols - 1);
 
     printf("\r%.*s \x1b[0K", cols - 1,
         editor->scratch + start);
