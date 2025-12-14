@@ -168,7 +168,7 @@ static int kirc_run(kirc_t *ctx)
 
     struct pollfd fds[2] = {
         { .fd = ctx->tty_fd, .events = POLLIN },
-        { .fd = network->fd, .events = POLLIN }
+        { .fd = network.fd, .events = POLLIN }
     };
 
     for (;;) {
