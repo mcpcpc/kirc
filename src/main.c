@@ -34,7 +34,6 @@ static int kirc_init(kirc_t *ctx)
     strncpy(ctx->channels[0], "#chat", channels_n);
 
     ctx->tty_fd = STDIN_FILENO;
-    ctx->lwidth = KIRC_LEFT_WIDTH;
 
     const char *env;
 

@@ -61,7 +61,6 @@ typedef struct {
     char channels[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
     /* terminal */
     int tty_fd;
-    int lwidth;
 } kirc_t;
 
 #endif  // __KIRC_H
