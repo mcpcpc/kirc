@@ -211,14 +211,10 @@ int editor_render(editor_t *editor)
     int pos = editor->cursor % (cols - 8);
     int start = editor->cursor - (cols - 8) < 0 ?
         0 : editor->cursor - (cols - 8);
-/*
+
     printf("\r\x1b[7m%03d/%03d \x1b[0m%.*s \x1b[0K",
         editor->cursor, len,
         cols - 8, editor->scratch + start);
-*/
-    printf("\r\x1b[7m%03d/%03d \x1b[0m%.*s \x1b[0K",
-        editor->cursor, len,
-        cols - 7, editor->scratch + start);
 
     printf("\r\x1b[%dC", editor->cursor + 8);
 
