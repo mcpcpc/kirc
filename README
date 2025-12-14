@@ -15,11 +15,12 @@ Building and installing from source.
 Usage
 -----
 
-Consult man kirc for a full list and explanation of
-available arguments.
+Only a nickname needs to be specified to connect. Consult
+the manpage for a full list and explanation of available
+arguments and default values.
 
-    kirc <nickname> [-s hostname] [-p port] [-c channel]
-         [-r realname] [-u username] [-k password] [-h]
+    kirc [-s hostname] [-p port] [-c channel] [-r realname]
+         [-u username] [-k password] [-h] <nickname>
 
 References
 ----------

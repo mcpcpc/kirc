@@ -7,7 +7,7 @@
 static void kirc_usage(const char *argv0)
 {
     fprintf(stderr,
-        "Usage: %s <nickname> [args]\n"
+        "Usage: %s [args] <nickname>\n"
         "\n"
         "Arguments:\n"
         "  -s <hostname>  Server hostname (default: irc.libera.chat)\n"
@@ -47,8 +47,10 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     }
 
     int opt;
-
+/*
     while ((opt = getopt(argc, argv, "s:p:n:r:u:k:c:h")) > 0) {
+*/
+    while ((opt = getopt(argc, argv, "s:p:r:u:k:c:h")) > 0) {
         switch (opt) {
         case 'h':  /* help */
             kirc_usage(argv[0]);
@@ -63,12 +65,12 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             size_t port_n = sizeof(ctx->port) - 1;
             strncpy(ctx->port, optarg, port_n);
             break;
-
-        case 'n':  /* nickname */
+/*
+        case 'n':
             size_t nickname_n = sizeof(ctx->nickname) - 1;
             strncpy(ctx->nickname, optarg, nickname_n);
             break;
-
+*/
         case 'r':  /* realname */
             size_t realname_n = sizeof(ctx->realname) - 1;
             strncpy(ctx->realname, optarg, realname_n);
@@ -106,6 +108,9 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             return -1;
         }
     }
+
+    size_t nickname_n = sizeof(ctx->nickname) - 1;
+    strncpy(ctx->nickname, argv[optind], nickname_n);
 
     return 0;
 }
