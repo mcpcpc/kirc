@@ -21,7 +21,7 @@ static void kirc_usage(const char *argv0)
         argv0);
 }
 
-static kirc_error_t kirc_init(kirc_t *ctx)
+static int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
 
@@ -40,11 +40,11 @@ static kirc_error_t kirc_init(kirc_t *ctx)
     return 0;
 }
 
-static kirc_error_t kirc_args(kirc_t *ctx, int argc, char *argv[])
+static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
-        return KIRC_ERR_IO;
+        return -1;
     }
 
     int opt;
@@ -53,7 +53,7 @@ static kirc_error_t kirc_args(kirc_t *ctx, int argc, char *argv[])
         switch (opt) {
         case 'h':  /* help */
             kirc_usage(argv[0]);
-            return KIRC_ERR;
+            return -1;
 
         case 's':  /* hostname */
             size_t hostname_n = sizeof(ctx->hostname) - 1;
@@ -96,19 +96,19 @@ static kirc_error_t kirc_args(kirc_t *ctx, int argc, char *argv[])
         case ':':
             fprintf(stderr, "%s: missing -%c value\n",
                 argv[0], opt);
-            return KIRC_ERR_PARSE;
+            return -1;
 
         case '?':
             fprintf(stderr, "%s: unknown argument\n",
                 argv[0]);
-            return KIRC_ERR_PARSE;
+            return -1;
 
         default:
-            return KIRC_ERR_INTERNAL;
+            return -1;
         }
     }
 
-    return KIRC_OK;
+    return 0;
 }
 
 static kirc_error_t kirc_run(kirc_t *ctx)
@@ -232,7 +232,6 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 int main(int argc, char *argv[])
 {
     kirc_t ctx;
-    kirc_error_t err = KIRC_OK;
 
     if (kirc_init(&ctx) < 0) {
         return 1;
@@ -242,7 +241,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    err = kirc_run(&ctx);
+    kirc_error_t err = kirc_run(&ctx);
 
     return (err == KIRC_OK) ? 0 : 1;
 }
