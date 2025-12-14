@@ -41,6 +41,15 @@
 #include <wchar.h>
 #include <wctype.h>
 
+typedef enum {
+    KIRC_OK = 0,
+    KIRC_ERR,
+    KIRC_ERR_NOTFOUND,
+    KIRC_ERR_IO,
+    KIRC_ERR_PARSE,
+    KIRC_ERR_INTERNAL
+} kirc_error_t;
+
 typedef struct {
     char hostname[HOST_NAME_MAX];
     char port[6];

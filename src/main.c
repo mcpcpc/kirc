@@ -21,7 +21,7 @@ static void kirc_usage(const char *argv0)
         argv0);
 }
 
-static int kirc_init(kirc_t *ctx)
+static kirc_error_t kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
 
@@ -40,11 +40,11 @@ static int kirc_init(kirc_t *ctx)
     return 0;
 }
 
-static int kirc_args(kirc_t *ctx, int argc, char *argv[])
+static kirc_error_t kirc_args(kirc_t *ctx, int argc, char *argv[])
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
-        return -1;
+        return KIRC_ERR_IO;
     }
 
     int opt;
@@ -53,7 +53,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         switch (opt) {
         case 'h':  /* help */
             kirc_usage(argv[0]);
-            return -1;
+            return KIRC_ERR;
 
         case 's':  /* hostname */
             size_t hostname_n = sizeof(ctx->hostname) - 1;
@@ -96,45 +96,45 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         case ':':
             fprintf(stderr, "%s: missing -%c value\n",
                 argv[0], opt);
-            return -1;
+            return KIRC_ERR_PARSE;
 
         case '?':
             fprintf(stderr, "%s: unknown argument\n",
                 argv[0]);
-            return -1;
+            return KIRC_ERR_PARSE;
 
         default:
-            return -1;
+            return KIRC_ERR_INTERNAL;
         }
     }
 
-    return 0;
+    return KIRC_OK;
 }
 
-static int kirc_run(kirc_t *ctx)
+static kirc_error_t kirc_run(kirc_t *ctx)
 {
     editor_t editor;
 
     if (editor_init(&editor, ctx) < 0) {
         fprintf(stderr, "editor_init failed\n");
-        return -1;
+        return KIRC_ERR_INTERNAL;
     }
 
     network_t network;
 
     if (network_init(&network, ctx) < 0) {
         fprintf(stderr, "network_init failed\n");
-        return -1;
+        return KIRC_ERR_INTERNAL;
     }
 
     if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
-        return -1;
+        return KIRC_ERR_INTERNAL;
     }
 
     if (ctx->nickname[0] == '\0') {
         fprintf(stderr, "nickname not specified\n");
-        return -1;
+        return KIRC_ERR_PARSE;
     }
 
     network_send(&network, "NICK %s\r\n", ctx->nickname);
@@ -163,7 +163,7 @@ static int kirc_run(kirc_t *ctx)
 
     if (terminal_enable_raw(ctx) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
-        return 1;
+        return KIRC_ERR_IO;
     }
 
     struct pollfd fds[2] = {
@@ -226,12 +226,13 @@ static int kirc_run(kirc_t *ctx)
 
     terminal_disable_raw(ctx);
 
-    return 0;
+    return KIRC_OK;
 }
 
 int main(int argc, char *argv[])
 {
     kirc_t ctx;
+    kirc_error_t err = KIRC_OK;
 
     if (kirc_init(&ctx) < 0) {
         return 1;
@@ -241,9 +242,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (kirc_run(&ctx) < 0) {
-        return 1;
-    }
+    err = kirc_run(&ctx);
 
-    return 0;
+    return (err == KIRC_OK) ? 0 : 1;
 }
