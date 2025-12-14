@@ -9,7 +9,7 @@ static void kirc_usage(const char *argv0)
     fprintf(stderr,
         "Usage: %s [args] <nickname>\n"
         "\n"
-        "Arguments:\n"
+        "Optional hArguments:\n"
         "  -s <hostname>  Server hostname (default: irc.libera.chat)\n"
         "  -p <port>      Server port (default: 6667)\n"
         "  -c <channel>   List of channel(s) (default: #chat)\n"
@@ -107,6 +107,11 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         default:
             return -1;
         }
+    }
+
+    if (optind >= argc) {
+        fprintf(stderr, "nickname required\n");
+        return -1;
     }
 
     size_t nickname_n = sizeof(ctx->nickname) - 1;
