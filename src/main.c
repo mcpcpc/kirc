@@ -187,7 +187,7 @@ static int kirc_run(kirc_t *ctx)
 
         if (fds[1].revents & POLLIN) {
             if (network_receive(&network) > 0) {
-                char *msg = ctx->socket_buffer;
+                char *msg = network.buffer;
 
                 for (;;) {
                     char *eol = strstr(msg, "\r\n");
@@ -214,10 +214,10 @@ static int kirc_run(kirc_t *ctx)
                     msg = eol + 2;
                 }
                 
-                size_t remain = ctx->socket_buffer
-                    + ctx->socket_len - msg;
-                memmove(ctx->socket_buffer, msg, remain);
-                ctx->socket_len = remain;
+                size_t remain = network.buffer
+                    + network.len - msg;
+                memmove(network.buffer, msg, remain);
+                network.len = remain;
             }
             editor_render(&editor);
         }
