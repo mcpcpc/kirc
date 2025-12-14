@@ -83,8 +83,10 @@ static void feed_privmsg(event_t *event)
 
 static void feed_join(event_t *event)
 {
-    printf("\r\x1b[0K\x1b[2m--> %s\x1b[0m\r\n",
-        event->nickname);
+    //printf("\r\x1b[0K\x1b[2m--> %s\x1b[0m\r\n",
+    //    event->nickname);
+    printf("\r\x1b[0K%*s\x1b[2m--> %s\x1b[0m\r\n",
+        event->ctx->lwidth - 3, "", event->nickname);
 }
 
 static void feed_part(event_t *event)
