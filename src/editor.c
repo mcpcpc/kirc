@@ -207,6 +207,7 @@ int editor_process_key(editor_t *editor)
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx);
+    /*
     int len = strlen(editor->scratch);
     int pos = editor->cursor % (cols - 8);
     int start = editor->cursor - (cols - 8) < 0 ?
@@ -217,6 +218,14 @@ int editor_render(editor_t *editor)
         cols - 8, editor->scratch + start);
 
     printf("\r\x1b[%dC", editor->cursor + 8);
+    */
+    int start = editor->cursor - cols < 0 ?
+        0 : editor->cursor - cols;
+
+    printf("\r%.*s \x1b[0K", cols - 1,
+        editor->scratch + start);
+
+    printf("\r\x1b[%dC", editor->cursor + 1);
 
     fflush(stdout);
 
