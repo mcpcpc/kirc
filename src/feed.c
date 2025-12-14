@@ -1,102 +1,32 @@
 #include "feed.h"
 
-static size_t display_width(const char *s)
-{
-    size_t width = 0;
-    mbstate_t ps = {0};
-
-    while (*s) {
-        wchar_t wc;
-        size_t n = mbrtowc(&wc, s, MB_CUR_MAX, &ps);
-
-        /* Invalid byte sequence → treat as single printable */
-        if (n == (size_t)-1 || n == (size_t)-2) {
-            width++;
-            s++;
-            memset(&ps, 0, sizeof(ps));
-            continue;
-        }
-
-        /* Skip ANSI escape sequences */
-        if (*s == '\x1b') {
-            s++;
-            if (*s == '[') {
-                while (*s && !isalpha((unsigned char)*s))
-                    s++;
-                if (*s)
-                    s++;
-            }
-            continue;
-        }
-
-        int w = wcwidth(wc);
-        if (w > 0)
-            width += w;
-
-        s += n;
-    }
-
-    return width;
-}
-
-static void wordwrap(char *message, int cols, int lwidth)
-{
-    size_t wordwidth, spacewidth = 1;
-    size_t spaceleft = cols - lwidth;
-
-    for (char *tok = strtok(message, " "); tok != NULL;
-         tok = strtok(NULL, " ")) {
-
-        wordwidth = display_width(tok);
-
-        if ((wordwidth + spacewidth) > spaceleft) {
-            printf("\r\n%*.s%s ", (int)lwidth + 1,
-                " ", tok);
-            spaceleft = cols - (lwidth + 1);
-        } else {
-            printf("%s ", tok);
-        }
-
-        spaceleft -= wordwidth + spacewidth;
-    }
-}
-
 static void feed_privmsg(event_t *event)
 {
-    int cols = terminal_columns(event->ctx->tty_fd);
-    int lwidth = event->ctx->lwidth;
-
-    printf("\r\x1b[0K");
-
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
-        printf("\x1b[33;1m%-*s\x1b[0m ", lwidth,
-            event->nickname);
+        printf("\r\x1b[0K\x1b[33;1m%s\x1b[0m %s\r\n",
+            event->nickname, event->message);
     } else {
-        printf("\x1b[1m%-*s\x1b[0m ", lwidth,
-            event->nickname);
+        printf("\r\x1b[0K\x1b[1m%s\x1b[0m %s\r\n",
+            event->nickname, event->message);
     }
-
-    wordwrap(event->message, cols, lwidth);
-
-    printf("\r\n");
 }
 
 static void feed_join(event_t *event)
 {
-    printf("\r\x1b[0K%*s\x1b[2m--> %s\x1b[0m\r\n",
-        event->ctx->lwidth - 3, "", event->nickname);
+    printf("\r\x1b[0K\x1b[2m--> %s\x1b[0m\r\n",
+        event->nickname);
 }
 
 static void feed_part(event_t *event)
 {
-    printf("\r\x1b[0K%*s\x1b[2m<-- %s\x1b[0m\r\n",
-        event->ctx->lwidth - 3, "", event->nickname);
+    printf("\r\x1b[0K\x1b[2m<-- %s\x1b[0m\r\n",
+        event->nickname);
 }
 
 static void feed_quit(event_t *event)
 {
-    printf("\r\x1b[0K%*s\x1b[2m<<< %s\x1b[0m\r\n",
-        event->ctx->lwidth - 3, "", event->nickname);
+    printf("\r\x1b[0K\x1b[2m<<< %s\x1b[0m\r\n",
+        event->nickname);
 }
 
 static void feed_nick(event_t *event)
@@ -107,22 +37,13 @@ static void feed_nick(event_t *event)
 
 static void feed_channel(event_t *event)
 {
-    int cols = terminal_columns(event->ctx->tty_fd);
-    int lwidth = event->ctx->lwidth;
-
-    printf("\r\x1b[0K");
-
     if (event->channel[0] != '\0') {
-        printf("\x1b[1m%-*s\x1b[0m ", lwidth,
-            event->channel);
+        printf("\r\x1b[0K\x1b[1m%s\x1b[0m %s\r\n",
+            event->channel, event->message);
     } else {
-        printf("\x1b[1m%-*s\x1b[0m ", lwidth,
-            event->nickname);
+        printf("\r\x1b[0K\x1b[1m%s\x1b[0m %s\r\n",
+            event->nickname, event->message);
     }
-
-    wordwrap(event->message, cols, lwidth);
-
-    printf("\r\n");
 }
 
 void feed_render(event_t *event)
