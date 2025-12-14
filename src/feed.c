@@ -1,7 +1,19 @@
 #include "feed.h"
 
+static void get_time(char *hhmmss)
+{
+    time_t current;
+    time(&current);
+    struct tm *info = localtime(&current);
+    size_t siz = sizeof(hhmmss);
+    strftime(hhmmss, siz, "%H:%M:%S", info);
+}
+
 static void feed_privmsg(event_t *event)
 {
+    char hhmmss[9] = {0};
+    get_time(&hhmmss);
+
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
         printf("\r\x1b[0K\x1b[33;1m%s\x1b[0m %s\r\n",
             event->nickname, event->message);
