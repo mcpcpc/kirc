@@ -5,8 +5,8 @@
 
 typedef struct {
     kirc_t *ctx;
-    int raw_mode_enabled;
     struct termios original;
+    int raw_mode_enabled;
 } terminal_t;
 
 int terminal_columns(int tty_fd);
