@@ -49,12 +49,15 @@ static void feed_nick(event_t *event)
 
 static void feed_channel(event_t *event)
 {
+    char hhmmss[9] = {0};
+    get_time(hhmmss);
+
     if (event->channel[0] != '\0') {
-        printf("\r\x1b[0K\x1b[1m%s\x1b[0m %s\r\n",
-            event->channel, event->message);
+        printf("\r\x1b[0K%s \x1b[1m%s\x1b[0m %s\r\n",
+            hhmmss, event->channel, event->message);
     } else {
-        printf("\r\x1b[0K\x1b[1m%s\x1b[0m %s\r\n",
-            event->nickname, event->message);
+        printf("\r\x1b[0K%s \x1b[1m%s\x1b[0m %s\r\n",
+            hhmmss, event->nickname, event->message);
     }
 }
 
