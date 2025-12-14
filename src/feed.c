@@ -5,8 +5,7 @@ static void get_time(char *hhmmss)
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    size_t siz = sizeof(hhmmss);
-    strftime(hhmmss, siz, "%H:%M:%S", info);
+    strftime(hhmmss, 9, "%H:%M:%S", info);
 }
 
 static void feed_privmsg(event_t *event)
