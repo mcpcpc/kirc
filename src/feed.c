@@ -15,10 +15,10 @@ static void feed_privmsg(event_t *event)
     get_time(hhmmss);
 
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
-        printf("\r\x1b[0K%s \x1b[33;1m%s\x1b[0m %s\r\n",
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[33;1m%s\x1b[0m %s\r\n",
             hhmmss, event->nickname, event->message);
     } else {
-        printf("\r\x1b[0K%s \x1b[1m%s\x1b[0m %s\r\n",
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
             hhmmss, event->nickname, event->message);
     }
 }
@@ -28,7 +28,7 @@ static void feed_join(event_t *event)
     char hhmmss[9] = {0};
     get_time(hhmmss);
 
-    printf("\r\x1b[0K%s \x1b[2m--> %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m--> %s\x1b[0m\r\n",
         hhmmss, event->nickname);
 }
 
@@ -37,7 +37,7 @@ static void feed_part(event_t *event)
     char hhmmss[9] = {0};
     get_time(hhmmss);
 
-    printf("\r\x1b[0K%s \x1b[2m<-- %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m<-- %s\x1b[0m\r\n",
         hhmmss, event->nickname);
 }
 
@@ -46,7 +46,7 @@ static void feed_quit(event_t *event)
     char hhmmss[9] = {0};
     get_time(hhmmss);
 
-    printf("\r\x1b[0K%s \x1b[2m<<< %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m<<< %s\x1b[0m\r\n",
         hhmmss, event->nickname);
 }
 
@@ -55,7 +55,7 @@ static void feed_nick(event_t *event)
     char hhmmss[9] = {0};
     get_time(hhmmss);
 
-    printf("\r\x1b[0K%s \x1b[2m%s --> %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m%s --> %s\x1b[0m\r\n",
         hhmmss, event->nickname, event->message);
 }
 
@@ -65,10 +65,10 @@ static void feed_channel(event_t *event)
     get_time(hhmmss);
 
     if (event->channel[0] != '\0') {
-        printf("\r\x1b[0K%s \x1b[1m%s\x1b[0m %s\r\n",
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
             hhmmss, event->channel, event->message);
     } else {
-        printf("\r\x1b[0K%s \x1b[1m%s\x1b[0m %s\r\n",
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
             hhmmss, event->nickname, event->message);
     }
 }
