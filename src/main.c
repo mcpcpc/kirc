@@ -9,7 +9,7 @@ static void kirc_usage(const char *argv0)
     fprintf(stderr,
         "Usage: %s [args] <nickname>\n"
         "\n"
-        "Optional hArguments:\n"
+        "Optional Arguments:\n"
         "  -s <hostname>  Server hostname (default: irc.libera.chat)\n"
         "  -p <port>      Server port (default: 6667)\n"
         "  -c <channels>  List of channel(s) (default: #chat)\n"
