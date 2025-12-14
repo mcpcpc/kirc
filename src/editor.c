@@ -225,7 +225,7 @@ int editor_render(editor_t *editor)
     printf("\r:%.*s \x1b[0K", cols - 2,
         editor->scratch + start);
 
-    printf("\r\x1b[%dC", editor->cursor + 2);
+    printf("\r\x1b[%dC", editor->cursor + 1);
 
     fflush(stdout);
 
