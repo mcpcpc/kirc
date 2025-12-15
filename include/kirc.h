@@ -17,10 +17,6 @@
 #define KIRC_CHAN_LIMIT 256
 #endif
 
-#ifndef KIRC_LEFT_WIDTH
-#define KIRC_LEFT_WIDTH 12
-#endif
-
 #ifndef KIRC_HISTORY_SIZE
 #define KIRC_HISTORY_SIZE 128
 #endif
