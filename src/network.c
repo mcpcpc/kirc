@@ -97,16 +97,33 @@ int network_connect(network_t *network)
     return 0;
 }
 
+static void set_active_channel(network_t *network, char *msg)
+{
+    int len = sizeof(network->ctx->active) - 1;
+    strncpy(network->ctx->active, msg + 1, len);
+}
+
+static void set_channel_filter(network_t *network, char *msg)
+{
+}
+
 int network_command_handler(network_t *network, char *msg)
 {
     printf("\rSENT: %s\r\n", msg);  /* test */
     switch (msg[0]) {
     case '/':  /* system command message */
-        if (msg[1] == '#') {
-            int len = sizeof(network->ctx->active) - 1;
-            strncpy(network->ctx->active, msg + 1, len);
-        } else {
+        switch (msg[1]) {
+        case '#': /* set active channel */
+            set_active_channel(network, msg);
+            break;
+
+        case '/': /* set channel view filter */
+            set_channel_filter(network, msg);
+            break;
+
+        default: /* send raw server command */
             network_send(network, "%s\r\n", msg + 1);
+            break;  
         }
         break;
 
