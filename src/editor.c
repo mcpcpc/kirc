@@ -17,6 +17,7 @@ static void editor_backspace(editor_t *editor)
 
 static void editor_enter(editor_t *editor)
 {
+    printf("\rSENT: %s\r\n", editor->scratch);  /* test */
     int siz = sizeof(editor->scratch) - 1;
 
     strncpy(editor->history[editor->head],

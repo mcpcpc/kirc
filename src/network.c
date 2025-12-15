@@ -109,7 +109,6 @@ static void set_channel_filter(network_t *network, char *msg)
 
 int network_command_handler(network_t *network, char *msg)
 {
-    printf("\rSENT: %s\r\n", msg);  /* test */
     switch (msg[0]) {
     case '/':  /* system command message */
         switch (msg[1]) {
