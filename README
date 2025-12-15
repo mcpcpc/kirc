@@ -1,56 +1,92 @@
-kirc
-====
+kirc — KISS IRC client
+======================
 
-kirc (KISS for IRC) is a tiny IRC client.
+kirc is a tiny, dependency-light IRC client that follows the
+"Keep It Simple, Stupid" (KISS) philosophy. It is intended for
+users who prefer a minimal, keyboard-driven IRC experience in a
+terminal environment.
+
+Features
+--------
+- Small, portable C codebase with minimal runtime requirements
+- Keyboard-centric editing and navigation
+- Simple command and message aliases for fast interaction
+- Lightweight build using a standard Makefile
 
 Install
 -------
+Build and install from source (system-wide install requires
+appropriate privileges):
 
-Building and installing from source.
+    git clone https://github.com/mcpcpc/kirc
+    cd kirc
+    make
+    sudo make install
 
-    $ git clone https://github.com/mcpcpc/kirc
-    $ cd kirc
-    $ make && make install
+Alternatively, run the binary from the repository root after
+building: `./kirc`.
 
 Usage
 -----
-
-Only a nickname needs to be specified to connect. Consult
-the manpage for a full list and explanation of available
-arguments and default values.
+At minimum, supply a nickname to connect. For full options, see
+the manpage or run `kirc -h`.
 
     kirc [-s hostname] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-h] <nickname>
 
-Command Aliases
----------------
+Examples
+--------
+- Connect to the default host with nickname `alice`:
 
-    <message>          send PRIVMSG to the current channel
-    @<dest> <message>  send PRIVMSG to a specified dest.
-    /<command>         send raw command to the IRC server
-    /#<channel>        assign new default message channel
-    /$                 toggle the channel filter on/off
+    kirc alice
+
+- Connect to a specific server and join channels:
+
+    kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
+
+Commands & Aliases
+------------------
+- Typing a plain message sends a `PRIVMSG` to the current channel.
+- `@<dest> <message>` — send `PRIVMSG` to a specified user or channel.
+- `/<command>` — send a raw command to the IRC server.
+- `/#<channel>` — set a new default message channel.
+- `/$` — toggle the channel filter on/off.
 
 Key Bindings
 ------------
+Control keys are mapped to familiar text-editing bindings:
 
-Control keys map to natural key bindings find in other text
-editors.
+- `CTRL+B` — move cursor left
+- `CTRL+F` — move cursor right
+- `CTRL+E` — move cursor to end of line
+- `CTRL+A` — move cursor to start of line
+- `CTRL+U` — delete entire line
+- `CTRL+C` — force quit kirc
 
-    CTRL+B  move the cursor one character to the left.
-    CTRL+F  move the cursor one character to the right.
-    CTRL+E  move the cursor to the end of the line.
-    CTRL+A  move the cursor to the start of the line.
-    CTRL+U  delete the entire line.
-    CTRL+C  force quit kirc.
+Configuration
+-------------
+kirc is intentionally minimal and uses command-line options for
+configuration. If you need persistent settings, wrap your
+invocation in a shell script or alias.
 
-Bugs and Issues
----------------
+Contributing
+------------
+Contributions are welcome. Please open issues or pull requests on
+the project's GitHub repository. Keep changes small and focused —
+the project favors simplicity and clarity.
 
-Please submit via Github.
+Reporting Bugs
+--------------
+Please open issues on GitHub with a clear description, steps to
+reproduce, and relevant environment details (OS, compiler, any
+runtime output).
+
+License
+-------
+This project is provided under the terms of its existing
+license. See the `LICENSE` file in the repository for details.
 
 References
 ----------
-
-* https://www.rfc-editor.org/rfc/rfc1459.html
-* https://www.rfc-editor.org/rfc/rfc2222.html
+- RFC 1459 — Internet Relay Chat Protocol
+- RFC 2222 — Simple Authentication and Security Layer (SASL)
