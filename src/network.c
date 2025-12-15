@@ -105,7 +105,7 @@ int network_command_handler(network_t *network, char *msg)
             int len = sizeof(network->ctx->active) - 1;
             strncpy(network->ctx->active, msg + 2, len);
         } else {
-            network_send(network, "%s\r\n", msg);
+            network_send(network, "%s\r\n", msg + 1);
         }
         break;
 
