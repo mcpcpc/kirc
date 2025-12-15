@@ -100,7 +100,7 @@ int network_connect(network_t *network)
 int network_command_handler(network_t *network, char *msg)
 {
     switch (msg[0]) {
-    case '/':  /* system command */
+    case '/':  /* system command message */
         if (msg[1] == '#') {
             int len = sizeof(network->ctx->active) - 1;
             strncpy(network->ctx->active, msg + 1, len);
