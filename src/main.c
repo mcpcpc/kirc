@@ -234,7 +234,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
             if (rc > 0) {
                 int head = editor.head;
-                char *msg = editor.history[head];
+                char *msg = editor.history[head - 1];
                 network_command_handler(&network, msg);
             }
             editor_render(&editor);
