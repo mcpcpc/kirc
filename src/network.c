@@ -99,7 +99,7 @@ int network_connect(network_t *network)
 
 int network_command_handler(network_t *network, char *msg)
 {
-    switch(msg[0]) {
+    switch (msg[0]) {
     case '/':  /* system command */
         if (msg[1] == '#') {
             int len = sizeof(network->ctx->active) - 1;
