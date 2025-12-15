@@ -18,10 +18,10 @@ Install
 Build and install from source (system-wide install requires
 appropriate privileges):
 
-    git clone https://github.com/mcpcpc/kirc
-    cd kirc
-    make
-    sudo make install
+    $ git clone https://github.com/mcpcpc/kirc
+    $ cd kirc
+    $ make
+    $ sudo make install
 
 Alternatively, run the binary from the repository root after
 building: `./kirc`.
@@ -38,30 +38,30 @@ Examples
 --------
 - Connect to the default host with nickname `alice`:
 
-    kirc alice
+    $ kirc alice
 
 - Connect to a specific server and join channels:
 
-    kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
+    $ kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
 
 Commands & Aliases
 ------------------
-- Typing a plain message sends a `PRIVMSG` to the current channel.
-- `@<dest> <message>` — send `PRIVMSG` to a specified user or channel.
-- `/<command>` — send a raw command to the IRC server.
-- `/#<channel>` — set a new default message channel.
-- `/$` — toggle the channel filter on/off.
+
+    @<dest> <message>  send `PRIVMSG` to a specified user or channel.
+    /<command>         send a raw command to the IRC server.
+    /#<channel>        set a new default message channel.
+    /$                 toggle the channel filter on/off.
 
 Key Bindings
 ------------
 Control keys are mapped to familiar text-editing bindings:
 
-- `CTRL+B` — move cursor left
-- `CTRL+F` — move cursor right
-- `CTRL+E` — move cursor to end of line
-- `CTRL+A` — move cursor to start of line
-- `CTRL+U` — delete entire line
-- `CTRL+C` — force quit kirc
+    CTRL+B             move cursor left
+    CTRL+F             move cursor right
+    CTRL+E             move cursor to end of line
+    CTRL+A             move cursor to start of line
+    CTRL+U             delete entire line
+    CTRL+C             force quit kirc
 
 Configuration
 -------------
