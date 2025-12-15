@@ -184,13 +184,12 @@ int editor_process_key(editor_t *editor)
 
     case 127:  /* DELETE */
     case 8:  /* BACKSPACE */ 
-        editor_backspace(editor); 
+        editor_backspace(editor);
         break;
 
     case 13:  /* ENTER */
         editor_enter(editor);
         return 1;
-        break;
 
     case 27:  /* ESCAPE */
         editor_escape(editor);

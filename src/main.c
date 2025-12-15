@@ -227,6 +227,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
         if (fds[0].revents & POLLIN) {
             int rc = editor_process_key(&editor);
+
             if (rc < 0) {
                 break;
             }
