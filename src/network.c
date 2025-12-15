@@ -115,6 +115,8 @@ int network_command_handler(network_t *network, char *msg)
     default:  /* channel message */
         break;
     }
+
+    return 0;
 }
 
 int network_init(network_t *network, kirc_t *ctx)
