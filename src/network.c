@@ -105,7 +105,7 @@ int network_command_handler(network_t *network, char *msg)
         case '#':  /* set active channel */
             int len = sizeof(network->ctx->selected) - 1;
             strncpy(network->ctx->selected, msg + 1, len);
-            printf("\rselected channel set to: %s\x1b[0K\r\n",
+            printf("\r\x1b[2mchannel set to: %s\x1b[0m\x1b[0K\r\n",
                 network->ctx->selected);
             break;
 
