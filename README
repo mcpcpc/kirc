@@ -18,10 +18,10 @@ Install
 Build and install from source (system-wide install requires
 appropriate privileges):
 
-    $ git clone https://github.com/mcpcpc/kirc
-    $ cd kirc
-    $ make
-    $ sudo make install
+    git clone https://github.com/mcpcpc/kirc
+    cd kirc/
+    make
+    sudo make install
 
 Alternatively, run the binary from the repository root after
 building: `./kirc`.
@@ -38,11 +38,11 @@ Examples
 --------
 - Connect to the default host with nickname `alice`:
 
-    $ kirc alice
+    kirc alice
 
 - Connect to a specific server and join channels:
 
-    $ kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
+    kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
 
 Commands & Aliases
 ------------------
