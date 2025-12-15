@@ -93,9 +93,9 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             kirc_usage(argv[0]);
             return -1;
 
-        case 's':  /* hostname */
-            size_t hostname_n = sizeof(ctx->hostname) - 1;
-            strncpy(ctx->hostname, optarg, hostname_n);
+        case 's':  /* server */
+            size_t server_n = sizeof(ctx->server) - 1;
+            strncpy(ctx->server, optarg, server_n);
             break;
 
         case 'p':  /* port */
