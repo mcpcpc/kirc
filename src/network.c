@@ -97,6 +97,26 @@ int network_connect(network_t *network)
     return 0;
 }
 
+int network_command_handler(network_t *network, char *msg)
+{
+    switch(msg[0]) {
+    case '/':  /* system command */
+        if (msg[1] == '#') {
+            size_t len = sizeof(network->ctx->active) - 1;
+            strncpy(network->ctx->active, len, msg + 2);
+        } else {
+            network_send(network, "%s\r\n", msg);
+        }
+        break;
+
+    case '@':  /* private message */
+        break;
+
+    default:  /* channel message */
+        break;
+    }
+}
+
 int network_init(network_t *network, kirc_t *ctx)
 {
     memset(network, 0, sizeof(*network));   

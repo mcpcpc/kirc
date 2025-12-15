@@ -59,6 +59,8 @@ typedef struct {
     char username[RFC1459_MESSAGE_MAX_LEN];
     char password[RFC1459_MESSAGE_MAX_LEN];
     char channels[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
+    /* state */
+    char active[KIRC_CHAN_LIMIT];
     /* terminal */
     int tty_fd;
 } kirc_t;

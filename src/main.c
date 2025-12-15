@@ -226,8 +226,13 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         }
 
         if (fds[0].revents & POLLIN) {
-            if (editor_process_key(&editor) < 0) {
+            int rc = editor_process_key(&editor);
+            if (rc < 0) {
                 break;
+            } else if (rc > 0) {
+                int head = editor.head;
+                char *msg = editor.history[head];
+                network_command_handler(&network, msg);
             }
             editor_render(&editor);
         }
