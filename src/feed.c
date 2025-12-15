@@ -74,6 +74,12 @@ static void feed_channel(event_t *event)
 
 void feed_render(event_t *event)
 {
+    if (event->ctx->filtered) {
+        if (strcmp(event->channel, event->ctx->selected) != 0) {
+            return;
+        }
+    }
+    
     switch (event->type) {
     case EVENT_PING:
         break;
