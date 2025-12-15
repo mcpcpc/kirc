@@ -103,7 +103,7 @@ int network_command_handler(network_t *network, char *msg)
     case '/':  /* system command */
         if (msg[1] == '#') {
             int len = sizeof(network->ctx->active) - 1;
-            strncpy(network->ctx->active, msg + 2, len);
+            strncpy(network->ctx->active, msg + 1, len);
         } else {
             network_send(network, "%s\r\n", msg + 1);
         }
