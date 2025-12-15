@@ -14,7 +14,7 @@ static void feed_privmsg(event_t *event)
     get_time(hhmmss);
 
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[33;1m%s\x1b[0m %s\r\n",
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;31m%s\x1b[0m %s\r\n",
             hhmmss, event->nickname, event->message);
     } else {
         printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",

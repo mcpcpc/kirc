@@ -124,7 +124,7 @@ int network_command_handler(network_t *network, char *msg)
         if (username && message) {
             network_send(network, "PRIVMSG %s :%s\r\n",
                 username, message);
-            printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
+            printf("\rto \x1b[1;31m%s\x1b[0m: %s\x1b[0K\r\n",
                 username, message);
         }
         break;
