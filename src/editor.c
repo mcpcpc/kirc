@@ -17,7 +17,7 @@ static void editor_backspace(editor_t *editor)
 
 static void editor_enter(editor_t *editor)
 {
-    printf("\rSENT: %s\r\n", editor->scratch);  /* test */
+    printf("\rSCRATCH: %s\r\n", editor->scratch);  /* test */
     int siz = sizeof(editor->scratch) - 1;
 
     strncpy(editor->history[editor->head],
@@ -29,8 +29,11 @@ static void editor_enter(editor_t *editor)
         editor->head++;
     }
 
+    printf("\rHEAD-1: %s\r\n", editor->history[editor->head - 1]);  /* test */
+
     editor->scratch[0] = '\0';
     editor->cursor = 0;
+    
 }
 
 static void editor_delete(editor_t *editor)
