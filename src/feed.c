@@ -5,12 +5,12 @@ static void get_time(char *hhmmss)
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    strftime(hhmmss, 9, "%H:%M:%S", info);
+    strftime(hhmmss, 6, "%H:%M", info);
 }
 
 static void feed_privmsg(event_t *event)
 {
-    char hhmmss[9];
+    char hhmmss[6];
     get_time(hhmmss);
 
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
@@ -24,7 +24,7 @@ static void feed_privmsg(event_t *event)
 
 static void feed_join(event_t *event)
 {
-    char hhmmss[9];
+    char hhmmss[6];
     get_time(hhmmss);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m--> %s\x1b[0m\r\n",
@@ -33,7 +33,7 @@ static void feed_join(event_t *event)
 
 static void feed_part(event_t *event)
 {
-    char hhmmss[9];
+    char hhmmss[6];
     get_time(hhmmss);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m<-- %s\x1b[0m\r\n",
@@ -42,7 +42,7 @@ static void feed_part(event_t *event)
 
 static void feed_quit(event_t *event)
 {
-    char hhmmss[9];
+    char hhmmss[6];
     get_time(hhmmss);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m<<< %s\x1b[0m\r\n",
@@ -51,7 +51,7 @@ static void feed_quit(event_t *event)
 
 static void feed_nick(event_t *event)
 {
-    char hhmmss[9];
+    char hhmmss[6];
     get_time(hhmmss);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m%s --> %s\x1b[0m\r\n",
@@ -60,7 +60,7 @@ static void feed_nick(event_t *event)
 
 static void feed_channel(event_t *event)
 {
-    char hhmmss[9];
+    char hhmmss[6];
     get_time(hhmmss);
 
     if (event->channel[0] != '\0') {
