@@ -97,10 +97,12 @@ int network_connect(network_t *network)
     return 0;
 }
 
-static void set_active_channel(network_t *network, char *msg)
+static void select_channel(network_t *network, char *msg)
 {
-    int len = sizeof(network->ctx->active) - 1;
-    strncpy(network->ctx->active, msg + 1, len);
+    int len = sizeof(network->ctx->selected) - 1;
+    strncpy(network->ctx->selected, msg + 1, len);
+    printf("\rselected channel set to: %s\x1b[0K\r\n",
+        network->ctx->selected);
 }
 
 static void set_channel_filter(network_t *network, char *msg)
@@ -113,7 +115,7 @@ int network_command_handler(network_t *network, char *msg)
     case '/':  /* system command message */
         switch (msg[1]) {
         case '#': /* set active channel */
-            set_active_channel(network, msg);
+            select_channel(network, msg);
             break;
 
         case '/': /* set channel view filter */
@@ -130,6 +132,10 @@ int network_command_handler(network_t *network, char *msg)
         break;
 
     default:  /* channel message */
+        network_send(network, "PRIVMSG %s :%s\r\n",
+            network->ctx->selected, msg);
+        printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
+            network->ctx->selected, msg);
         break;
     }
 
