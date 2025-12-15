@@ -97,38 +97,36 @@ int network_connect(network_t *network)
     return 0;
 }
 
-static void select_channel(network_t *network, char *msg)
-{
-    int len = sizeof(network->ctx->selected) - 1;
-    strncpy(network->ctx->selected, msg + 1, len);
-    printf("\rselected channel set to: %s\x1b[0K\r\n",
-        network->ctx->selected);
-}
-
-static void set_channel_filter(network_t *network, char *msg)
-{
-}
-
 int network_command_handler(network_t *network, char *msg)
 {
     switch (msg[0]) {
     case '/':  /* system command message */
         switch (msg[1]) {
-        case '#': /* set active channel */
-            select_channel(network, msg);
+        case '#':  /* set active channel */
+            int len = sizeof(network->ctx->selected) - 1;
+            strncpy(network->ctx->selected, msg + 1, len);
+            printf("\rselected channel set to: %s\x1b[0K\r\n",
+                network->ctx->selected);
             break;
 
-        case '/': /* set channel view filter */
-            set_channel_filter(network, msg);
+        case '/':  /* set channel view filter */
             break;
 
-        default: /* send raw server command */
+        default:  /* send raw server command */
             network_send(network, "%s\r\n", msg + 1);
             break;  
         }
         break;
 
     case '@':  /* private message */
+        char *username = strtok(msg + 1, " ");
+        char *message = strtok(NULL, "");
+        if (username && message) {
+            network_send(network, "PRIVMSG %s :%s\r\n",
+                username, message);
+            printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
+                username, message);
+        }
         break;
 
     default:  /* channel message */
