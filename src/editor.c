@@ -15,6 +15,12 @@ static void editor_backspace(editor_t *editor)
         len - editor->cursor);
 }
 
+static void editor_delete_whole_line(editor_t *editor)
+{
+    editor->scratch[0] = '\0';
+    editor->cursor = 0;
+}
+
 static void editor_enter(editor_t *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -23,8 +29,8 @@ static void editor_enter(editor_t *editor)
         editor->scratch, siz);
 
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
-    editor->scratch[0] = '\0';
-    editor->cursor = 0;
+
+    editor_delete_whole_line(editor);
 }
 
 static void editor_delete(editor_t *editor)
@@ -176,6 +182,10 @@ int editor_process_key(editor_t *editor)
         errno = EAGAIN;
         editor_clear(editor);
         return -1;
+
+    case 21:  /* CTRL-U */
+        editor_delete_whole_line(editor);
+        break;
 
     case 127:  /* DELETE */
     case 8:  /* BACKSPACE */ 
