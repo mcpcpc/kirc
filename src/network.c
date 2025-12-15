@@ -99,6 +99,7 @@ int network_connect(network_t *network)
 
 int network_command_handler(network_t *network, char *msg)
 {
+    printf("\rSENT: %s\r\n", msg);  /* test */
     switch (msg[0]) {
     case '/':  /* system command message */
         if (msg[1] == '#') {
@@ -106,7 +107,6 @@ int network_command_handler(network_t *network, char *msg)
             strncpy(network->ctx->active, msg + 1, len);
         } else {
             network_send(network, "%s\r\n", msg + 1);
-            printf("\rCMD SENT\r\n");  /* test */
         }
         break;
 
