@@ -10,7 +10,7 @@ static void kirc_usage(const char *argv0)
         "Usage: %s [args] <nickname>\n"
         "\n"
         "Optional Arguments:\n"
-        "  -s <hostname>  Server hostname (default: irc.libera.chat)\n"
+        "  -s <server>    Server hostname (default: irc.libera.chat)\n"
         "  -p <port>      Server port (default: 6667)\n"
         "  -c <channels>  List of channel(s) (default: #chat)\n"
         "  -r <realname>  User real name\n"
@@ -24,8 +24,8 @@ static int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
 
-    size_t hostname_n = sizeof(ctx->hostname) - 1;
-    strncpy(ctx->hostname, "irc.libera.chat", hostname_n);
+    size_t server_n = sizeof(ctx->server) - 1;
+    strncpy(ctx->server, "irc.libera.chat", server_n);
 
     size_t port_n = sizeof(ctx->port) - 1;
     strncpy(ctx->port, "6667", port_n);
@@ -38,9 +38,9 @@ static int kirc_init(kirc_t *ctx)
 
     const char *env;
 
-    env = getenv("KIRC_HOSTNAME");
+    env = getenv("KIRC_SERVER");
     if (env && *env) {
-        strncpy(ctx->hostname, env, hostname_n);
+        strncpy(ctx->server, env, server_n);
     }
 
     env = getenv("KIRC_PORT");

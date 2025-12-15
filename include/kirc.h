@@ -48,7 +48,7 @@ typedef enum {
 } kirc_error_t;
 
 typedef struct {
-    char hostname[HOST_NAME_MAX];
+    char server[HOST_NAME_MAX];
     char port[6];
     char nickname[RFC1459_MESSAGE_MAX_LEN];
     char realname[RFC1459_MESSAGE_MAX_LEN];

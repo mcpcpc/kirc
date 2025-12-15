@@ -31,7 +31,7 @@ Usage
 At minimum, supply a nickname to connect. For full options, see
 the manpage or run `kirc -h`.
 
-    kirc [-s hostname] [-p port] [-c channels] [-r realname]
+    kirc [-s server] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-h] <nickname>
 
 Examples

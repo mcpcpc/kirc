@@ -51,7 +51,7 @@ int network_connect(network_t *network)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    int status = getaddrinfo(network->ctx->hostname,
+    int status = getaddrinfo(network->ctx->server,
         network->ctx->port, &hints, &res);
 
     if (status != 0) {
