@@ -201,13 +201,17 @@ int editor_process_key(editor_t *editor)
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(editor->ctx->tty_fd);
-    int start = editor->cursor - (cols - 2) < 0 ?
-        0 : editor->cursor - (cols - 2);
+    int start = editor->cursor - (cols - 1) < 0 ?
+        0 : editor->cursor - (cols - 1);
 
-    printf("\r:%.*s \x1b[0K", cols - 2,
+    printf("\r%.*s \x1b[0K", cols - 1,
         editor->scratch + start);
 
-    printf("\r\x1b[%dC", editor->cursor + 1);
+    if (editor->cursor > 0) {
+        printf("\r\x1b[%dC", editor->cursor);
+    } else {
+        printf("\r");
+    }
 
     fflush(stdout);
 
