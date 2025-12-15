@@ -109,7 +109,10 @@ int network_command_handler(network_t *network, char *msg)
                 network->ctx->selected);
             break;
 
-        case '/':  /* set channel view filter */
+        case '$':  /* toggle channel filter */
+            network->ctx->filtered = !network->ctx->filtered;
+            printf("\r\x1b[2mchannel filter %s\x1b[0m\x1b[0K\r\n",
+                network->ctx->filtered ? "enabled" : "disabled");
             break;
 
         default:  /* send raw server command */

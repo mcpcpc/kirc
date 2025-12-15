@@ -22,6 +22,28 @@ arguments and default values.
     kirc [-s hostname] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-h] <nickname>
 
+Command Aliases
+---------------
+
+    <message>          send PRIVMSG to the current channel
+    @<dest> <message>  send PRIVMSG to a specified dest.
+    /<command>         send raw command to the IRC server
+    /#<channel>        assign new default message channel
+    /$                 toggle the channel filter on/off
+
+Key Bindings
+------------
+
+Control keys map to natural key bindings find in other text
+editors.
+
+    CTRL+B  move the cursor one character to the left.
+    CTRL+F  move the cursor one character to the right.
+    CTRL+E  move the cursor to the end of the line.
+    CTRL+A  move the cursor to the start of the line.
+    CTRL+U  delete the entire line.
+    CTRL+C  force quit kirc.
+
 Bugs and Issues
 ---------------
 

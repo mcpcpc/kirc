@@ -57,7 +57,7 @@ typedef struct {
     char channels[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
     /* state */
     char selected[KIRC_CHAN_LIMIT];
-    char filtered[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
+    int filtered;
     /* terminal */
     int tty_fd;
 } kirc_t;
