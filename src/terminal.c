@@ -67,7 +67,11 @@ int terminal_columns(int tty_fd)
         char seq[32];
         int diff = end - start;
         snprintf(seq, sizeof(seq), "\x1b[%dD", diff);
-        write(STDOUT_FILENO, seq, strnlen(seq, sizeof(seq)));
+
+        if (write(STDOUT_FILENO, seq,
+            strnlen(seq, sizeof(seq))) < 32) {
+            return 80;
+        }
     }
 
     return (end > 0) ? end : 80;
