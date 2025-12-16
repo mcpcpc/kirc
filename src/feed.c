@@ -27,7 +27,7 @@ static void feed_join(event_t *event)
     char hhmmss[6];
     get_time(hhmmss);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m--> %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m--->> %s\x1b[0m\r\n",
         hhmmss, event->nickname);
 }
 
@@ -36,7 +36,7 @@ static void feed_part(event_t *event)
     char hhmmss[6];
     get_time(hhmmss);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m<-- %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m<<--- %s\x1b[0m\r\n",
         hhmmss, event->nickname);
 }
 
@@ -45,7 +45,7 @@ static void feed_quit(event_t *event)
     char hhmmss[6];
     get_time(hhmmss);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m<<< %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m<<<<< %s\x1b[0m\r\n",
         hhmmss, event->nickname);
 }
 
