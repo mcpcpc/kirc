@@ -36,7 +36,7 @@ static void editor_enter(editor_t *editor)
 static void editor_delete(editor_t *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
-    int len = strlen(editor->scratch, siz);
+    int len = strnlen(editor->scratch, siz);
 
     if (editor->cursor >= len) {
         return;  /* at end of scratch */
