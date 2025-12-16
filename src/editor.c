@@ -40,7 +40,7 @@ static void editor_delete(editor_t *editor)
     int len = strnlen(editor->scratch, siz);
 
     if (editor->cursor > len) {
-        return;  /* at end of scratch */
+        return;  /* at end of scratch string */
     }
 
     memmove(editor->scratch + editor->cursor,
