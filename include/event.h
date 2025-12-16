@@ -16,6 +16,9 @@ typedef enum {
     EVENT_NUMERIC_RPL_CREATED,
     EVENT_NUMERIC_RPL_MYINFO,
     EVENT_NUMERIC_RPL_BOUNCE,
+    EVENT_NUMERIC_RPL_MOTD,
+    EVENT_NUMERIC_RPL_MOTDSTART,
+    EVENT_NUMERIC_RPL_ENDOFMOTD,
     EVENT_QUIT
 } event_type_t;
 
@@ -36,6 +39,9 @@ static const event_map_t event_map[] = {
     { "003",     EVENT_NUMERIC_RPL_CREATED },
     { "004",     EVENT_NUMERIC_RPL_MYINFO },
     { "005",     EVENT_NUMERIC_RPL_BOUNCE },
+    { "375",     EVENT_NUMERIC_RPL_MOTDSTART },
+    { "372",     EVENT_NUMERIC_RPL_MOTD },
+    { "376",     EVENT_NUMERIC_RPL_ENDOFMOTD },
     { "QUIT",    EVENT_QUIT },
     { NULL, EVENT_NONE }
 };

@@ -8,9 +8,13 @@ static void get_time(char *hhmmss)
     strftime(hhmmss, 6, "%H:%M", info);
 }
 
-static void feed_server_info(event_t *event)
+static void feed_info(event_t *event)
 {
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", event->message);
+    char hhmmss[6];
+    get_time(hhmmss);
+
+    printf("\r\x1b[0K\x1b[2m%s %s\x1b[0m\r\n",
+        hhmmss, event->message);
 }
 
 static void feed_notice(event_t *event)
@@ -127,7 +131,10 @@ void feed_render(event_t *event)
     case EVENT_NUMERIC_RPL_CREATED:
     case EVENT_NUMERIC_RPL_MYINFO:
     case EVENT_NUMERIC_RPL_BOUNCE:
-        feed_server_info(event);
+    case EVENT_NUMERIC_RPL_MOTDSTART:
+    case EVENT_NUMERIC_RPL_MOTD:
+    case EVENT_NUMERIC_RPL_ENDOFMOTD:
+        feed_info(event);
         break;
 
     default:
