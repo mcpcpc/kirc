@@ -13,6 +13,15 @@ static void feed_server_info(event_t *event)
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", event->message);
 }
 
+static void feed_notice(event_t *event)
+{
+    char hhmmss[6];
+    get_time(hhmmss);
+
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m %s\r\n",
+        hhmmss, event->nickname, event->message);
+}
+
 static void feed_privmsg(event_t *event)
 {
     char hhmmss[6];
@@ -109,10 +118,15 @@ void feed_render(event_t *event)
         feed_nick(event);
         break;
 
+    case EVENT_NOTICE:
+        feed_notice(event);
+        break;
+
     case EVENT_NUMERIC_RPL_WELCOME:
     case EVENT_NUMERIC_RPL_YOURHOST:
     case EVENT_NUMERIC_RPL_CREATED:
     case EVENT_NUMERIC_RPL_MYINFO:
+    case EVENT_NUMERIC_RPL_BOUNCE:
         feed_server_info(event);
         break;
 

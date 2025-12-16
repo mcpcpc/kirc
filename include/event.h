@@ -10,10 +10,12 @@ typedef enum {
     EVENT_PING,
     EVENT_PRIVMSG,
     EVENT_NICK,
+    EVENT_NOTICE,
     EVENT_NUMERIC_RPL_WELCOME,
     EVENT_NUMERIC_RPL_YOURHOST,
     EVENT_NUMERIC_RPL_CREATED,
     EVENT_NUMERIC_RPL_MYINFO,
+    EVENT_NUMERIC_RPL_BOUNCE,
     EVENT_QUIT
 } event_type_t;
 
@@ -28,10 +30,12 @@ static const event_map_t event_map[] = {
     { "PING",    EVENT_PING },
     { "PRIVMSG", EVENT_PRIVMSG },
     { "NICK",    EVENT_NICK },
+    { "NOTICE",  EVENT_NOTICE },
     { "001",     EVENT_NUMERIC_RPL_WELCOME },
     { "002",     EVENT_NUMERIC_RPL_YOURHOST },
     { "003",     EVENT_NUMERIC_RPL_CREATED },
     { "004",     EVENT_NUMERIC_RPL_MYINFO },
+    { "005",     EVENT_NUMERIC_RPL_BOUNCE },
     { "QUIT",    EVENT_QUIT },
     { NULL, EVENT_NONE }
 };
