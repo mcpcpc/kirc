@@ -2,7 +2,8 @@
 
 static void editor_backspace(editor_t *editor)
 {
-    int len = strlen(editor->scratch);
+    int siz = sizeof(editor->scratch) - 1;
+    int len = strnlen(editor->scratch, siz);
 
     if (editor->cursor - 1 < 0) {
         return;  /* nothing to delete or out of range */
@@ -38,7 +39,7 @@ static void editor_delete(editor_t *editor)
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
 
-    if (editor->cursor >= len) {
+    if (editor->cursor > len) {
         return;  /* at end of scratch */
     }
 
