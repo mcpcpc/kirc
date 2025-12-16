@@ -9,10 +9,10 @@ terminal environment.
 Features
 --------
 
-- Small, portable C codebase with minimal runtime requirements
-- Keyboard-centric editing and navigation
-- Simple command and message aliases for fast interaction
-- Lightweight build using a standard Makefile
+* Small, portable C codebase with minimal runtime requirements
+* Keyboard-centric editing and navigation
+* Simple command and message aliases for fast interaction
+* Lightweight build using a standard Makefile
 
 Install
 -------
@@ -96,5 +96,5 @@ See the `LICENSE` file in the repository for details.
 References
 ----------
 
-- RFC 1459 — Internet Relay Chat Protocol
-- RFC 2222 — Simple Authentication and Security Layer (SASL)
+* RFC 1459 — Internet Relay Chat Protocol
+* RFC 2222 — Simple Authentication and Security Layer (SASL)
