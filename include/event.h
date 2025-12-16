@@ -42,7 +42,7 @@ typedef struct {
 static const event_map_t event_map[] = {
     { "CAP",     EVENT_CAP },
     { "JOIN",    EVENT_JOIN },
-    { "MODE";    EVENT_MODE },
+    { "MODE",    EVENT_MODE },
     { "NICK",    EVENT_NICK },
     { "NOTICE",  EVENT_NOTICE },
     { "PART",    EVENT_PART },
