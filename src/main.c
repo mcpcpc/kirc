@@ -257,7 +257,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                         network_send(&network, "PONG\r\n");
                     }
 
-                    if (event.type == EVENT_JOIN) {
+                    if (event.type == EVENT_NUMERIC_RPL_WELCOME) {
                         for (int i = 0; ctx->channels[i][0] != '\0'; ++i) {
                             network_send(&network, "JOIN %s\r\n",
                                 ctx->channels[i]);

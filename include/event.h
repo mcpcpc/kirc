@@ -12,7 +12,7 @@ typedef enum {
     EVENT_QUIT,
     EVENT_NICK,
     EVENT_NUMERIC,
-    EVENT_RAW
+    EVENT_NUMERIC_RPL_WELCOME
 } event_type_t;
 
 typedef struct {

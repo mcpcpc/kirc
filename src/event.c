@@ -50,7 +50,7 @@ int event_init(event_t *event, kirc_t *ctx, char *line)
     }
 
     if (!strncmp(event->command, "001", 3)) {
-        event->type = EVENT_JOIN;
+        event->type = EVENT_NUMERIC_RPL_WELCOME;
         return 0;
     } else if (!strncmp(event->command, "QUIT", 4)) {
         event->type = EVENT_QUIT;
