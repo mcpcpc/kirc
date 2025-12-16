@@ -1,5 +1,5 @@
-kirc — KISS IRC client
-======================
+kirc
+====
 
 kirc is a tiny, dependency-light IRC client that follows the
 "Keep It Simple, Stupid" (KISS) philosophy. It is intended for
@@ -8,6 +8,7 @@ terminal environment.
 
 Features
 --------
+
 - Small, portable C codebase with minimal runtime requirements
 - Keyboard-centric editing and navigation
 - Simple command and message aliases for fast interaction
@@ -15,6 +16,7 @@ Features
 
 Install
 -------
+
 Build and install from source (system-wide install requires
 appropriate privileges):
 
@@ -36,11 +38,12 @@ the manpage or run `kirc -h`.
 
 Examples
 --------
-- Connect to the default host with nickname `alice`:
+
+Connect to the default host with nickname `alice`:
 
     kirc alice
 
-- Connect to a specific server and join channels:
+Connect to a specific server and join channels:
 
     kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
 
@@ -54,6 +57,7 @@ Commands & Aliases
 
 Key Bindings
 ------------
+
 Control keys are mapped to familiar text-editing bindings:
 
     CTRL+B             move cursor left
@@ -65,28 +69,32 @@ Control keys are mapped to familiar text-editing bindings:
 
 Configuration
 -------------
+
 kirc is intentionally minimal and uses command-line options for
 configuration. If you need persistent settings, wrap your
 invocation in a shell script or alias.
 
 Contributing
 ------------
+
 Contributions are welcome. Please open issues or pull requests on
 the project's GitHub repository. Keep changes small and focused —
 the project favors simplicity and clarity.
 
 Reporting Bugs
 --------------
+
 Please open issues on GitHub with a clear description, steps to
 reproduce, and relevant environment details (OS, compiler, any
 runtime output).
 
 License
 -------
-This project is provided under the terms of its existing
-license. See the `LICENSE` file in the repository for details.
+
+See the `LICENSE` file in the repository for details.
 
 References
 ----------
+
 - RFC 1459 — Internet Relay Chat Protocol
 - RFC 2222 — Simple Authentication and Security Layer (SASL)
