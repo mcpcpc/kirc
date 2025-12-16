@@ -136,6 +136,7 @@ void feed_render(event_t *event)
         break;
 
     case EVENT_CAP:
+    case EVENT_MODE:
     case EVENT_NUMERIC_RPL_WELCOME:
     case EVENT_NUMERIC_RPL_YOURHOST:
     case EVENT_NUMERIC_RPL_CREATED:
