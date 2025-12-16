@@ -17,6 +17,15 @@ static void feed_info(event_t *event)
         hhmmss, event->message);
 }
 
+static void feed_error(event_t *event)
+{
+    char hhmmss[6];
+    get_time(hhmmss);
+
+    printf("\r\x1b[0K\x1b[2m%s \x1b[1;31m%s\x1b[0m\r\n",
+        hhmmss, event->message);
+}
+
 static void feed_notice(event_t *event)
 {
     char hhmmss[6];
@@ -126,6 +135,7 @@ void feed_render(event_t *event)
         feed_notice(event);
         break;
 
+    case EVENT_CAP:
     case EVENT_NUMERIC_RPL_WELCOME:
     case EVENT_NUMERIC_RPL_YOURHOST:
     case EVENT_NUMERIC_RPL_CREATED:
@@ -142,7 +152,12 @@ void feed_render(event_t *event)
     case EVENT_NUMERIC_RPL_MOTDSTART:
     case EVENT_NUMERIC_RPL_MOTD:
     case EVENT_NUMERIC_RPL_ENDOFMOTD:
+    case EVENT_NUMERIC_RPL_SASLMECHS:
         feed_info(event);
+        break;
+
+    case EVENT_NUMERIC_ERR_SASLFAIL:
+        feed_error(event);
         break;
 
     default:

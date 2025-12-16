@@ -5,6 +5,7 @@
 
 typedef enum {
     EVENT_NONE = 0,
+    EVENT_CAP,
     EVENT_JOIN,
     EVENT_PART,
     EVENT_PING,
@@ -27,6 +28,8 @@ typedef enum {
     EVENT_NUMERIC_RPL_MOTD,
     EVENT_NUMERIC_RPL_MOTDSTART,
     EVENT_NUMERIC_RPL_ENDOFMOTD,
+    EVENT_NUMERIC_ERR_SASLFAIL,
+    EVENT_NUMERIC_RPL_SASLMECHS,
     EVENT_QUIT
 } event_type_t;
 
@@ -36,7 +39,9 @@ typedef struct {
 } event_map_t;
 
 static const event_map_t event_map[] = {
+    { "CAP",     EVENT_CAP },
     { "JOIN",    EVENT_JOIN },
+    
     { "PART",    EVENT_PART },
     { "PING",    EVENT_PING },
     { "PRIVMSG", EVENT_PRIVMSG },
@@ -58,6 +63,8 @@ static const event_map_t event_map[] = {
     { "375",     EVENT_NUMERIC_RPL_MOTDSTART },
     { "372",     EVENT_NUMERIC_RPL_MOTD },
     { "376",     EVENT_NUMERIC_RPL_ENDOFMOTD },
+    { "904",     EVENT_NUMERIC_ERR_SASLFAIL },
+    { "908",     EVENT_NUMERIC_RPL_SASLMECHS },
     { "QUIT",    EVENT_QUIT },
     { NULL, EVENT_NONE }
 };

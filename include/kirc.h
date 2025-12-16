@@ -56,6 +56,7 @@ typedef struct {
     char password[RFC1459_MESSAGE_MAX_LEN];
     char channels[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
     char selected[KIRC_CHAN_LIMIT];
+    char auth[RFC1459_MESSAGE_MAX_LEN];
     int filtered;
 } kirc_t;
 

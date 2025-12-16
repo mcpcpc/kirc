@@ -16,6 +16,7 @@ static void kirc_usage(const char *argv0)
         "  -r <realname>  User real name\n"
         "  -u <username>  Account username\n"
         "  -k <password>  Account password\n"
+        "  -a <auth>      SASL authentication\n"
         "  -h             Show this help\n",
         argv0);
 }
@@ -86,7 +87,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "s:p:r:u:k:c:h")) > 0) {
+    while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:h")) > 0) {
         switch (opt) {
         case 'h':  /* help */
             kirc_usage(argv[0]);
@@ -123,6 +124,11 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
                 strncpy(ctx->channels[idx], tok, channels_n);
                 idx += 1;
             }
+            break;
+
+        case 'a':  /* SASL authentication */
+            size_t auth_n = sizeof(ctx->auth) - 1;
+            strncpy(ctx->auth, optarg, auth_n);
             break;
 
         case ':':
@@ -177,6 +183,10 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         return KIRC_ERR_PARSE;
     }
 
+    if (ctx->auth[0] != '\0') {
+        network_send(&network, "CAP REQ :sasl\r\n");
+    }
+
     network_send(&network, "NICK %s\r\n", ctx->nickname);
     
     char *username, *realname;
@@ -195,6 +205,21 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
     network_send(&network, "USER %s - - :%s\r\n",
         username, realname);
+
+    if (ctx->auth[0] != '\0') {
+        char *mechanism = strtok(ctx->auth, ":");
+        char *data = strtok(NULL, ":");
+
+        if (strcmp(mechanism, "EXTERNAL") == 0) {
+            network_send(&network, "AUTHENTICATE EXTERNAL\r\n");
+        } else {
+            network_send(&network, "AUTHENTICATE %s\r\n",
+                mechanism);
+            network_send(&network, "AUTHENTICATE %s\r\n",
+                data);
+        }
+        network_send(&network, "CAP END\r\n");
+    }
 
     if (ctx->password[0] != '\0') {
         network_send(&network, "PASS %s\r\n",
