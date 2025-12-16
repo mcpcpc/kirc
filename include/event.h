@@ -5,24 +5,45 @@
 
 typedef enum {
     EVENT_NONE = 0,
-    EVENT_PING,
-    EVENT_PRIVMSG,
     EVENT_JOIN,
     EVENT_PART,
-    EVENT_QUIT,
+    EVENT_PING,
+    EVENT_PRIVMSG,
     EVENT_NICK,
-    EVENT_NUMERIC,
-    EVENT_NUMERIC_RPL_WELCOME
+    EVENT_NUMERIC_RPL_WELCOME,
+    EVENT_NUMERIC_RPL_YOURHOST,
+    EVENT_NUMERIC_RPL_CREATED,
+    EVENT_NUMERIC_RPL_MYINFO,
+    EVENT_QUIT
 } event_type_t;
 
 typedef struct {
-    kirc_t *ctx;
+    const char *command;
     event_type_t type;
+} event_map_t;
+
+static const event_map_t event_map[] = {
+    { "JOIN",    EVENT_JOIN },
+    { "PART",    EVENT_PART },
+    { "PING",    EVENT_PING },
+    { "PRIVMSG", EVENT_PRIVMSG },
+    { "NICK",    EVENT_NICK },
+    { "001",     EVENT_NUMERIC_RPL_WELCOME },
+    { "002",     EVENT_NUMERIC_RPL_YOURHOST },
+    { "003",     EVENT_NUMERIC_RPL_CREATED },
+    { "004",     EVENT_NUMERIC_RPL_MYINFO },
+    { "QUIT",    EVENT_QUIT },
+    { NULL, EVENT_NONE }
+};
+
+typedef struct {
+    kirc_t *ctx;
     char channel[RFC1459_CHANNEL_MAX_LEN];
     char message[RFC1459_MESSAGE_MAX_LEN];
     char command[RFC1459_MESSAGE_MAX_LEN];
     char nickname[RFC1459_MESSAGE_MAX_LEN];
     char params[RFC1459_MESSAGE_MAX_LEN];
+    event_type_t type;
 } event_t;
 
 int event_init(event_t *ev, kirc_t *ctx, char *line);

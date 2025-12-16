@@ -49,26 +49,11 @@ int event_init(event_t *event, kirc_t *ctx, char *line)
         strncpy(event->params, params, params_n);
     }
 
-    if (!strncmp(event->command, "001", 3)) {
-        event->type = EVENT_NUMERIC_RPL_WELCOME;
-        return 0;
-    } else if (!strncmp(event->command, "QUIT", 4)) {
-        event->type = EVENT_QUIT;
-        return 0;
-    } else if (!strncmp(event->command, "PART", 4)) {
-        event->type = EVENT_PART;
-        return 0;
-    } else if (!strncmp(event->command, "JOIN", 4)) {
-        event->type = EVENT_JOIN;
-        return 0;
-    } else if (!strncmp(event->command, "NICK", 4)) {
-        event->type = EVENT_NICK;
-        return 0;
-    } else if (!strncmp(event->command, "PRIVMSG", 7)) {
-        event->type = EVENT_PRIVMSG;
-        return 0;
-    } else {
-        return 1;
+    for (int i = 0; event_map[i].command != NULL; i++) {
+        if (strcmp(event->command, event_map[i].command) == 0) {
+            event->type = event_map[i].type;
+            break;
+        }
     }
 
     return 0;
