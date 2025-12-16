@@ -98,3 +98,5 @@ References
 
 * RFC 1459 — Internet Relay Chat Protocol
 * RFC 2222 — Simple Authentication and Security Layer (SASL)
+* RFC 4616 - The PLAIN Simple Authentication and Security Layer 
+             (SASL) Mechanism
