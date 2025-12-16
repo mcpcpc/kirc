@@ -279,7 +279,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     event_init(&event, ctx, msg);
 
                     if (event.type == EVENT_PING) {
-                        network_send(&network, "PONG :%s\r\n"
+                        network_send(&network, "PONG :%s\r\n",
                             event.message);
                     }
 
