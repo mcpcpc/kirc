@@ -66,7 +66,7 @@ static const event_map_t event_map[] = {
     { "265",     EVENT_NUMERIC_RPL_LOCALUSERS },
     { "266",     EVENT_NUMERIC_RPL_GLOBALUSERS },
     { "332",     EVENT_NUMERIC_RPL_TOPIC },
-    { "333";     EVENT_NUMERIC_RPL_TOPICWHOTIME },
+    { "333",     EVENT_NUMERIC_RPL_TOPICWHOTIME },
     { "353",     EVENT_NUMERIC_RPL_NAMREPLY },
     { "366",     EVENT_NUMERIC_RPL_ENDOFNAMES },
     { "375",     EVENT_NUMERIC_RPL_MOTDSTART },
