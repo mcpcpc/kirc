@@ -35,6 +35,16 @@ static void editor_enter(editor_t *editor)
 
 static void editor_delete(editor_t *editor)
 {
+    int siz = sizeof(editor->scratch) - 1;
+    int len = strlen(editor->scratch, siz);
+
+    if (editor->cursor >= len) {
+        return;  /* at end of scratch */
+    }
+
+    memmove(editor->scratch + editor->cursor,
+        editor->scratch + editor->cursor + 1,
+        len - editor->cursor);
 }
 
 static void editor_history(editor_t *editor, int dir)
