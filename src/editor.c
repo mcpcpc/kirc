@@ -93,19 +93,18 @@ static void editor_move_end(editor_t *editor)
 static void editor_escape(editor_t *editor)
 {
     char seq[3];
-    int tty_fd = editor->ctx->tty_fd;
 
-    if (read(tty_fd, &seq[0], 1) != 1) {
+    if (read(STDIN_FILENO, &seq[0], 1) != 1) {
         return;
     }
 
-    if (read(tty_fd, &seq[1], 1) != 1) {
+    if (read(STDIN_FILENO, &seq[1], 1) != 1) {
         return;
     }
 
     if (seq[0] == '[') {
         if (seq[1] >= '0' && seq[1] <= '9') {
-            if (read(tty_fd, &seq[2], 1) != 1) {
+            if (read(STDIN_FILENO, &seq[2], 1) != 1) {
                 return;
             }
 
@@ -184,9 +183,8 @@ int editor_init(editor_t *editor, kirc_t *ctx)
 int editor_process_key(editor_t *editor)
 {
     char c;
-    int tty_fd = editor->ctx->tty_fd;
     
-    if (read(tty_fd, &c, 1) < 1) {
+    if (read(STDIN_FILENO, &c, 1) < 1) {
         return 1; 
     }
 
@@ -222,7 +220,7 @@ int editor_process_key(editor_t *editor)
 
 int editor_render(editor_t *editor)
 {
-    int cols = terminal_columns(editor->ctx->tty_fd);
+    int cols = terminal_columns(STDIN_FILENO);
     int start = editor->cursor - (cols - 1) < 0 ?
         0 : editor->cursor - (cols - 1);
 

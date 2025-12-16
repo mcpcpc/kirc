@@ -79,7 +79,7 @@ int terminal_columns(int tty_fd)
 
 int terminal_enable_raw(terminal_t *terminal)
 {
-    if (!isatty(terminal->ctx->tty_fd)) {
+    if (!isatty(STDIN_FILENO)) {
         return -1;
     }
 
@@ -87,7 +87,7 @@ int terminal_enable_raw(terminal_t *terminal)
         return 0;
     }
     
-    if (tcgetattr(terminal->ctx->tty_fd,
+    if (tcgetattr(STDIN_FILENO,
         &terminal->original) == -1) {
         return -1;
     }
@@ -101,8 +101,7 @@ int terminal_enable_raw(terminal_t *terminal)
     raw.c_cc[VMIN]  = 1;
     raw.c_cc[VTIME] = 0;
 
-    if (tcsetattr(terminal->ctx->tty_fd,
-        TCSAFLUSH, &raw) == -1) {
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
         return -1;
     }
 
@@ -117,8 +116,7 @@ void terminal_disable_raw(terminal_t *terminal)
         return;
     }
 
-    tcsetattr(terminal->ctx->tty_fd, TCSAFLUSH,
-        &terminal->original);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &terminal->original);
     terminal->raw_mode_enabled = 0;
 }
 

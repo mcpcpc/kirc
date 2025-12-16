@@ -33,7 +33,6 @@ static int kirc_init(kirc_t *ctx)
     size_t channels_n = sizeof(ctx->channels[0]) - 1;
     strncpy(ctx->channels[0], "#chat", channels_n);
 
-    ctx->tty_fd = STDIN_FILENO;
     ctx->filtered = 0;
 
     const char *env;
@@ -215,7 +214,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
     }
 
     struct pollfd fds[2] = {
-        { .fd = ctx->tty_fd, .events = POLLIN },
+        { .fd = STDIN_FILENO, .events = POLLIN },
         { .fd = network.fd, .events = POLLIN }
     };
 
