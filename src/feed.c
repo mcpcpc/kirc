@@ -8,6 +8,11 @@ static void get_time(char *hhmmss)
     strftime(hhmmss, 6, "%H:%M", info);
 }
 
+static void feed_server_info(event_t *event)
+{
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", event->message);
+}
+
 static void feed_privmsg(event_t *event)
 {
     char hhmmss[6];
@@ -102,6 +107,13 @@ void feed_render(event_t *event)
 
     case EVENT_NICK:
         feed_nick(event);
+        break;
+
+    case EVENT_NUMERIC_RPL_WELCOME:
+    case EVENT_NUMERIC_RPL_YOURHOST:
+    case EVENT_NUMERIC_RPL_CREATED:
+    case EVENT_NUMERIC_RPL_MYINFO:
+        feed_server_info(event);
         break;
 
     default:
