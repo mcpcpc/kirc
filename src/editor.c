@@ -74,7 +74,9 @@ static void editor_move_home(editor_t *editor)
 
 static void editor_move_end(editor_t *editor)
 {
-    editor->cursor = strlen(editor->scratch);
+    size_t siz = sizeof(editor->scratch) - 1;
+
+    editor->cursor = strnlen(editor->scratch, siz);
 }
 
 static void editor_escape(editor_t *editor)
