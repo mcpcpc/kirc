@@ -1,0 +1,63 @@
+.\"Manpage for kirc.
+.TH KIRC 1 "DECEMBER 2025" Linux "User Manuals"
+.SH NAME
+kirc \- KISS for IRC
+.SH SYNOPSIS
+.B kirc
+.RB [<options>]
+.RB <nickname>
+.SH DESCRIPTION
+.B kirc
+is an extremely fast and simple IRC client designed with portability in mind.
+This client reads from STDIN and prints to STDOUT, so all traffic can
+multiplexed and text parsed or modified using external commands. All highlighted
+text and color can be controlled with ANSI escape sequences.
+.SH OPTIONS
+.TP
+.BI \-s " server"
+Overrides the default IRC server hostname (irc.libera.chat)
+.TP
+.BI \-p " port"
+Overrides the default IRC server port (6697)
+.TP
+.BI \-c " channel(s)"
+Specifies the channel(s) to JOIN (delimited by "," or "|"). Note that the first
+channel in the list will be used as the default messaging channel after startup
+.TP
+.BI \-r " realname"
+Specifies the users real name. By default, the client uses the nickname during
+the initial connection
+.TP
+.BI \-u " username"
+Specifies the USER connection username. By default, the client will assume the
+username to be the nickname during the initial connection
+.TP
+.BI \-k " password"
+Specifies the plain text PASS connection value associated with the respective
+username or nickname
+.TP
+.BI \-a " auth"
+Specifies SASL authentication mechanism and token value to be used. The argument
+value is comprised of a comma (",") delimited string, where the first token is
+equal to the mechanism (i.e. "PLAIN, "EXTERNAL", etc.) and the second string is
+the BASE64 encoded authentication token
+.SH COMMANDS
+.TP
+.BI /<command>
+Send message to IRC host (e.g. /JOIN, /PART, /WHOIS, etc.)
+.TP
+.BI /#<channel>
+Set default message channel to <channel>
+.TP
+.BI <message>
+Send PRIVMSG to default message channel with <message> as the content
+.TP
+.BI @<nickname> " <message>"
+Send
+.I <message>
+to a specified
+.I <nickname>
+.SH AUTHOR
+Michael Czigler <michaelczigler at icloud dot com>
+.SH BUGS
+Please report them!

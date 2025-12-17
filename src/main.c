@@ -4,23 +4,6 @@
 #include "network.h"
 #include "terminal.h"
 
-static void kirc_usage(const char *argv0)
-{
-    fprintf(stderr,
-        "Usage: %s [args] <nickname>\n"
-        "\n"
-        "Optional Arguments:\n"
-        "  -s <server>    Server hostname (default: irc.libera.chat)\n"
-        "  -p <port>      Server port (default: 6667)\n"
-        "  -c <channels>  List of channel(s) (default: #chat)\n"
-        "  -r <realname>  User real name\n"
-        "  -u <username>  Account username\n"
-        "  -k <password>  Account password\n"
-        "  -a <auth>      SASL authentication\n"
-        "  -h             Show this help\n",
-        argv0);
-}
-
 static int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
@@ -87,12 +70,8 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:h")) > 0) {
+    while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:")) > 0) {
         switch (opt) {
-        case 'h':  /* help */
-            kirc_usage(argv[0]);
-            return -1;
-
         case 's':  /* server */
             size_t server_n = sizeof(ctx->server) - 1;
             strncpy(ctx->server, optarg, server_n);
