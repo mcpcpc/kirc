@@ -107,20 +107,6 @@ static void feed_nick(event_t *event)
         hhmmss, event->nickname, event->message);
 }
 
-static void feed_channel(event_t *event)
-{
-    char hhmmss[6];
-    get_time(hhmmss);
-
-    if (event->channel[0] != '\0') {
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
-            hhmmss, event->channel, event->message);
-    } else {
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
-            hhmmss, event->nickname, event->message);
-    }
-}
-
 void feed_render(event_t *event)
 {
     if (event->ctx->filtered) {
