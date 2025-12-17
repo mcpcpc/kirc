@@ -217,6 +217,7 @@ void feed_render(event_t *event)
     case EVENT_444_ERR_NOLOGIN:
     case EVENT_445_ERR_SUMMONDISABLED:
     case EVENT_446_ERR_USERSDISABLED:
+    case EVENT_465_ERR_YOUREBANNEDCREEP:
     case EVENT_904_ERR_SASLFAIL:
         feed_error(event);
         break;
