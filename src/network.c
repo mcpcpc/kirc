@@ -139,7 +139,7 @@ int network_command_handler(network_t *network, char *msg)
     return 0;
 }
 
-int network_plain_authenticate(network_t *network, char *data)
+int network_authenticate_plain(network_t *network, char *data)
 {
     int len = strlen(data);
     int chunk_size = IRCV3_AUTHENTICATE_CHUNK_SIZE;
@@ -160,7 +160,7 @@ int network_plain_authenticate(network_t *network, char *data)
     return 0;
 }
 
-int network_external_authenticate(network_t *network)
+int network_authenticate_external(network_t *network)
 {
     network_send(network, "AUTHENTICATE EXTERNAL\r\n");
     network_send(network, "AUTHENTICATE +\r\n");
