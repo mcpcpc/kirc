@@ -88,6 +88,7 @@ typedef enum {
     EVENT_465_ERR_YOUREBANNEDCREEP,
     EVENT_900_RPL_LOGGEDIN,
     EVENT_904_ERR_SASLFAIL,
+    EVENT_906_ERR_SASLABORTED,
     EVENT_908_RPL_SASLMECHS
 } event_type_t;
 
@@ -180,6 +181,7 @@ static const event_map_t event_map[] = {
     { "465",     EVENT_465_ERR_YOUREBANNEDCREEP },
     { "900",     EVENT_900_RPL_LOGGEDIN },
     { "904",     EVENT_904_ERR_SASLFAIL },
+    { "906",     EVENT_906_ERR_SASLABORTED },
     { "908",     EVENT_908_RPL_SASLMECHS },
     { NULL,      EVENT_NONE }
 };
