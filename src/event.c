@@ -12,6 +12,8 @@ int event_init(event_t *event, kirc_t *ctx, char *line)
 
     if (strncmp(line, "PING", 4) == 0) {
         event->type = EVENT_PING;
+        size_t message_n = sizeof(event->message) - 1;
+        strncpy(event->message, line + 6, message_n);
         return 0;
     }
 
