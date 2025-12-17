@@ -44,17 +44,30 @@ static void feed_notice(event_t *event)
         hhmmss, event->nickname, event->message);
 }
 
-static void feed_privmsg(event_t *event)
+static void feed_privmsg_direct(event_t *event)
 {
     char hhmmss[6];
     get_time(hhmmss);
 
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m \x1b[34m%s\x1b[0m\r\n",
+        hhmmss, event->nickname, event->message);
+}
+
+static void feed_privmsg_indirect(event_t *event)
+{
+    char hhmmss[6];
+    get_time(hhmmss);
+
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
+        hhmmss, event->nickname, event->message);
+}
+
+static void feed_privmsg(event_t *event)
+{
     if (strcmp(event->channel, event->ctx->nickname) == 0) {
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m \x1b[34m%s\x1b[0m\r\n",
-            hhmmss, event->nickname, event->message);
+        feed_privmsg_direct(event);
     } else {
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
-            hhmmss, event->nickname, event->message);
+        feed_privmsg_indirect(event);
     }
 }
 
