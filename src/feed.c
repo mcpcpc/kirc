@@ -188,6 +188,7 @@ void feed_render(event_t *event)
         feed_info(event);
         break;
 
+    case EVENT_ERROR:
     case EVENT_400_ERR_UNKNOWNERROR:
     case EVENT_401_ERR_NOSUCHNICK:
     case EVENT_402_ERR_NOSUCHSERVER:
