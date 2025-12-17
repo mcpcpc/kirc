@@ -145,6 +145,7 @@ void feed_render(event_t *event)
 
     case EVENT_CAP:
     case EVENT_MODE:
+    case EVENT_TOPIC:
     case EVENT_001_RPL_WELCOME:
     case EVENT_002_RPL_YOURHOST:
     case EVENT_003_RPL_CREATED:
