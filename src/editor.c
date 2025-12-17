@@ -168,6 +168,11 @@ static void editor_clear(editor_t *editor)
     printf("\r\x1b[0K");
 }
 
+static void editor_toggle_filter(editor_t *editor)
+{
+    editor->ctx->filtered = !editor->ctx->filtered;
+}
+
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));
@@ -185,7 +190,7 @@ int editor_process_key(editor_t *editor)
     char c;
     
     if (read(STDIN_FILENO, &c, 1) < 1) {
-        return 1; 
+        return 1;
     }
 
     switch(c) {
@@ -196,6 +201,10 @@ int editor_process_key(editor_t *editor)
 
     case 21:  /* CTRL-U */
         editor_delete_whole_line(editor);
+        break;
+
+    case 6: /* CTRL-F */
+        editor_toggle_filter(editor);
         break;
 
     case 127:  /* DELETE */
@@ -247,9 +256,10 @@ int editor_render(editor_t *editor)
     int start = editor->cursor - (cols - size - 1) < 0 ?
         0 : editor->cursor - (cols - size - 1);
 
-    printf("\r\x1b[7;34m%s:\x1b[0m\x1b[7m%.*s\x1b[0m \x1b[0K",
-        editor->ctx->selected, cols - size - 1,
-        editor->scratch + start);
+    printf("\r\x1b[7;34m%s%c\x1b[0m\x1b[7m%.*s\x1b[0m \x1b[0K",
+        editor->ctx->selected,
+        editor->ctx->filtered ? '~' : ':',
+        cols - size - 1, editor->scratch + start);
 
     printf("\r\x1b[%dC", editor->cursor + size);
 
