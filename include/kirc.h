@@ -22,7 +22,7 @@
 #endif
 
 #ifndef KIRC_HISTORY_SIZE
-#define KIRC_HISTORY_SIZE 128
+#define KIRC_HISTORY_SIZE 32
 #endif
 
 #include <ctype.h>

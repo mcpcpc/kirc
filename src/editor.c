@@ -1,5 +1,31 @@
 #include "editor.h"
 
+const char * editor_history_get(editor_t *editor,
+        size_t offset)
+{
+    if (offset >= editor->count) {
+        return NULL; 
+    }
+
+    size_t index = (editor->head + KIRC_HISTORY_SIZE -
+        1 - offset) % KIRC_HISTORY_SIZE;
+
+    return editor->history[index];
+}
+
+static void editor_history_add(editor_t *editor,
+        const char *value)
+{
+    int siz = sizeof(editor->history[editor->head]) - 1;
+    
+    strncpy(editor->history[editor->head], value, siz);
+    editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
+
+    if (editor->count < KIRC_HISTORY_SIZE) {
+        editor->count++;
+    }
+}
+
 static void editor_backspace(editor_t *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -24,12 +50,15 @@ static void editor_delete_whole_line(editor_t *editor)
 
 static void editor_enter(editor_t *editor)
 {
+    /*
     int siz = sizeof(editor->scratch) - 1;
 
     strncpy(editor->history[editor->head],
         editor->scratch, siz);
 
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
+    */
+    editor_history_add(editor, editor->scratch);
 
     editor_delete_whole_line(editor);
 }
@@ -50,6 +79,7 @@ static void editor_delete(editor_t *editor)
 
 static void editor_history(editor_t *editor, int dir)
 {
+    int siz = sizeof(editor->scratch) - 1;
 }
 
 static void editor_move_right(editor_t *editor)
