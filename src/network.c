@@ -150,3 +150,13 @@ int network_init(network_t *network, kirc_t *ctx)
 
     return 0;
 }
+
+int network_free(network_t *network)
+{
+    if (network->fd != -1) {
+        close(network->fd);
+        network->fd = -1;
+    }
+
+    return 0;
+}

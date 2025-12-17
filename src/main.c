@@ -288,6 +288,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
     } 
 
     terminal_disable_raw(&terminal);
+    network_free(&network);
 
     return KIRC_OK;
 }
