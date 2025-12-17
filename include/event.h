@@ -19,6 +19,7 @@ typedef enum {
     EVENT_003_RPL_CREATED,
     EVENT_004_RPL_MYINFO,
     EVENT_005_RPL_BOUNCE,
+    EVENT_042_RPL_YOURID,
     EVENT_200_RPL_TRACELINK,
     EVENT_201_RPL_TRACECONNECTING,
     EVENT_202_RPL_TRACEHANDSHAKE,
@@ -88,6 +89,7 @@ static const event_map_t event_map[] = {
     { "003",     EVENT_003_RPL_CREATED },
     { "004",     EVENT_004_RPL_MYINFO },
     { "005",     EVENT_005_RPL_BOUNCE },
+    { "042",     EVENT_042_RPL_YOURID },
     { "200",     EVENT_200_RPL_TRACELINK },
     { "201",     EVENT_201_RPL_TRACECONNECTING },
     { "202",     EVENT_202_RPL_TRACEHANDSHAKE },
@@ -140,6 +142,7 @@ static const event_map_t event_map[] = {
 
 typedef struct {
     kirc_t *ctx;
+    char raw[RFC1459_MESSAGE_MAX_LEN];
     char channel[RFC1459_CHANNEL_MAX_LEN];
     char message[RFC1459_MESSAGE_MAX_LEN];
     char command[RFC1459_MESSAGE_MAX_LEN];

@@ -6,6 +6,10 @@ int event_init(event_t *event, kirc_t *ctx, char *line)
     memset(event, 0, sizeof(*event));
 
     event->ctx = ctx;
+    event->type = EVENT_NONE;
+
+    size_t raw_n = sizeof(event->raw) - 1;
+    strncpy(event->raw, line, raw_n);
 
     if (strncmp(line, "PING", 4) == 0) {
         event->type = EVENT_PING;

@@ -8,6 +8,15 @@ static void get_time(char *hhmmss)
     strftime(hhmmss, 6, "%H:%M", info);
 }
 
+static void feed_raw(event_t *event)
+{
+    char hhmmss[6];
+    get_time(hhmmss);
+
+    printf("\r\x1b[0K\x1b[2m%s \x1b[0m\x1b[7m%s\x1b[0m\r\n",
+        hhmmss, event->raw);
+}
+
 static void feed_info(event_t *event)
 {
     char hhmmss[6];
@@ -142,6 +151,7 @@ void feed_render(event_t *event)
     case EVENT_003_RPL_CREATED:
     case EVENT_004_RPL_MYINFO:
     case EVENT_005_RPL_BOUNCE:
+    case EVENT_042_RPL_YOURID:
     case EVENT_200_RPL_TRACELINK:
     case EVENT_201_RPL_TRACECONNECTING:
     case EVENT_202_RPL_TRACEHANDSHAKE:
@@ -196,7 +206,7 @@ void feed_render(event_t *event)
         break;
 
     default:
-        feed_channel(event);
+        feed_raw(event);
         break;
     }
 }
