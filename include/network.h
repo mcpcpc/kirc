@@ -11,9 +11,12 @@ typedef struct {
 } network_t;
 
 void network_send(network_t *network, const char *fmt, ...);
+
 int network_receive(network_t *network);
 int network_connect(network_t *network);
 int network_command_handler(network_t *network, char *msg);
+int network_plain_authenticate(network_t *network, char *data);
+int network_external_authenticate(network_t *network);
 int network_init(network_t *network, kirc_t *ctx);
 int network_free(network_t *network);
 

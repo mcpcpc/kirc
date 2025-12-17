@@ -190,14 +190,11 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         char *data = strtok(NULL, ":");
 
         if (strcmp(mechanism, "EXTERNAL") == 0) {
-            network_send(&network, "AUTHENTICATE EXTERNAL\r\n");
-            network_send(&network, "AUTHENTICATE +\r\n");
+            network_external_authenticate(&network);
         } else {
-            network_send(&network, "AUTHENTICATE %s\r\n",
-                mechanism);
-            network_send(&network, "AUTHENTICATE %s\r\n",
-                data);
+            network_plain_authenticate(&network, data);
         }
+    
         network_send(&network, "CAP END\r\n");
     }
 
