@@ -155,8 +155,8 @@ void feed_render(event_t *event)
     case EVENT_333_RPL_TOPICWHOTIME:
     case EVENT_353_RPL_NAMREPLY:
     case EVENT_366_RPL_ENDOFNAMES:
-    case EVENT_375_RPL_MOTD:
-    case EVENT_372_RPL_MOTDSTART:
+    case EVENT_372_RPL_MOTD:
+    case EVENT_375_RPL_MOTDSTART:
     case EVENT_376_RPL_ENDOFMOTD:
     case EVENT_908_RPL_SASLMECHS:
         feed_info(event);
