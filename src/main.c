@@ -191,6 +191,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
         if (strcmp(mechanism, "EXTERNAL") == 0) {
             network_send(&network, "AUTHENTICATE EXTERNAL\r\n");
+            network_send(&network, "AUTHENTICATE +\r\n");
         } else {
             network_send(&network, "AUTHENTICATE %s\r\n",
                 mechanism);
