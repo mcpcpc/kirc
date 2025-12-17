@@ -226,6 +226,9 @@ static kirc_error_t kirc_run(kirc_t *ctx)
             ctx->password);
     }
 
+    size_t selected_n = sizeof(ctx->selected) - 1;
+    strncpy(ctx->selected, ctx->channels[0], selected_n);
+
     terminal_t terminal;
 
     if (terminal_init(&terminal, ctx) < 0) {
