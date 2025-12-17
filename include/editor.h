@@ -13,9 +13,6 @@ typedef struct {
     int cursor;
 } editor_t;
 
-const char * editor_history_get(editor_t *editor,
-        size_t offset);
-
 int editor_init(editor_t *editor, kirc_t *ctx);
 int editor_process_key(editor_t *editor);
 int editor_render(editor_t *editor);
