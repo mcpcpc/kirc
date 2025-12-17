@@ -6,7 +6,6 @@
 typedef enum {
     EVENT_NONE = 0,
     EVENT_CAP,
-    EVENT_ERROR,
     EVENT_JOIN,
     EVENT_MODE,
     EVENT_NICK,
@@ -95,7 +94,6 @@ typedef struct {
 
 static const event_map_t event_map[] = {
     { "CAP",     EVENT_CAP },
-    { "ERROR",   EVENT_ERROR },
     { "JOIN",    EVENT_JOIN },
     { "MODE",    EVENT_MODE },
     { "NICK",    EVENT_NICK },
