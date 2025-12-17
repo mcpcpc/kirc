@@ -107,10 +107,6 @@ int network_command_handler(network_t *network, char *msg)
             strncpy(network->ctx->selected, msg + 1, len);
             break;
 
-        case '$':  /* toggle channel filter */
-            network->ctx->filtered = !network->ctx->filtered;
-            break;
-
         default:  /* send raw server command */
             network_send(network, "%s\r\n", msg + 1);
             break;  
