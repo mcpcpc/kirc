@@ -203,7 +203,7 @@ int editor_process_key(editor_t *editor)
         editor_delete_whole_line(editor);
         break;
 
-    case 6: /* CTRL-F */
+    case 17: /* CTRL-Q */
         editor_toggle_filter(editor);
         break;
 

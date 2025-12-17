@@ -66,6 +66,7 @@ Control keys are mapped to familiar text-editing bindings:
     CTRL+A             move cursor to start of line
     CTRL+U             delete entire line
     CTRL+C             force quit kirc
+    CTRL+Q             toggle channel filter mode on/off
 
 Configuration
 -------------
