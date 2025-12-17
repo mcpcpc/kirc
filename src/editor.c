@@ -218,6 +218,7 @@ int editor_process_key(editor_t *editor)
     return 0;
 }
 
+/*
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(STDIN_FILENO);
@@ -232,6 +233,25 @@ int editor_render(editor_t *editor)
     } else {
         printf("\r");
     }
+
+    fflush(stdout);
+
+    return 0;
+}
+*/
+
+int editor_render(editor_t *editor)
+{
+    int cols = terminal_columns(STDIN_FILENO);
+    int size = strlen(editor->ctx->selected) + 1;
+    int start = editor->cursor - (cols - size - 1) < 0 ?
+        0 : editor->cursor - (cols - size - 1);
+
+    printf("\r\x1b[7;34m%s:\x1b[0m\x1b[7m%.*s\x1b[0m \x1b[0K",
+        editor->ctx->selected, cols - size - 1,
+        editor->scratch + start);
+
+    printf("\r\x1b[%dC", editor->cursor + size);
 
     fflush(stdout);
 

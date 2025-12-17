@@ -177,6 +177,7 @@ void feed_render(event_t *event)
     case EVENT_255_RPL_LUSERME:
     case EVENT_265_RPL_LOCALUSERS:
     case EVENT_266_RPL_GLOBALUSERS:
+    case EVENT_301_RPL_AWAY:
     case EVENT_328_RPL_CHANNEL_URL:
     case EVENT_332_RPL_TOPIC:
     case EVENT_333_RPL_TOPICWHOTIME:
