@@ -208,6 +208,9 @@ void feed_render(event_t *event)
     case EVENT_422_ERR_NOMOTD:
     case EVENT_423_ERR_NOADMININFO:
     case EVENT_424_ERR_FILEERROR:
+    case EVENT_431_ERR_NONICKNAMEGIVEN:
+    case EVENT_432_ERR_ERRONEUSNICKNAME:
+    case EVENT_433_ERR_NICKNAMEINUSE:
     case EVENT_904_ERR_SASLFAIL:
         feed_error(event);
         break;
