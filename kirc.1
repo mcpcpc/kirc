@@ -1,31 +1,37 @@
-.\"Manpage for kirc.
-.TH KIRC 1 "DECEMBER 2025" Linux "User Manuals"
+.TH KIRC 1 "December 2025" "kirc 1.0.0" "User Commands"
 .SH NAME
-kirc \- KISS for IRC
+kirc \- a tiny, dependency-light IRC client
 .SH SYNOPSIS
 .B kirc
 .RB [<options>]
 .RB <nickname>
 .SH DESCRIPTION
 .B kirc
-is an extremely fast and simple IRC client designed with portability in mind.
-This client reads from STDIN and prints to STDOUT, so all traffic can
+is an extremely fast and simple IRC client designed with portability in mind,
+following the "Keep It Simple, Stupid" (KISS) philosophy. It provides a
+keyboard-driven interface for IRC communication.
+.PP
+This client reads from STDIN and prints to STDOUT, so all traffic can be
 multiplexed and text parsed or modified using external commands. All highlighted
 text and color can be controlled with ANSI escape sequences.
+.PP
+For best results and rendering, use a terminal emulator with 256 color support,
+such as xterm-256color.
 .SH OPTIONS
 .TP
 .BI \-s " server"
 Overrides the default IRC server hostname (irc.libera.chat)
 .TP
 .BI \-p " port"
-Overrides the default IRC server port (6697)
+Overrides the default IRC server port (6667)
 .TP
 .BI \-c " channel(s)"
-Specifies the channel(s) to JOIN (delimited by "," or "|"). Note that the first
-channel in the list will be used as the default messaging channel after startup
+Specifies the channel(s) to JOIN (comma or pipe separated). Note that the first
+channel in the list will be used as the default messaging channel after startup.
+Default: #chat
 .TP
 .BI \-r " realname"
-Specifies the users real name. By default, the client uses the nickname during
+Specifies the user's real name. By default, the client uses the nickname during
 the initial connection
 .TP
 .BI \-u " username"
@@ -39,15 +45,39 @@ username or nickname
 .BI \-a " auth"
 Specifies SASL authentication mechanism and token value to be used. The argument
 value is comprised of a comma (",") delimited string, where the first token is
-equal to the mechanism (i.e. "PLAIN, "EXTERNAL", etc.) and the second string is
+equal to the mechanism (i.e. "PLAIN", "EXTERNAL", etc.) and the second string is
 the BASE64 encoded authentication token
+.SH ENVIRONMENT
+The following environment variables can be used to set defaults, which will be
+overridden by command-line options:
+.TP
+.B KIRC_SERVER
+Default IRC server hostname
+.TP
+.B KIRC_PORT
+Default server port
+.TP
+.B KIRC_CHANNELS
+Default channels to join (comma or pipe separated)
+.TP
+.B KIRC_REALNAME
+Default real name
+.TP
+.B KIRC_USERNAME
+Default username
+.TP
+.B KIRC_PASSWORD
+Default password
 .SH COMMANDS
 .TP
 .BI /<command>
-Send message to IRC host (e.g. /JOIN, /PART, /WHOIS, etc.)
+Send a raw IRC command to the server (e.g. /JOIN, /PART, /WHOIS, etc.)
 .TP
 .BI /#<channel>
-Set default message channel to <channel>
+Set the default message channel to <channel>
+.TP
+.BI /$
+Toggle the channel filter on/off
 .TP
 .BI <message>
 Send PRIVMSG to default message channel with <message> as the content
@@ -57,7 +87,55 @@ Send
 .I <message>
 to a specified
 .I <nickname>
+.SH KEY BINDINGS
+.TP
+.B CTRL+C
+Force quit kirc
+.TP
+.B CTRL+U
+Delete entire line
+.TP
+.B CTRL+F
+Toggle the channel filter on/off
+.TP
+.B Arrow Left
+Move cursor left
+.TP
+.B Arrow Right
+Move cursor right
+.TP
+.B Arrow Up
+Navigate command history (previous)
+.TP
+.B Arrow Down
+Navigate command history (next)
+.TP
+.B Home (or ESC [ H)
+Move cursor to start of line
+.TP
+.B End (or ESC [ F)
+Move cursor to end of line
+.TP
+.B Delete
+Delete character at cursor
+.TP
+.B Backspace
+Delete character before cursor
+.SH EXAMPLES
+.TP
+.B kirc alice
+Connect with nickname 'alice' to the default server (irc.libera.chat:6667) and join #chat
+.TP
+.B kirc \-s irc.example.org \-p 6667 \-c "#foo,#bar" alice
+Connect to irc.example.org on port 6667 and join channels #foo and #bar
+.TP
+.B KIRC_SERVER=irc.libera.chat KIRC_PORT=6697 kirc alice
+Use environment variables to set server and port
+.SH SEE ALSO
+.BR irc (1),
+.BR irssi (1),
+.BR weechat (1)
 .SH AUTHOR
 Michael Czigler <michaelczigler at icloud dot com>
 .SH BUGS
-Please report them!
+Please report bugs to https://github.com/mcpcpc/kirc/issues
