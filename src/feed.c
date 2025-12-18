@@ -188,6 +188,7 @@ void feed_render(event_t *event)
     case EVENT_376_RPL_ENDOFMOTD:
     case EVENT_396_RPL_HOSTHIDDEN:
     case EVENT_900_RPL_LOGGEDIN:
+    case EVENT_901_RPL_LOGGEDOUT:
     case EVENT_908_RPL_SASLMECHS:
         feed_info(event);
         break;
