@@ -167,7 +167,7 @@ int network_authenticate_external(network_t *network)
 int network_join_channels(network_t *network)
 {
     for (int i = 0; network->ctx->channels[i][0] != '\0'; ++i) {
-        network_send(&network, "JOIN %s\r\n",
+        network_send(network, "JOIN %s\r\n",
             network->ctx->channels[i]);
     }
 
