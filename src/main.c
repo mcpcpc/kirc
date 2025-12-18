@@ -17,7 +17,7 @@ static int kirc_init(kirc_t *ctx)
     size_t channels_n = sizeof(ctx->channels[0]) - 1;
     strncpy(ctx->channels[0], "#chat", channels_n);
 
-    ctx->sasl_mechanism = SASL_MECHANISM_NONE;
+    ctx->mechanism = SASL_NONE;
     ctx->filtered = 0;
 
     const char *env;
@@ -109,9 +109,9 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         case 'a':  /* SASL authentication */
             char *mechanism = strtok(optarg, ":");
             if (strcmp(mechanism, "EXTERNAL") == 0) {
-                ctx->sasl_mechanism = SASL_MECHANISM_EXTERNAL;
+                ctx->mechanism = SASL_EXTERNAL;
             } else if (strcmp(mechanism, "PLAIN") == 0) {
-                ctx->sasl_mechanism = SASL_MECHANISM_PLAIN;
+                ctx->mechanism = SASL_PLAIN;
                 char *token = strtok(NULL, ":");
                 size_t auth_n = sizeof(ctx->auth) - 1;
                 strncpy(ctx->auth, token, auth_n);
@@ -170,7 +170,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         return KIRC_ERR_PARSE;
     }
 
-    if (ctx->sasl_mechanism != SASL_MECHANISM_NONE) {
+    if (ctx->mechanism != SASL_NONE) {
         network_send(&network, "CAP REQ :sasl\r\n");
     }
 
@@ -193,9 +193,9 @@ static kirc_error_t kirc_run(kirc_t *ctx)
     network_send(&network, "USER %s - - :%s\r\n",
         username, realname);
 
-    if (ctx->sasl_mechanism != SASL_MECHANISM_NONE) {
+    if (ctx->mechanism != SASL_NONE) {
         network_send(&network, "AUTHENTICATE %s\r\n",
-            (ctx->sasl_mechanism == SASL_MECHANISM_EXTERNAL) ? "EXTERNAL" : "PLAIN");
+            (ctx->mechanism == SASL_EXTERNAL) ? "EXTERNAL" : "PLAIN");
     }
 
     if (ctx->password[0] != '\0') {

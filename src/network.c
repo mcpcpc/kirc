@@ -161,12 +161,12 @@ static int network_authenticate_plain(network_t *network)
 
 int network_authenticate(network_t *network)
 {
-    switch (network->ctx->sasl_mechanism) {
-    case SASL_MECHANISM_PLAIN:
+    switch (network->ctx->mechanism) {
+    case SASL_PLAIN:
         network_authenticate_plain(network);
         break;
     
-    case SASL_MECHANISM_EXTERNAL:
+    case SASL_EXTERNAL:
         network_send(network, "AUTHENTICATE +\r\n");
         break;
     
