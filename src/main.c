@@ -194,7 +194,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         } else {
             network_authenticate_plain(&network, data);
         }
-    
+
         network_send(&network, "CAP END\r\n");
     }
 
