@@ -137,6 +137,11 @@ int network_command_handler(network_t *network, char *msg)
 
 static int network_authenticate_plain(network_t *network)
 {
+    if (network->ctx->auth[0] == '\0') {
+        network_send(network, "AUTHENTICATE '*'\r\n");
+        return -1;
+    }
+    
     int len = strlen(network->ctx->auth);
     int chunk_size = IRCV3_AUTHENTICATE_CHUNK_SIZE;
 
@@ -166,6 +171,8 @@ int network_authenticate(network_t *network)
         break;
     
     default:
+        network_send(network, "AUTHENTICATE '*'\r\n");
+        return -1;
         break;
     }
     
