@@ -228,28 +228,6 @@ int editor_process_key(editor_t *editor)
     return 0;
 }
 
-/*
-int editor_render(editor_t *editor)
-{
-    int cols = terminal_columns(STDIN_FILENO);
-    int start = editor->cursor - (cols - 1) < 0 ?
-        0 : editor->cursor - (cols - 1);
-
-    printf("\r\x1b[7m%.*s\x1b[0m \x1b[0K", cols - 1,
-        editor->scratch + start);
-
-    if (editor->cursor > 0) {
-        printf("\r\x1b[%dC", editor->cursor);
-    } else {
-        printf("\r");
-    }
-
-    fflush(stdout);
-
-    return 0;
-}
-*/
-
 int editor_render(editor_t *editor)
 {
     int cols = terminal_columns(STDIN_FILENO);
