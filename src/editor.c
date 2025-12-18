@@ -16,7 +16,7 @@ static void editor_backspace(editor_t *editor)
         len - editor->cursor);
 }
 
-static void editor_delete_whole_line(editor_t *editor)
+static void editor_delete_line(editor_t *editor)
 {
     editor->scratch[0] = '\0';
     editor->cursor = 0;
@@ -201,7 +201,7 @@ int editor_process_key(editor_t *editor)
         return -1;
 
     case 21:  /* CTRL-U */
-        editor_delete_whole_line(editor);
+        editor_delete_line(editor);
         break;
 
     case 17: /* CTRL-Q */
