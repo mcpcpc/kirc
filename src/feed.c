@@ -224,8 +224,11 @@ void feed_render(event_t *event)
     case EVENT_445_ERR_SUMMONDISABLED:
     case EVENT_446_ERR_USERSDISABLED:
     case EVENT_465_ERR_YOUREBANNEDCREEP:
+    case EVENT_902_ERR_NICKLOCKED:
     case EVENT_904_ERR_SASLFAIL:
+    case EVENT_905_ERR_SASLTOOLONG:
     case EVENT_906_ERR_SASLABORTED:
+    case EVENT_907_ERR_SASLALREADY:
         feed_error(event);
         break;
 
