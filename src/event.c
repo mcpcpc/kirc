@@ -1,11 +1,17 @@
 #include "event.h"
 
-int event_init(event_t *event, kirc_t *ctx, char *line)
+int event_init(event_t *event, kirc_t *ctx)
 {
-
     memset(event, 0, sizeof(*event));
 
     event->ctx = ctx;
+    event->type = EVENT_NONE;
+
+    return 0;
+}
+
+int event_parse(event_t *event, char *line)
+{
 
     size_t raw_n = sizeof(event->raw) - 1;
     strncpy(event->raw, line, raw_n);

@@ -208,6 +208,7 @@ typedef struct {
     event_type_t type;
 } event_t;
 
-int event_init(event_t *ev, kirc_t *ctx, char *line);
+int event_init(event_t *event, kirc_t *ctx);
+int event_parse(event_t *event, char *line);
 
 #endif  // __KIRC_EVENT_H

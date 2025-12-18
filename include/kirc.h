@@ -43,10 +43,10 @@
 #include <wctype.h>
 
 typedef enum {
-    SASL_MECHANISM_NONE = 0,
-    SASL_MECHANISM_PLAIN,
-    SASL_MECHANISM_EXTERNAL
-} sasl_mechanism_t;
+    SASL_NONE = 0,
+    SASL_PLAIN,
+    SASL_EXTERNAL
+} mechanism_t;
 
 typedef enum {
     KIRC_OK = 0,
@@ -67,7 +67,7 @@ typedef struct {
     char channels[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
     char selected[KIRC_CHAN_LIMIT];
     char auth[RFC1459_MESSAGE_MAX_LEN];
-    sasl_mechanism_t sasl_mechanism;
+    mechanism_t mechanism;
     int filtered;
 } kirc_t;
 

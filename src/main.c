@@ -254,7 +254,8 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     *eol = '\0';
 
                     event_t event;
-                    event_init(&event, ctx, msg);
+                    event_init(&event, ctx);
+                    event_parse(&event, msg);
 
                     if (event.type == EVENT_PING) {
                         network_send(&network, "PONG :%s\r\n",
