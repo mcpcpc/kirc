@@ -17,6 +17,7 @@ int network_connect(network_t *network);
 int network_command_handler(network_t *network, char *msg);
 int network_authenticate_plain(network_t *network, char *data);
 int network_authenticate_external(network_t *network);
+int network_join_channels(network_t *network);
 int network_init(network_t *network, kirc_t *ctx);
 int network_free(network_t *network);
 

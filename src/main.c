@@ -262,10 +262,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     }
 
                     if (event.type == EVENT_001_RPL_WELCOME) {
-                        for (int i = 0; ctx->channels[i][0] != '\0'; ++i) {
-                            network_send(&network, "JOIN %s\r\n",
-                                ctx->channels[i]);
-                        }
+                        network_join_channels(&network);
                     }
 
                     feed_render(&event);
