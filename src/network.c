@@ -135,16 +135,14 @@ int network_command_handler(network_t *network, char *msg)
     return 0;
 }
 
-int network_authenticate_plain(network_t *network, char *data)
+static int network_authenticate_plain(network_t *network)
 {
-    int len = strlen(data);
+    int len = strlen(network->ctx->auth);
     int chunk_size = IRCV3_AUTHENTICATE_CHUNK_SIZE;
-
-    network_send(network, "AUTHENTICATE PLAIN\r\n");
 
     for (int offset = 0; offset < len; offset += chunk_size) {
         char chunk[chunk_size + 1];
-        strncpy(chunk, data + offset, chunk_size);
+        strncpy(chunk, network->ctx->auth + offset, chunk_size);
         chunk[chunk_size] = '\0';
         network_send(network, "AUTHENTICATE %s\r\n", chunk);
     }
@@ -156,10 +154,22 @@ int network_authenticate_plain(network_t *network, char *data)
     return 0;
 }
 
-int network_authenticate_external(network_t *network)
+int network_authenticate(network_t *network)
 {
-    network_send(network, "AUTHENTICATE EXTERNAL\r\n");
-    network_send(network, "AUTHENTICATE +\r\n");
+    switch (network->ctx->sasl_mechanism) {
+    case SASL_MECHANISM_PLAIN:
+        network_authenticate_plain(network);
+        break;
+    
+    case SASL_MECHANISM_EXTERNAL:
+        network_send(network, "AUTHENTICATE +\r\n");
+        break;
+    
+    default:
+        break;
+    }
+    
+    network_send(network, "CAP END\r\n");
 
     return 0;
 }

@@ -17,6 +17,11 @@ int event_init(event_t *event, kirc_t *ctx, char *line)
         return 0;
     }
 
+    if (strncmp(line, "AUTHENTICATE", 12) == 0) {
+        event->type = EVENT_EXT_AUTHENTICATE;
+        return 0;
+    }
+
     char *prefix = strtok(line, " ") + 1;
     char *suffix = strtok(NULL, ":");
     char *message = strtok(NULL, "\r");

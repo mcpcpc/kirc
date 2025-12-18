@@ -5,7 +5,8 @@
 
 typedef enum {
     EVENT_NONE = 0,
-    EVENT_CAP,
+    EVENT_EXT_CAP,
+    EVENT_EXT_AUTHENTICATE,
     EVENT_JOIN,
     EVENT_MODE,
     EVENT_NICK,
@@ -99,7 +100,7 @@ typedef struct {
 } event_map_t;
 
 static const event_map_t event_map[] = {
-    { "CAP",     EVENT_CAP },
+    { "CAP",     EVENT_EXT_CAP },
     { "JOIN",    EVENT_JOIN },
     { "MODE",    EVENT_MODE },
     { "NICK",    EVENT_NICK },

@@ -143,7 +143,7 @@ void feed_render(event_t *event)
         feed_notice(event);
         break;
 
-    case EVENT_CAP:
+    case EVENT_EXT_CAP:
     case EVENT_MODE:
     case EVENT_TOPIC:
     case EVENT_001_RPL_WELCOME:

@@ -17,6 +17,7 @@ static int kirc_init(kirc_t *ctx)
     size_t channels_n = sizeof(ctx->channels[0]) - 1;
     strncpy(ctx->channels[0], "#chat", channels_n);
 
+    ctx->sasl_mechanism = SASL_MECHANISM_NONE;
     ctx->filtered = 0;
 
     const char *env;
@@ -106,8 +107,15 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             break;
 
         case 'a':  /* SASL authentication */
-            size_t auth_n = sizeof(ctx->auth) - 1;
-            strncpy(ctx->auth, optarg, auth_n);
+            char *mechanism = strtok(optarg, ":");
+            if (strcmp(mechanism, "EXTERNAL") == 0) {
+                ctx->sasl_mechanism = SASL_MECHANISM_EXTERNAL;
+            } else if (strcmp(mechanism, "PLAIN") == 0) {
+                ctx->sasl_mechanism = SASL_MECHANISM_PLAIN;
+                char *token = strtok(NULL, ":");
+                size_t auth_n = sizeof(ctx->auth) - 1;
+                strncpy(ctx->auth, token, auth_n);
+            }
             break;
 
         case ':':
@@ -162,7 +170,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         return KIRC_ERR_PARSE;
     }
 
-    if (ctx->auth[0] != '\0') {
+    if (ctx->sasl_mechanism != SASL_MECHANISM_NONE) {
         network_send(&network, "CAP REQ :sasl\r\n");
     }
 
@@ -185,17 +193,9 @@ static kirc_error_t kirc_run(kirc_t *ctx)
     network_send(&network, "USER %s - - :%s\r\n",
         username, realname);
 
-    if (ctx->auth[0] != '\0') {
-        char *mechanism = strtok(ctx->auth, ":");
-        char *data = strtok(NULL, ":");
-
-        if (strcmp(mechanism, "EXTERNAL") == 0) {
-            network_authenticate_external(&network);
-        } else {
-            network_authenticate_plain(&network, data);
-        }
-
-        network_send(&network, "CAP END\r\n");
+    if (ctx->sasl_mechanism != SASL_MECHANISM_NONE) {
+        network_send(&network, "AUTHENTICATE %s\r\n",
+            (ctx->sasl_mechanism == SASL_MECHANISM_EXTERNAL) ? "EXTERNAL" : "PLAIN");
     }
 
     if (ctx->password[0] != '\0') {
@@ -259,6 +259,10 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     if (event.type == EVENT_PING) {
                         network_send(&network, "PONG :%s\r\n",
                             event.message);
+                    }
+
+                    if (event.type == EVENT_EXT_AUTHENTICATE) {
+                        network_authenticate(&network);
                     }
 
                     if (event.type == EVENT_001_RPL_WELCOME) {
