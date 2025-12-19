@@ -132,7 +132,7 @@ int network_command_handler(network_t *network, char *msg)
                 network->ctx->selected, msg);
         } else {
             char *err = "error: no channel set";
-            printf("\r\x1b[0K\x1b[2m%s%s\x1b[0m\r\n", err);
+            printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", err);
         }
         break;
     }
