@@ -261,7 +261,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
                     if (protocol.event == PROTOCOL_EVENT_PING) {
                         network_send(&network, "PONG :%s\r\n",
-                            event.message);
+                            protocol.message);
                     }
 
                     if (protocol.event == PROTOCOL_EVENT_EXT_AUTHENTICATE) {
