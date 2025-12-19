@@ -104,7 +104,7 @@ int protocol_init(protocol_t *protocol, kirc_t *ctx)
     return 0;
 }
 
-int protocol_parse(event_t *protocol, char *line)
+int protocol_parse(protocol_t *protocol, char *line)
 {
 
     size_t raw_n = sizeof(protocol->raw) - 1;
