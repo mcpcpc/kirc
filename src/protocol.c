@@ -68,9 +68,9 @@ static void protocol_privmsg(protocol_t *protocol)
     char *nickname = protocol->ctx->nickname;
 
     if (strcmp(channel, nickname) == 0) {
-        feed_privmsg_direct(protocol);
+        protocol_privmsg_direct(protocol);
     } else {
-        feed_privmsg_indirect(protocol);
+        protocol_privmsg_indirect(protocol);
     }
 }
 
