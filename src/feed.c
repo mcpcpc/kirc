@@ -76,12 +76,8 @@ static void feed_join(event_t *event)
     char hhmmss[6];
     get_time(hhmmss);
 
-    /*
-    printf("\r\x1b[0K\x1b[2m--->> %s [%s]\x1b[0m\r\n",
-        event->nickname, event->channel);
-    */
-    printf("\r\x1b[0K\x1b[2m--->> %s [%s]\x1b[0m\r\n",
-        event->nickname, event->message);
+    printf("\r\x1b[0K\x1b[2m--->> %s\x1b[0m\r\n",
+        event->nickname);
 }
 
 static void feed_part(event_t *event)
