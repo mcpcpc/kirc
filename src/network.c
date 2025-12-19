@@ -41,6 +41,7 @@ int network_receive(network_t *network) {
     return nread;
 }
 
+/*
 int network_connect(network_t *network)
 {
     struct addrinfo hints;
@@ -87,11 +88,102 @@ int network_connect(network_t *network)
         return -1;
     }
 
-    /* Set non-blocking */
+    // Set non-blocking
     int flags = fcntl(network->fd, F_GETFL, 0);
 
     if (flags != -1) {
         fcntl(network->fd, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    return 0;
+}
+*/
+
+#define CONNECT_TIMEOUT 5
+
+int network_connect(network_t *network)
+{
+    struct addrinfo hints;
+    struct addrinfo *res = NULL;
+    struct addrinfo *p = NULL;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    int status = getaddrinfo(network->ctx->server,
+                             network->ctx->port, &hints, &res);
+    if (status != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        return -1;
+    }
+
+    network->fd = -1;
+
+    for (p = res; p != NULL; p = p->ai_next) {
+
+        int fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (fd == -1)
+            continue;
+
+        /* set socket non-blocking for connect attempt */
+        int flags = fcntl(fd, F_GETFL, 0);
+        if (flags == -1) {
+            close(fd);
+            continue;
+        }
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+        int rc = connect(fd, p->ai_addr, p->ai_addrlen);
+        if (rc == 0) {
+            network->fd = fd;
+            break;   /* connected immediately */
+        }
+
+        if (errno == EINPROGRESS) {
+            fd_set wfds;
+            FD_ZERO(&wfds);
+            FD_SET(fd, &wfds);
+
+            struct timeval tv;
+            tv.tv_sec  = CONNECT_TIMEOUT;
+            tv.tv_usec = 0;
+
+            /* wait until socket writable => connect finished */
+            rc = select(fd + 1, NULL, &wfds, NULL, &tv);
+            if (rc > 0) {
+                int soerr = 0;
+                socklen_t slen = sizeof(soerr);
+
+                if (getsockopt(fd, SOL_SOCKET, SO_ERROR,
+                               &soerr, &slen) < 0) {
+                    close(fd);
+                    continue;
+                }
+                if (soerr == 0) {
+                    network->fd = fd;
+                    break;       /* success */
+                }
+                errno = soerr;
+            }
+        }
+
+        /* timed out or failure */
+        close(fd);
+    }
+
+    freeaddrinfo(res);
+
+    if (network->fd == -1) {
+        fprintf(stderr, "failed to connect\n");
+        return -1;
+    }
+
+    /* Optional: restore blocking mode */
+    int flags = fcntl(network->fd, F_GETFL, 0);
+
+    if (flags != -1) {
+        fcntl(network->fd, F_SETFL, flags & ~O_NONBLOCK);
     }
 
     return 0;
