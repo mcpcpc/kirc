@@ -111,14 +111,14 @@ int protocol_parse(protocol_t *protocol, char *line)
     strncpy(protocol->raw, line, raw_n);
 
     if (strncmp(line, "PING", 4) == 0) {
-        protocol->type = PROTOCOL_EVENT_PING;
+        protocol->event = PROTOCOL_EVENT_PING;
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, line + 6, message_n);
         return 0;
     }
 
     if (strncmp(line, "AUTHENTICATE +", 14) == 0) {
-        protocol->type = PROTOCOL_EVENT_EXT_AUTHENTICATE;
+        protocol->event = PROTOCOL_EVENT_EXT_AUTHENTICATE;
         return 0;
     }
 
