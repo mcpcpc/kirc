@@ -281,8 +281,10 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     + network.len - msg;
                 memmove(network.buffer, msg, remain);
                 network.len = remain;
+
+                editor_render(&editor);
             }
-            editor_render(&editor);
+            
         }
 
     } 
