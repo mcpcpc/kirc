@@ -53,7 +53,7 @@ static void protocol_privmsg_direct(protocol_t *protocol)
         hhmmss, protocol->nickname, protocol->message);
 }
 
-static void event_privmsg_indirect(protocol_t *protocol)
+static void protocol_privmsg_indirect(protocol_t *protocol)
 {
     char hhmmss[6];
     get_time(hhmmss);
