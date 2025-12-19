@@ -212,6 +212,6 @@ typedef struct {
 
 int protocol_init(protocol_t *protocol, kirc_t *ctx);
 int protocol_parse(protocol_t *protocol, char *line);
-int protocol_render(protocol_t *protocol, char *line);
+int protocol_render(protocol_t *protocol);
 
 #endif  // __KIRC_PROTOCOL_H
