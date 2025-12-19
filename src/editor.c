@@ -22,8 +22,12 @@ static void editor_delete_line(editor_t *editor)
     editor->cursor = 0;
 }
 
-static void editor_enter(editor_t *editor)
+static int editor_enter(editor_t *editor)
 {
+    if (editor->scratch[0] == '\0') {
+        return 0;  /* nothing to send */
+    }
+
     int siz = sizeof(editor->scratch) - 1;
 
     strncpy(editor->history[editor->head],
@@ -32,6 +36,8 @@ static void editor_enter(editor_t *editor)
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
 
     editor_delete_line(editor);
+    
+    return 1;
 }
 
 static void editor_delete(editor_t *editor)
@@ -204,8 +210,8 @@ int editor_process_key(editor_t *editor)
         break;
 
     case 13:  /* ENTER */
-        editor_enter(editor);
-        return 1;
+        int rc = editor_enter(editor);
+        return rc;
 
     case 27:  /* ESCAPE */
         editor_escape(editor);
