@@ -125,10 +125,14 @@ int network_command_handler(network_t *network, char *msg)
         break;
 
     default:  /* channel message */
-        network_send(network, "PRIVMSG %s :%s\r\n",
-            network->ctx->selected, msg);
-        printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
-            network->ctx->selected, msg);
+        if (network->ctx->selected[0] != '\0') {
+            network_send(network, "PRIVMSG %s :%s\r\n",
+                network->ctx->selected, msg);
+            printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
+                network->ctx->selected, msg);
+        } else {
+            printf("\r no channel set\r\n");
+        }
         break;
     }
 
