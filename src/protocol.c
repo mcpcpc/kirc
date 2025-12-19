@@ -161,7 +161,7 @@ int protocol_parse(protocol_t *protocol, char *line)
 
     for (int i = 0; map[i].command != NULL; i++) {
         if (strcmp(protocol->command, map[i].command) == 0) {
-            protocol->type = map[i].type;
+            protocol->event = map[i].event;
             break;
         }
     }
