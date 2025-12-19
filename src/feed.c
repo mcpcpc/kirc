@@ -71,33 +71,6 @@ static void feed_privmsg(event_t *event)
     }
 }
 
-static void feed_join(event_t *event)
-{
-    char hhmmss[6];
-    get_time(hhmmss);
-
-    printf("\r\x1b[0K\x1b[2m--->> %s\x1b[0m\r\n",
-        event->nickname);
-}
-
-static void feed_part(event_t *event)
-{
-    char hhmmss[6];
-    get_time(hhmmss);
-
-    printf("\r\x1b[0K\x1b[2m<<--- %s\x1b[0m\r\n",
-        event->nickname);
-}
-
-static void feed_quit(event_t *event)
-{
-    char hhmmss[6];
-    get_time(hhmmss);
-
-    printf("\r\x1b[0K\x1b[2m<<<<< %s\x1b[0m\r\n",
-        event->nickname);
-}
-
 static void feed_nick(event_t *event)
 {
     char hhmmss[6];
@@ -116,23 +89,14 @@ static void feed_nick(event_t *event)
 void feed_render(event_t *event)
 {
     switch (event->type) {
+    case EVENT_JOIN:
+    case EVENT_PART:
     case EVENT_PING:
+    case EVENT_QUIT:
         break;
 
     case EVENT_PRIVMSG:
         feed_privmsg(event);
-        break;
-
-    case EVENT_JOIN:
-        feed_join(event);
-        break;
-
-    case EVENT_PART:
-        feed_part(event);
-        break;
-
-    case EVENT_QUIT:
-        feed_quit(event);
         break;
 
     case EVENT_NICK:
