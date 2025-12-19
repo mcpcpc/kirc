@@ -99,7 +99,7 @@ int protocol_init(protocol_t *protocol, kirc_t *ctx)
     memset(protocol, 0, sizeof(*protocol));
 
     protocol->ctx = ctx;
-    protocol->type = PROTOCOL_EVENT_NONE;
+    protocol->event = PROTOCOL_EVENT_NONE;
 
     return 0;
 }
