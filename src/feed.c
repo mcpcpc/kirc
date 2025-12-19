@@ -76,12 +76,17 @@ static void feed_nick(event_t *event)
     char hhmmss[6];
     get_time(hhmmss);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m%s is now known as %s\x1b[0m\r\n",
-        hhmmss, event->nickname, event->message);
-
+    
     if (strcmp(event->nickname, event->ctx->nickname) == 0) {
         size_t siz = sizeof(event->ctx->nickname) - 1;
         strncpy(event->ctx->nickname, event->message, siz);
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
+            "you are now known as %s\x1b[0m\r\n",
+            hhmmss, event->message);
+    } else {
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
+            "%s is now known as %s\x1b[0m\r\n",
+            hhmmss, event->nickname, event->message);
     }
 
 }
