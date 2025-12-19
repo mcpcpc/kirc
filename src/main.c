@@ -14,9 +14,6 @@ static int kirc_init(kirc_t *ctx)
     size_t port_n = sizeof(ctx->port) - 1;
     strncpy(ctx->port, "6667", port_n);
 
-    size_t channels_n = sizeof(ctx->channels[0]) - 1;
-    strncpy(ctx->channels[0], "#chat", channels_n);
-
     ctx->mechanism = SASL_NONE;
 
     const char *env;
