@@ -68,7 +68,6 @@ typedef struct {
     char selected[KIRC_CHAN_LIMIT];
     char auth[RFC1459_MESSAGE_MAX_LEN];
     mechanism_t mechanism;
-    int filtered;
 } kirc_t;
 
 #endif  // __KIRC_H

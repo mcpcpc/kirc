@@ -18,7 +18,6 @@ static int kirc_init(kirc_t *ctx)
     strncpy(ctx->channels[0], "#chat", channels_n);
 
     ctx->mechanism = SASL_NONE;
-    ctx->filtered = 0;
 
     const char *env;
 

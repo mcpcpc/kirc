@@ -169,11 +169,6 @@ static void editor_clear(editor_t *editor)
     printf("\r\x1b[0K");
 }
 
-static void editor_toggle_filter(editor_t *editor)
-{
-    editor->ctx->filtered = !editor->ctx->filtered;
-}
-
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));
@@ -202,10 +197,6 @@ int editor_process_key(editor_t *editor)
 
     case 21:  /* CTRL-U */
         editor_delete_line(editor);
-        break;
-
-    case 17: /* CTRL-Q */
-        editor_toggle_filter(editor);
         break;
 
     case 127:  /* DELETE */
