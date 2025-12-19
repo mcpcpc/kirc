@@ -108,7 +108,7 @@ static void feed_nick(event_t *event)
 
     if (strcmp(event->nickname, event->ctx->nickname) == 0) {
         size_t siz = sizeof(event->ctx->nickname) - 1;
-        strncpy(event->ctx->nickname, event->nickname, siz);
+        strncpy(event->ctx->nickname, event->message, siz);
     }
 }
 
