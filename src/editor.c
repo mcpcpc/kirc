@@ -34,6 +34,10 @@ static int editor_enter(editor_t *editor)
         editor->scratch, siz);
 
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
+    if (editor->count < KIRC_HISTORY_SIZE) {
+        editor->count++;
+    }
+    editor->position = -1;
 
     editor_delete_line(editor);
     
@@ -56,7 +60,52 @@ static void editor_delete(editor_t *editor)
 
 static void editor_history(editor_t *editor, int dir)
 {
-    // placeholder
+    int siz = KIRC_HISTORY_SIZE;
+
+    if (editor->count == 0) {
+        return;
+    }
+
+    int head = editor->head;
+    int oldest = (head - editor->count + siz) % siz;
+    int newest = (head - 1 + siz) % siz;
+
+    if (dir > 0) {  /* up or previous */
+        int pos;
+        if (editor->position == -1) {
+            pos = newest;
+        } else if (editor->position == oldest) {
+            return; /* already at oldest */
+        } else {
+            pos = (editor->position - 1 + siz) % siz;
+        }
+
+        strncpy(editor->scratch, editor->history[pos],
+            sizeof(editor->scratch) - 1);
+        editor->scratch[sizeof(editor->scratch) - 1] = '\0';
+        editor->cursor = strnlen(editor->scratch,
+            sizeof(editor->scratch) - 1);
+        editor->position = pos;
+    } else { /* down or next */
+        if (editor->position == -1) {
+            return; /* not browsing */
+        }
+
+        if (editor->position == newest) {
+            editor_delete_line(editor);
+            editor->position = -1;
+            return;
+        }
+
+        int pos = (editor->position + 1) % siz;
+
+        strncpy(editor->scratch, editor->history[pos],
+            sizeof(editor->scratch) - 1);
+        editor->scratch[sizeof(editor->scratch) - 1] = '\0';
+        editor->cursor = strnlen(editor->scratch,
+            sizeof(editor->scratch) - 1);
+        editor->position = pos;
+    }
 }
 
 static void editor_move_right(editor_t *editor)
@@ -183,6 +232,7 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     editor->count = 0;
     editor->cursor = 0;
     editor->head = 0;
+    editor->position = -1;
 
     return 0;
 }

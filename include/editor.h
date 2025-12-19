@@ -10,6 +10,7 @@ typedef struct {
     char history[KIRC_HISTORY_SIZE][RFC1459_MESSAGE_MAX_LEN];
     int head;
     int count;
+    int position; /* -1 when not browsing history, otherwise index into history[] */
     int cursor;
 } editor_t;
 
