@@ -30,7 +30,7 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_CHANNELS");
     if (env && *env) {
-        size_t idx = 0;
+        size_t idx = 0, channels_n = sizeof(ctx->channels[0]) - 1;
         for (char *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
             strncpy(ctx->channels[idx], tok, channels_n);
             idx++;
