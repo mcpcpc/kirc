@@ -154,13 +154,6 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         return KIRC_ERR_INTERNAL;
     }
 
-    history_t history;
-
-    if (history_init(&history, ctx) < 0) {
-        fprintf(stderr, "history_init failed\n");
-        return KIRC_ERR_INTERNAL;
-    }
-
     network_t network;
 
     if (network_init(&network, ctx) < 0) {
