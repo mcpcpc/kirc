@@ -31,7 +31,7 @@ static void editor_enter(editor_t *editor)
 
     editor->head = (editor->head + 1) % KIRC_HISTORY_SIZE;
 
-    editor_delete_whole_line(editor);
+    editor_delete_line(editor);
 }
 
 static void editor_delete(editor_t *editor)
