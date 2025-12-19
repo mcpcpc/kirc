@@ -55,6 +55,12 @@ static int kirc_init(kirc_t *ctx)
         strncpy(ctx->password, env, password_n);
     }
 
+    env = getenv("KIRC_AUTH");
+    if (env && *env) {
+        size_t auth_n = sizeof(ctx->auth) - 1;
+        strncpy(ctx->auth, env, auth_n);
+    }
+
     return 0;
 }
 
