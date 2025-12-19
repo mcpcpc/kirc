@@ -103,7 +103,7 @@ static void feed_nick(event_t *event)
     char hhmmss[6];
     get_time(hhmmss);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m%s --> %s\x1b[0m\r\n",
+    printf("\r\x1b[0K\x1b[2m%s>\x1b[0m \x1b[2m%s --> %s\x1b[0m\r\n",
         hhmmss, event->nickname, event->message);
     /*
     if (strcmp(event->nickname, event->ctx->nickname) == 0) {
