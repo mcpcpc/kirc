@@ -154,6 +154,13 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         return KIRC_ERR_INTERNAL;
     }
 
+    history_t history;
+
+    if (history_init(&history, ctx) < 0) {
+        fprintf(stderr, "history_init failed\n");
+        return KIRC_ERR_INTERNAL;
+    }
+
     network_t network;
 
     if (network_init(&network, ctx) < 0) {
@@ -259,17 +266,19 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     protocol_init(&protocol, ctx);
                     protocol_parse(&protocol, msg);
 
-                    if (protocol.event == PROTOCOL_EVENT_PING) {
+                    switch(protocol.event) {
+                    case PROTOCOL_EVENT_PING:
                         network_send(&network, "PONG :%s\r\n",
                             protocol.message);
-                    }
+                        break;
 
-                    if (protocol.event == PROTOCOL_EVENT_EXT_AUTHENTICATE) {
+                    case PROTOCOL_EVENT_EXT_AUTHENTICATE:
                         network_authenticate(&network);
-                    }
+                        break;
 
-                    if (protocol.event == PROTOCOL_EVENT_001_RPL_WELCOME) {
+                    case PROTOCOL_EVENT_001_RPL_WELCOME:
                         network_join_channels(&network);
+                        break;
                     }
 
                     protocol_render(&protocol);
