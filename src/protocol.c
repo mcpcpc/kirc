@@ -74,7 +74,7 @@ static void protocol_privmsg(protocol_t *protocol)
     }
 }
 
-static void feed_nick(protocol_t *protocol)
+static void protocol_nick(protocol_t *protocol)
 {
     char hhmmss[6];
     get_time(hhmmss);
