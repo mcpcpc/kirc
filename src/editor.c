@@ -224,6 +224,14 @@ static void editor_clear(editor_t *editor)
     printf("\r\x1b[0K");
 }
 
+char *editor_last_entry(editor_t *editor)
+{
+    int head = editor->head;
+    int last = (head - 1 + KIRC_HISTORY_SIZE) % KIRC_HISTORY_SIZE;
+
+    return editor->history[last];
+}
+
 int editor_init(editor_t *editor, kirc_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));

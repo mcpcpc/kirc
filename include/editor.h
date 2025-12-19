@@ -14,6 +14,7 @@ typedef struct {
     int cursor;
 } editor_t;
 
+char *editor_last_entry(editor_t *editor);
 int editor_init(editor_t *editor, kirc_t *ctx);
 int editor_process_key(editor_t *editor);
 int editor_render(editor_t *editor);
