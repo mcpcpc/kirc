@@ -1,7 +1,6 @@
 #include "editor.h"
-#include "event.h"
-#include "feed.h"
 #include "network.h"
+#include "protocol.h"
 #include "terminal.h"
 
 static int kirc_init(kirc_t *ctx)
@@ -256,24 +255,24 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
                     *eol = '\0';
 
-                    event_t event;
-                    event_init(&event, ctx);
-                    event_parse(&event, msg);
+                    protocol_t protocol;
+                    protocol_init(&protocol, ctx);
+                    protocol_parse(&protocol, msg);
 
-                    if (event.type == EVENT_PING) {
+                    if (protocol.event == PROTOCOL_EVENT_PING) {
                         network_send(&network, "PONG :%s\r\n",
                             event.message);
                     }
 
-                    if (event.type == EVENT_EXT_AUTHENTICATE) {
+                    if (protocol.event == PROTOCOL_EVENT_EXT_AUTHENTICATE) {
                         network_authenticate(&network);
                     }
 
-                    if (event.type == EVENT_001_RPL_WELCOME) {
+                    if (protocol.event == PROTOCOL_EVENT_001_RPL_WELCOME) {
                         network_join_channels(&network);
                     }
 
-                    feed_render(&event);
+                    protocol_render(&protocol);
 
                     msg = eol + 2;
                 }
