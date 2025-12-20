@@ -1,65 +1,65 @@
 #include "protocol.h"
 
-static void get_time(char *hhmmss)
+static void get_time(char *out)
 {
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    strftime(hhmmss, 6, "%H:%M", info);
+    strftime(out, 6, "%H:%M", info);
 }
 
 static void protocol_raw(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s \x1b[0m\x1b[7m%s\x1b[0m\r\n",
-        hhmmss, protocol->raw);
+        hhmm, protocol->raw);
 }
 
 static void protocol_info(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s %s\x1b[0m\r\n",
-        hhmmss, protocol->message);
+        hhmm, protocol->message);
 }
 
 static void protocol_error(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s \x1b[1;31m%s\x1b[0m\r\n",
-        hhmmss, protocol->message);
+        hhmm, protocol->message);
 }
 
 static void protocol_notice(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m %s\r\n",
-        hhmmss, protocol->nickname, protocol->message);
+        hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg_direct(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m \x1b[34m%s\x1b[0m\r\n",
-        hhmmss, protocol->nickname, protocol->message);
+        hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg_indirect(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
-        hhmmss, protocol->nickname, protocol->message);
+        hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg(protocol_t *protocol)
@@ -76,8 +76,8 @@ static void protocol_privmsg(protocol_t *protocol)
 
 static void protocol_nick(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     
     if (strcmp(protocol->nickname, protocol->ctx->nickname) == 0) {
@@ -85,11 +85,11 @@ static void protocol_nick(protocol_t *protocol)
         strncpy(protocol->ctx->nickname, protocol->message, siz);
         printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
             "you are now known as %s\x1b[0m\r\n",
-            hhmmss, protocol->message);
+            hhmm, protocol->message);
     } else {
         printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
             "%s is now known as %s\x1b[0m\r\n",
-            hhmmss, protocol->nickname, protocol->message);
+            hhmm, protocol->nickname, protocol->message);
     }
 
 }
