@@ -241,6 +241,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                 char *msg = editor_last_entry(&editor);
                 network_command_handler(&network, msg);
             }
+
             editor_render(&editor);
         }
 
