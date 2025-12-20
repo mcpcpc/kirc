@@ -1,23 +1,47 @@
 .POSIX:
-ALL_WARNING = -Wall -Wextra -pedantic -std=c99
-PREFIX ?= /usr/local
-BINDIR = $(PREFIX)/bin
-MANDIR = $(PREFIX)/share/man
+.SUFFIXES:
 
-kirc: kirc.c kirc.h
-	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 $(LDFLAGS) ${ALL_WARNING} kirc.c -o kirc
-all: kirc
+include config.mk
 
-install: kirc
-	mkdir -p $(DESTDIR)$(BINDIR)
-	mkdir -p $(DESTDIR)$(MANDIR)/man1
-	cp -f kirc $(DESTDIR)$(BINDIR)
-	cp -f kirc.1 $(DESTDIR)$(MANDIR)/man1
-	chmod 755 $(DESTDIR)$(BINDIR)/kirc
-	chmod 644 $(DESTDIR)$(MANDIR)/man1/kirc.1
+CFLAGS += -std=c99 -Wall -Wextra
+CFLAGS += -Wno-unused-parameter
+CFLAGS += -g -Iinclude -Isrc
+
+BIN = kirc
+SRC = src
+BUILD = build
+
+# Discover all source files
+SRCS = $(wildcard $(SRC)/*.c)
+
+# Create matching build/*.o paths
+OBJS = $(SRCS:$(SRC)/%.c=$(BUILD)/%.o)
+
+all: $(BIN)
+
+$(BIN): $(OBJS)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+$(BUILD):
+	mkdir -p $@
+
+# Pattern rule: build/xyz.o ← src/xyz.c
+$(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 clean:
-	rm -f kirc
+	rm -f $(BIN) $(BUILD)/*
+
+install:
+	mkdir -p $(DESTDIR)$(BINDIR)
+	cp -f $(BIN) $(DESTDIR)$(BINDIR)
+	chmod 755 $(DESTDIR)$(BINDIR)/$(BIN)
+	mkdir -p $(DESTDIR)$(MANDIR)/man1
+	cp -f $(BIN).1 $(DESTDIR)$(MANDIR)/man1
+	chmod 644 $(DESTDIR)$(MANDIR)/man1/$(BIN).1
+
 uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/kirc
-	rm -f $(DESTDIR)$(MANDIR)/man1/kirc.1
-.PHONY: all install uninstall clean
+	rm -f $(DESTDIR)$(BINDIR)/$(BIN)
+	rm -f $(DESTDIR)$(MANDIR)/man1/$(BIN).1
+
+.PHONY: all clean install uninstall
