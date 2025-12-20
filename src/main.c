@@ -281,7 +281,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
                     msg = eol + 2;
                 }
-                
+
                 size_t remain = network.buffer
                     + network.len - msg;
                 memmove(network.buffer, msg, remain);
@@ -292,7 +292,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
             
         }
 
-    } 
+    }
 
     terminal_disable_raw(&terminal);
     network_free(&network);
