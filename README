@@ -61,6 +61,8 @@ Control keys are mapped to familiar text-editing bindings:
 
     CTRL+B             move cursor left
     CTRL+F             move cursor right
+    CTRL+P             move to previous entry record
+    CTRL+N             move to next entry record
     CTRL+E             move cursor to end of line
     CTRL+A             move cursor to start of line
     CTRL+U             delete entire line
