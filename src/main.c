@@ -270,6 +270,9 @@ static kirc_error_t kirc_run(kirc_t *ctx)
                     case PROTOCOL_EVENT_001_RPL_WELCOME:
                         network_join_channels(&network);
                         break;
+
+                    default:
+                        break; 
                     }
 
                     protocol_render(&protocol);
