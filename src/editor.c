@@ -237,6 +237,7 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     memset(editor, 0, sizeof(*editor));
     
     editor->ctx = ctx;
+    editor->event = EDITOR_EVENT_NONE;
     editor->count = 0;
     editor->cursor = 0;
     editor->head = 0;
@@ -252,12 +253,14 @@ int editor_process_key(editor_t *editor)
     if (read(STDIN_FILENO, &c, 1) < 1) {
         return 1;
     }
+    
+    editor->event = EDITOR_EVENT_NONE;
 
     switch(c) {
     case 3:  /* CTRL-C */
-        errno = EAGAIN;
         editor_clear(editor);
-        return -1;
+        editor->event = EDITOR_EVENT_TERMINATE;
+        break;
 
     case 21:  /* CTRL-U */
         editor_delete_line(editor);
@@ -268,8 +271,10 @@ int editor_process_key(editor_t *editor)
         break;
 
     case 13:  /* ENTER */
-        int rc = editor_enter(editor);
-        return rc;
+        if (editor_enter(editor) > 0) {
+            editor->event = EDITOR_EVENT_SEND;
+        }
+        break;
 
     case 27:  /* ESCAPE */
         editor_escape(editor);

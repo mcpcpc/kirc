@@ -4,8 +4,15 @@
 #include "kirc.h"
 #include "terminal.h"
 
+typedef enum {
+    EDITOR_EVENT_NONE = 0,
+    EDITOR_EVENT_SEND,
+    EDITOR_EVENT_TERMINATE
+} editor_event_t;
+
 typedef struct {
     kirc_t *ctx;
+    editor_event_t event;
     char scratch[RFC1459_MESSAGE_MAX_LEN];
     char history[KIRC_HISTORY_SIZE][RFC1459_MESSAGE_MAX_LEN];
     int head;

@@ -232,11 +232,12 @@ static kirc_error_t kirc_run(kirc_t *ctx)
         }
 
         if (fds[0].revents & POLLIN) {
-            int rc = editor_process_key(&editor);
+            editor_process_key(&editor);
 
-            if (rc < 0) break;
+            if (editor.event == EDITOR_EVENT_TERMINATE)
+                break;
 
-            if (rc > 0) {
+            if (editor.event == EDITOR_EVENT_SEND) {
                 char *msg = editor_last_entry(&editor);
                 network_command_handler(&network, msg);
             }
