@@ -305,14 +305,16 @@ int main(int argc, char *argv[])
     kirc_t ctx;
 
     if (kirc_init(&ctx) < 0) {
-        return 1;
+        return EXIT_FAILURE;
     }
 
     if (kirc_args(&ctx, argc, argv) < 0) {
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    kirc_error_t err = kirc_run(&ctx);
+    if (kirc_run(&ctx) != KIRC_OK) {
+        return EXIT_FAILURE;
+    }
 
-    return (err == KIRC_OK) ? 0 : 1;
+    return EXIT_SUCCESS
 }
