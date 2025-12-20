@@ -18,24 +18,6 @@ static int poll_wait_write(int fd, int timeout_ms)
     }
 }
 
-static int poll_wait_read(int fd, int timeout_ms)
-{
-    struct pollfd pfd;
-    pfd.fd = fd;
-    pfd.events = POLLIN;
-
-    for (;;) {
-        int rc = poll(&pfd, 1, timeout_ms);
-        if (rc > 0)
-            return 0;
-        if (rc == 0)
-            return -1;
-        if (errno == EINTR)
-            continue;
-        return -1;
-    }
-}
-
 void network_send(network_t *network, const char *fmt, ...)
 {
     char buf[RFC1459_MESSAGE_MAX_LEN];
