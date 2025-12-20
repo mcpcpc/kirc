@@ -145,30 +145,30 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     return 0;
 }
 
-static kirc_error_t kirc_run(kirc_t *ctx)
+static int kirc_run(kirc_t *ctx)
 {
     editor_t editor;
 
     if (editor_init(&editor, ctx) < 0) {
         fprintf(stderr, "editor_init failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     network_t network;
 
     if (network_init(&network, ctx) < 0) {
         fprintf(stderr, "network_init failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     if (ctx->nickname[0] == '\0') {
         fprintf(stderr, "nickname not specified\n");
-        return KIRC_ERR_PARSE;
+        return -1;
     }
 
     if (ctx->mechanism != SASL_NONE) {
@@ -211,12 +211,12 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
-        return KIRC_ERR_IO;
+        return -1;
     }
 
     struct pollfd fds[2] = {
@@ -297,7 +297,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
     terminal_disable_raw(&terminal);
     network_free(&network);
 
-    return KIRC_OK;
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (kirc_run(&ctx) != KIRC_OK) {
+    if (kirc_run(&ctx) < 0) {
         return EXIT_FAILURE;
     }
 
