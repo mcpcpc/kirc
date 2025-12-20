@@ -9,12 +9,12 @@ static int poll_wait_write(int fd, int timeout_ms)
     for (;;) {
         int rc = poll(&pfd, 1, timeout_ms);
         if (rc > 0)
-            return 0;       /* ready */
+            return 0;  /* ready */
         if (rc == 0)
-            return -1;      /* timeout */
+            return -1;  /* timeout */
         if (errno == EINTR)
             continue;
-        return -1;          /* error */
+        return -1;  /* error */
     }
 }
 
@@ -99,8 +99,9 @@ int network_connect(network_t *network)
         int fd = socket(p->ai_family, p->ai_socktype,
             p->ai_protocol);
 
-        if (fd < 0)
+        if (fd < 0) {
             continue;
+        }
 
         int flags = fcntl(fd, F_GETFL, 0);
         
@@ -112,6 +113,7 @@ int network_connect(network_t *network)
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
         int rc = connect(fd, p->ai_addr, p->ai_addrlen);
+
         if (rc == 0) {
             network->fd = fd;
             break;
@@ -142,70 +144,12 @@ int network_connect(network_t *network)
     freeaddrinfo(res);
 
     if (network->fd < 0) {
-        fprintf(stderr, "failed to connect\n");
         return -1;
     }
 
     return 0;
 }
 
-/*
-int network_connect(network_t *network)
-{
-    struct addrinfo hints;
-    struct addrinfo *res = NULL;
-    struct addrinfo *p = NULL;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int status = getaddrinfo(network->ctx->server,
-        network->ctx->port, &hints, &res);
-
-    if (status != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n",
-            gai_strerror(status));
-        return -1;
-    }
-
-    network->fd = -1;
-
-    for (p = res; p != NULL; p = p->ai_next) {
-        network->fd = socket(p->ai_family,
-            p->ai_socktype, p->ai_protocol);
-
-        if (network->fd == -1) {
-            continue;
-        }
-
-        if (connect(network->fd, p->ai_addr,
-            p->ai_addrlen) == -1) {
-            network->fd = -1;
-            close(network->fd);
-            continue;
-        }
-
-        break;
-    }
-
-    freeaddrinfo(res);
-
-    if (network->fd == -1) {
-        fprintf(stderr, "failed to connect\n");
-        return -1;
-    }
-
-    // Set non-blocking
-    int flags = fcntl(network->fd, F_GETFL, 0);
-
-    if (flags != -1) {
-        fcntl(network->fd, F_SETFL, flags | O_NONBLOCK);
-    }
-
-    return 0;
-}
-*/
 int network_command_handler(network_t *network, char *msg)
 {
     switch (msg[0]) {
