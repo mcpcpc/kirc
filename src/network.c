@@ -1,5 +1,41 @@
 #include "network.h"
 
+static int poll_wait_write(int fd, int timeout_ms)
+{
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLOUT;
+
+    for (;;) {
+        int rc = poll(&pfd, 1, timeout_ms);
+        if (rc > 0)
+            return 0;       /* ready */
+        if (rc == 0)
+            return -1;      /* timeout */
+        if (errno == EINTR)
+            continue;
+        return -1;          /* error */
+    }
+}
+
+static int poll_wait_read(int fd, int timeout_ms)
+{
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+
+    for (;;) {
+        int rc = poll(&pfd, 1, timeout_ms);
+        if (rc > 0)
+            return 0;
+        if (rc == 0)
+            return -1;
+        if (errno == EINTR)
+            continue;
+        return -1;
+    }
+}
+
 void network_send(network_t *network, const char *fmt, ...)
 {
     char buf[RFC1459_MESSAGE_MAX_LEN];
@@ -41,6 +77,79 @@ int network_receive(network_t *network) {
     return nread;
 }
 
+int network_connect(network_t *network)
+{
+    struct addrinfo hints, *res = NULL, *p = NULL;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = AF_UNSPEC;
+
+    int status = getaddrinfo(network->ctx->server,
+        network->ctx->port, &hints, &res);
+
+    if (status != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n",
+            gai_strerror(status));
+        return -1;
+    }
+
+    network->fd = -1;
+
+    for (p = res; p; p = p->ai_next) {
+        int fd = socket(p->ai_family, p->ai_socktype,
+            p->ai_protocol);
+
+        if (fd < 0)
+            continue;
+
+        int flags = fcntl(fd, F_GETFL, 0);
+        
+        if (flags < 0) {
+            close(fd);
+            continue;
+        }
+
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+        int rc = connect(fd, p->ai_addr, p->ai_addrlen);
+        if (rc == 0) {
+            network->fd = fd;
+            break;
+        }
+
+        if (errno == EINPROGRESS) {
+            int timeout_ms = KIRC_TIMEOUT_MS;
+            int rc = poll_wait_write(fd, timeout_ms);
+
+            if (rc == 0) {
+
+                int soerr = 0;
+                socklen_t slen = sizeof(soerr);
+
+                getsockopt(fd, SOL_SOCKET, SO_ERROR,
+                    &soerr, &slen);
+
+                if (soerr == 0) {
+                    network->fd = fd;
+                    break;
+                }
+            }
+        }
+
+        close(fd);
+    }
+
+    freeaddrinfo(res);
+
+    if (network->fd < 0) {
+        fprintf(stderr, "failed to connect\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
 int network_connect(network_t *network)
 {
     struct addrinfo hints;
@@ -96,7 +205,7 @@ int network_connect(network_t *network)
 
     return 0;
 }
-
+*/
 int network_command_handler(network_t *network, char *msg)
 {
     switch (msg[0]) {

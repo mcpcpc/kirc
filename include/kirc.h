@@ -25,6 +25,10 @@
 #define KIRC_HISTORY_SIZE 8
 #endif
 
+#ifndef KIRC_TIMEOUT_MS
+#define KIRC_TIMEOUT_MS 5000
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
