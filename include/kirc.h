@@ -46,6 +46,10 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 255
+#endif
+
 typedef enum {
     SASL_NONE = 0,
     SASL_PLAIN,
