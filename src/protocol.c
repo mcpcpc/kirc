@@ -122,6 +122,13 @@ int protocol_parse(protocol_t *protocol, char *line)
         return 0;
     }
 
+    if (strncmp(line, "ERROR", 5) == 0) {
+        protocol->event = PROTOCOL_EVENT_ERROR;
+        size_t message_n = sizeof(protocol->message) - 1;
+        strncpy(protocol->message, line + 7, message_n);
+        return 0;
+    }
+
     char *prefix = strtok(line, " ") + 1;
     char *suffix = strtok(NULL, ":");
     char *message = strtok(NULL, "\r");
@@ -297,6 +304,7 @@ int protocol_render(protocol_t *protocol)
         protocol_info(protocol);
         break;
 
+    case PROTOCOL_EVENT_ERROR:
     case PROTOCOL_EVENT_400_ERR_UNKNOWNERROR:
     case PROTOCOL_EVENT_401_ERR_NOSUCHNICK:
     case PROTOCOL_EVENT_402_ERR_NOSUCHSERVER:
