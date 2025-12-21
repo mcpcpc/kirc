@@ -1,65 +1,65 @@
 #include "protocol.h"
 
-static void get_time(char *hhmmss)
+static void get_time(char *out)
 {
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    strftime(hhmmss, 6, "%H:%M", info);
+    strftime(out, 6, "%H:%M", info);
 }
 
 static void protocol_raw(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s \x1b[0m\x1b[7m%s\x1b[0m\r\n",
-        hhmmss, protocol->raw);
+        hhmm, protocol->raw);
 }
 
 static void protocol_info(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s %s\x1b[0m\r\n",
-        hhmmss, protocol->message);
+        hhmm, protocol->message);
 }
 
 static void protocol_error(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s \x1b[1;31m%s\x1b[0m\r\n",
-        hhmmss, protocol->message);
+        hhmm, protocol->message);
 }
 
 static void protocol_notice(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m %s\r\n",
-        hhmmss, protocol->nickname, protocol->message);
+        hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg_direct(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m \x1b[34m%s\x1b[0m\r\n",
-        hhmmss, protocol->nickname, protocol->message);
+        hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg_indirect(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
-        hhmmss, protocol->nickname, protocol->message);
+        hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg(protocol_t *protocol)
@@ -76,8 +76,8 @@ static void protocol_privmsg(protocol_t *protocol)
 
 static void protocol_nick(protocol_t *protocol)
 {
-    char hhmmss[6];
-    get_time(hhmmss);
+    char hhmm[6];
+    get_time(hhmm);
 
     
     if (strcmp(protocol->nickname, protocol->ctx->nickname) == 0) {
@@ -85,11 +85,11 @@ static void protocol_nick(protocol_t *protocol)
         strncpy(protocol->ctx->nickname, protocol->message, siz);
         printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
             "you are now known as %s\x1b[0m\r\n",
-            hhmmss, protocol->message);
+            hhmm, protocol->message);
     } else {
         printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
             "%s is now known as %s\x1b[0m\r\n",
-            hhmmss, protocol->nickname, protocol->message);
+            hhmm, protocol->nickname, protocol->message);
     }
 
 }
@@ -119,6 +119,13 @@ int protocol_parse(protocol_t *protocol, char *line)
 
     if (strncmp(line, "AUTHENTICATE +", 14) == 0) {
         protocol->event = PROTOCOL_EVENT_EXT_AUTHENTICATE;
+        return 0;
+    }
+
+    if (strncmp(line, "ERROR", 5) == 0) {
+        protocol->event = PROTOCOL_EVENT_ERROR;
+        size_t message_n = sizeof(protocol->message) - 1;
+        strncpy(protocol->message, line + 7, message_n);
         return 0;
     }
 
@@ -216,24 +223,80 @@ int protocol_render(protocol_t *protocol)
     case PROTOCOL_EVENT_216_RPL_STATSKLINE:
     case PROTOCOL_EVENT_218_RPL_STATSYLINE:
     case PROTOCOL_EVENT_219_RPL_ENDOFSTATS:
+    case PROTOCOL_EVENT_221_RPL_UMODEIS:
+    case PROTOCOL_EVENT_234_RPL_SERVLIST:
+    case PROTOCOL_EVENT_235_RPL_SERVLISTEND:
+    case PROTOCOL_EVENT_241_RPL_STATSLLINE:
+    case PROTOCOL_EVENT_242_RPL_STATSUPTIME:
+    case PROTOCOL_EVENT_243_RPL_STATSOLINE:
+    case PROTOCOL_EVENT_244_RPL_STATSHLINE:
+    case PROTOCOL_EVENT_245_RPL_STATSSLINE:
     case PROTOCOL_EVENT_250_RPL_STATSCONN:
     case PROTOCOL_EVENT_251_RPL_LUSERCLIENT:
     case PROTOCOL_EVENT_252_RPL_LUSEROP:
     case PROTOCOL_EVENT_253_RPL_LUSERUNKNOWN:
     case PROTOCOL_EVENT_254_RPL_LUSERCHANNELS:
     case PROTOCOL_EVENT_255_RPL_LUSERME:
+    case PROTOCOL_EVENT_256_RPL_ADMINME:
+    case PROTOCOL_EVENT_257_RPL_ADMINLOC1:
+    case PROTOCOL_EVENT_258_RPL_ADMINLOC2:
+    case PROTOCOL_EVENT_259_RPL_ADMINEMAIL:
+    case PROTOCOL_EVENT_261_RPL_TRACELOG:
+    case PROTOCOL_EVENT_263_RPL_TRYAGAIN:
     case PROTOCOL_EVENT_265_RPL_LOCALUSERS:
     case PROTOCOL_EVENT_266_RPL_GLOBALUSERS:
+    case PROTOCOL_EVENT_300_RPL_NONE:
     case PROTOCOL_EVENT_301_RPL_AWAY:
+    case PROTOCOL_EVENT_302_RPL_USERHOST:
+    case PROTOCOL_EVENT_303_RPL_ISON:
+    case PROTOCOL_EVENT_305_RPL_UNAWAY:
+    case PROTOCOL_EVENT_306_RPL_NOWAWAY:
+    case PROTOCOL_EVENT_311_RPL_WHOISUSER:
+    case PROTOCOL_EVENT_312_RPL_WHOISSERVER:
+    case PROTOCOL_EVENT_313_RPL_WHOISOPERATOR:
+    case PROTOCOL_EVENT_314_RPL_WHOWASUSER:
+    case PROTOCOL_EVENT_315_RPL_ENDOFWHO:
+    case PROTOCOL_EVENT_317_RPL_WHOISIDLE:
+    case PROTOCOL_EVENT_318_RPL_ENDOFWHOIS:
+    case PROTOCOL_EVENT_319_RPL_WHOISCHANNELS:
+    case PROTOCOL_EVENT_322_RPL_LIST:
+    case PROTOCOL_EVENT_323_RPL_LISTEND:
+    case PROTOCOL_EVENT_324_RPL_CHANNELMODEIS:
     case PROTOCOL_EVENT_328_RPL_CHANNEL_URL:
+    case PROTOCOL_EVENT_331_RPL_NOTOPIC:
     case PROTOCOL_EVENT_332_RPL_TOPIC:
     case PROTOCOL_EVENT_333_RPL_TOPICWHOTIME:
+    case PROTOCOL_EVENT_341_RPL_INVITING:
+    case PROTOCOL_EVENT_346_RPL_INVITELIST:
+    case PROTOCOL_EVENT_347_RPL_ENDOFINVITELIST:
+    case PROTOCOL_EVENT_348_RPL_EXCEPTLIST:
+    case PROTOCOL_EVENT_349_RPL_ENDOFEXCEPTLIST:
+    case PROTOCOL_EVENT_351_RPL_VERSION:
+    case PROTOCOL_EVENT_352_RPL_WHOREPLY:
     case PROTOCOL_EVENT_353_RPL_NAMREPLY:
+    case PROTOCOL_EVENT_364_RPL_LINKS:
+    case PROTOCOL_EVENT_365_RPL_ENDOFLINKS:
     case PROTOCOL_EVENT_366_RPL_ENDOFNAMES:
+    case PROTOCOL_EVENT_367_RPL_BANLIST:
+    case PROTOCOL_EVENT_368_RPL_ENDOFBANLIST:
+    case PROTOCOL_EVENT_369_RPL_ENDOFWHOWAS:
+    case PROTOCOL_EVENT_371_RPL_INFO:
     case PROTOCOL_EVENT_372_RPL_MOTD:
+    case PROTOCOL_EVENT_374_RPL_ENDOFINFO:
     case PROTOCOL_EVENT_375_RPL_MOTDSTART:
     case PROTOCOL_EVENT_376_RPL_ENDOFMOTD:
+    case PROTOCOL_EVENT_381_RPL_YOUREOPER:
+    case PROTOCOL_EVENT_382_RPL_REHASHING:
+    case PROTOCOL_EVENT_383_RPL_YOURESERVICE:
+    case PROTOCOL_EVENT_391_RPL_TIME:
+    case PROTOCOL_EVENT_392_RPL_USERSSTART:
+    case PROTOCOL_EVENT_393_RPL_USERS:
+    case PROTOCOL_EVENT_394_RPL_ENDOFUSERS:
+    case PROTOCOL_EVENT_395_RPL_NOUSERS:
     case PROTOCOL_EVENT_396_RPL_HOSTHIDDEN:
+    case PROTOCOL_EVENT_704_RPL_HELPSTART:
+    case PROTOCOL_EVENT_705_RPL_HELPTXT:
+    case PROTOCOL_EVENT_706_RPL_ENDOFHELP:
     case PROTOCOL_EVENT_900_RPL_LOGGEDIN:
     case PROTOCOL_EVENT_901_RPL_LOGGEDOUT:
     case PROTOCOL_EVENT_903_RPL_SASLSUCCESS:
@@ -241,6 +304,7 @@ int protocol_render(protocol_t *protocol)
         protocol_info(protocol);
         break;
 
+    case PROTOCOL_EVENT_ERROR:
     case PROTOCOL_EVENT_400_ERR_UNKNOWNERROR:
     case PROTOCOL_EVENT_401_ERR_NOSUCHNICK:
     case PROTOCOL_EVENT_402_ERR_NOSUCHSERVER:
@@ -270,8 +334,28 @@ int protocol_render(protocol_t *protocol)
     case PROTOCOL_EVENT_444_ERR_NOLOGIN:
     case PROTOCOL_EVENT_445_ERR_SUMMONDISABLED:
     case PROTOCOL_EVENT_446_ERR_USERSDISABLED:
+    case PROTOCOL_EVENT_451_ERR_NOTREGISTERED:
+    case PROTOCOL_EVENT_461_ERR_NEEDMOREPARAMS:
+    case PROTOCOL_EVENT_462_ERR_ALREADYREGISTERED:
+    case PROTOCOL_EVENT_463_ERR_NOPERMFORHOST:
+    case PROTOCOL_EVENT_464_ERR_PASSWDMISMATCH:
     case PROTOCOL_EVENT_465_ERR_YOUREBANNEDCREEP:
+    case PROTOCOL_EVENT_467_ERR_KEYSET:
     case PROTOCOL_EVENT_470_ERR_LINKCHANNEL:
+    case PROTOCOL_EVENT_471_ERR_CHANNELISFULL:
+    case PROTOCOL_EVENT_472_ERR_UNKNOWNMODE:
+    case PROTOCOL_EVENT_473_ERR_INVITEONLYCHAN:
+    case PROTOCOL_EVENT_474_ERR_BANNEDFROMCHAN:
+    case PROTOCOL_EVENT_475_ERR_BADCHANNELKEY:
+    case PROTOCOL_EVENT_476_ERR_BADCHANMASK:
+    case PROTOCOL_EVENT_478_ERR_BANLISTFULL:
+    case PROTOCOL_EVENT_481_ERR_NOPRIVILEGES:
+    case PROTOCOL_EVENT_482_ERR_CHANOPRIVSNEEDED:
+    case PROTOCOL_EVENT_483_ERR_CANTKILLSERVER:
+    case PROTOCOL_EVENT_485_ERR_UNIQOPRIVSNEEDED:
+    case PROTOCOL_EVENT_491_ERR_NOOPERHOST:
+    case PROTOCOL_EVENT_501_ERR_UMODEUNKNOWNFLAG:
+    case PROTOCOL_EVENT_502_ERR_USERSDONTMATCH:
     case PROTOCOL_EVENT_902_ERR_NICKLOCKED:
     case PROTOCOL_EVENT_904_ERR_SASLFAIL:
     case PROTOCOL_EVENT_905_ERR_SASLTOOLONG:

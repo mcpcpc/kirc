@@ -1,5 +1,23 @@
 #include "network.h"
 
+static int poll_wait_write(int fd, int timeout_ms)
+{
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLOUT;
+
+    for (;;) {
+        int rc = poll(&pfd, 1, timeout_ms);
+        if (rc > 0)
+            return 0;  /* ready */
+        if (rc == 0)
+            return -1;  /* timeout */
+        if (errno == EINTR)
+            continue;
+        return -1;  /* error */
+    }
+}
+
 void network_send(network_t *network, const char *fmt, ...)
 {
     char buf[RFC1459_MESSAGE_MAX_LEN];
@@ -26,7 +44,7 @@ int network_receive(network_t *network) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return 0;
         } else {
-            perror("read");
+            //perror("read");
             return -1;
         }
     }
@@ -43,13 +61,10 @@ int network_receive(network_t *network) {
 
 int network_connect(network_t *network)
 {
-    struct addrinfo hints;
-    struct addrinfo *res = NULL;
-    struct addrinfo *p = NULL;
-
+    struct addrinfo hints, *res = NULL, *p = NULL;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = AF_UNSPEC;
 
     int status = getaddrinfo(network->ctx->server,
         network->ctx->port, &hints, &res);
@@ -62,49 +77,102 @@ int network_connect(network_t *network)
 
     network->fd = -1;
 
-    for (p = res; p != NULL; p = p->ai_next) {
-        network->fd = socket(p->ai_family,
-            p->ai_socktype, p->ai_protocol);
+    for (p = res; p; p = p->ai_next) {
+        int fd = socket(p->ai_family, p->ai_socktype,
+            p->ai_protocol);
 
-        if (network->fd == -1) {
+        if (fd < 0) {
             continue;
         }
 
-        if (connect(network->fd, p->ai_addr,
-            p->ai_addrlen) == -1) {
-            network->fd = -1;
-            close(network->fd);
+        int flags = fcntl(fd, F_GETFL, 0);
+        
+        if (flags < 0) {
+            close(fd);
             continue;
         }
 
-        break;
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+        int rc = connect(fd, p->ai_addr, p->ai_addrlen);
+
+        if (rc == 0) {
+            network->fd = fd;
+            break;
+        }
+
+        if (errno == EINPROGRESS) {
+            int timeout_ms = KIRC_TIMEOUT_MS;
+            int rc = poll_wait_write(fd, timeout_ms);
+
+            if (rc == 0) {
+
+                int soerr = 0;
+                socklen_t slen = sizeof(soerr);
+
+                getsockopt(fd, SOL_SOCKET, SO_ERROR,
+                    &soerr, &slen);
+
+                if (soerr == 0) {
+                    network->fd = fd;
+                    break;
+                }
+            }
+        }
+
+        close(fd);
     }
 
     freeaddrinfo(res);
 
-    if (network->fd == -1) {
-        fprintf(stderr, "failed to connect\n");
+    if (network->fd < 0) {
         return -1;
-    }
-
-    // Set non-blocking
-    int flags = fcntl(network->fd, F_GETFL, 0);
-
-    if (flags != -1) {
-        fcntl(network->fd, F_SETFL, flags | O_NONBLOCK);
     }
 
     return 0;
 }
 
+static void network_send_private_msg(
+        network_t *network, char *msg)
+{
+    char *username = strtok(msg + 1, " ");
+    char *message = strtok(NULL, "");
+
+    if (username && message) {
+        network_send(network, "PRIVMSG %s :%s\r\n",
+            username, message);
+        printf("\rto \x1b[1;31m%s\x1b[0m: %s\x1b[0K\r\n",
+            username, message);
+    } else {
+        char *err = "error: missing nickname or message";
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", err);
+    }
+}
+
+static void network_send_channel_msg(
+        network_t *network, char *msg)
+{
+    if (network->ctx->selected[0] != '\0') {
+        network_send(network, "PRIVMSG %s :%s\r\n",
+            network->ctx->selected, msg);
+        printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
+            network->ctx->selected, msg);
+    } else {
+        char *err = "error: no channel set";
+        printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", err);
+    }
+}
+
 int network_command_handler(network_t *network, char *msg)
 {
+    size_t siz = 0;
+
     switch (msg[0]) {
     case '/':  /* system command message */
         switch (msg[1]) {
         case '#':  /* set active channel */
-            int len = sizeof(network->ctx->selected) - 1;
-            strncpy(network->ctx->selected, msg + 1, len);
+            siz = sizeof(network->ctx->selected) - 1;
+            strncpy(network->ctx->selected, msg + 1, siz);
             break;
 
         default:  /* send raw server command */
@@ -114,26 +182,11 @@ int network_command_handler(network_t *network, char *msg)
         break;
 
     case '@':  /* private message */
-        char *username = strtok(msg + 1, " ");
-        char *message = strtok(NULL, "");
-        if (username && message) {
-            network_send(network, "PRIVMSG %s :%s\r\n",
-                username, message);
-            printf("\rto \x1b[1;31m%s\x1b[0m: %s\x1b[0K\r\n",
-                username, message);
-        }
+        network_send_private_msg(network, msg);
         break;
 
     default:  /* channel message */
-        if (network->ctx->selected[0] != '\0') {
-            network_send(network, "PRIVMSG %s :%s\r\n",
-                network->ctx->selected, msg);
-            printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
-                network->ctx->selected, msg);
-        } else {
-            char *err = "error: no channel set";
-            printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", err);
-        }
+        network_send_channel_msg(network, msg);
         break;
     }
 

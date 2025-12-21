@@ -25,6 +25,10 @@
 #define KIRC_HISTORY_SIZE 8
 #endif
 
+#ifndef KIRC_TIMEOUT_MS
+#define KIRC_TIMEOUT_MS 5000
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -42,20 +46,15 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 255
+#endif
+
 typedef enum {
     SASL_NONE = 0,
     SASL_PLAIN,
     SASL_EXTERNAL
 } sasl_mechanism_t;
-
-typedef enum {
-    KIRC_OK = 0,
-    KIRC_ERR,
-    KIRC_ERR_NOTFOUND,
-    KIRC_ERR_IO,
-    KIRC_ERR_PARSE,
-    KIRC_ERR_INTERNAL
-} kirc_error_t;
 
 typedef struct {
     char server[HOST_NAME_MAX];

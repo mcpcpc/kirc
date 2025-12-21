@@ -3,61 +3,89 @@
 #include "protocol.h"
 #include "terminal.h"
 
+static void kirc_parse_channels(kirc_t *ctx,
+        char *value)
+{
+    char *tok = NULL;
+    size_t siz = 0, idx = 0;
+
+    for (tok = strtok(value, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
+        siz = sizeof(ctx->channels[idx]) - 1;
+        strncpy(ctx->channels[idx], tok, siz);
+        idx++;
+    }
+}
+
+static void kirc_parse_mechanism(kirc_t *ctx,
+        char *value)
+{
+    char *mechanism = strtok(value, ":");
+    char *token = strtok(NULL, ":");
+    size_t siz = 0;
+
+    if (strcmp(mechanism, "EXTERNAL") == 0) {
+        ctx->mechanism = SASL_EXTERNAL;
+    } else if (strcmp(mechanism, "PLAIN") == 0) {
+        ctx->mechanism = SASL_PLAIN;
+        siz = sizeof(ctx->auth) - 1;
+        strncpy(ctx->auth, token, siz);
+    }
+}
+
 static int kirc_init(kirc_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
+    
+    size_t siz = 0;
 
-    size_t server_n = sizeof(ctx->server) - 1;
-    strncpy(ctx->server, "irc.libera.chat", server_n);
-
-    size_t port_n = sizeof(ctx->port) - 1;
-    strncpy(ctx->port, "6667", port_n);
+    siz = sizeof(ctx->server) - 1;
+    strncpy(ctx->server, "irc.libera.chat", siz);
+    
+    siz = sizeof(ctx->port) - 1;
+    strncpy(ctx->port, "6667", siz);
 
     ctx->mechanism = SASL_NONE;
 
-    const char *env;
+    char *env;
 
     env = getenv("KIRC_SERVER");
     if (env && *env) {
-        strncpy(ctx->server, env, server_n);
+        siz = sizeof(ctx->server) - 1;
+        strncpy(ctx->server, env, siz);
     }
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
-        strncpy(ctx->port, env, port_n);
+        siz = sizeof(ctx->port) - 1;
+        strncpy(ctx->port, env, siz);
     }
 
     env = getenv("KIRC_CHANNELS");
     if (env && *env) {
-        size_t idx = 0, channels_n = sizeof(ctx->channels[0]) - 1;
-        for (char *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-            strncpy(ctx->channels[idx], tok, channels_n);
-            idx++;
-        }
+        kirc_parse_channels(ctx, env);
     }
 
     env = getenv("KIRC_REALNAME");
     if (env && *env) {
-        size_t realname_n = sizeof(ctx->realname) - 1;
-        strncpy(ctx->realname, env, realname_n);
+        siz = sizeof(ctx->realname) - 1;
+        strncpy(ctx->realname, env, siz);
     }
 
     env = getenv("KIRC_USERNAME");
     if (env && *env) {
-        size_t username_n = sizeof(ctx->username) - 1;
-        strncpy(ctx->username, env, username_n);
+        siz = sizeof(ctx->username) - 1;
+        strncpy(ctx->username, env, siz);
     }
 
     env = getenv("KIRC_PASSWORD");
     if (env && *env) {
-        size_t password_n = sizeof(ctx->password) - 1;
-        strncpy(ctx->password, env, password_n);
+        siz = sizeof(ctx->password) - 1;
+        strncpy(ctx->password, env, siz);
     }
 
     env = getenv("KIRC_AUTH");
     if (env && *env) {
-        size_t auth_n = sizeof(ctx->auth) - 1;
-        strncpy(ctx->auth, env, auth_n);
+        kirc_parse_mechanism(ctx, env);
     }
 
     return 0;
@@ -71,52 +99,41 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     }
 
     int opt;
+    size_t siz = 0;
 
     while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:")) > 0) {
         switch (opt) {
         case 's':  /* server */
-            size_t server_n = sizeof(ctx->server) - 1;
-            strncpy(ctx->server, optarg, server_n);
+            siz = sizeof(ctx->server) - 1;
+            strncpy(ctx->server, optarg, siz);
             break;
 
         case 'p':  /* port */
-            size_t port_n = sizeof(ctx->port) - 1;
-            strncpy(ctx->port, optarg, port_n);
+            siz = sizeof(ctx->port) - 1;
+            strncpy(ctx->port, optarg, siz);
             break;
 
         case 'r':  /* realname */
-            size_t realname_n = sizeof(ctx->realname) - 1;
-            strncpy(ctx->realname, optarg, realname_n);
+            siz = sizeof(ctx->realname) - 1;
+            strncpy(ctx->realname, optarg, siz);
             break;
 
         case 'u':  /* username */
-            size_t username_n = sizeof(ctx->username) - 1;
-            strncpy(ctx->username, optarg, username_n);
+            siz = sizeof(ctx->username) - 1;
+            strncpy(ctx->username, optarg, siz);
             break;
 
         case 'k':  /* password */
-            size_t password_n = sizeof(ctx->password) - 1;
-            strncpy(ctx->password, optarg, password_n);
+            siz = sizeof(ctx->password) - 1;
+            strncpy(ctx->password, optarg, siz);
             break;
 
         case 'c':  /* channel(s) */
-            size_t idx = 0, channels_n = sizeof(ctx->channels[0]) - 1;
-            for (char *tok = strtok(optarg, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
-                strncpy(ctx->channels[idx], tok, channels_n);
-                idx += 1;
-            }
+            kirc_parse_channels(ctx, optarg);
             break;
 
         case 'a':  /* SASL authentication */
-            char *mechanism = strtok(optarg, ":");
-            if (strcmp(mechanism, "EXTERNAL") == 0) {
-                ctx->mechanism = SASL_EXTERNAL;
-            } else if (strcmp(mechanism, "PLAIN") == 0) {
-                ctx->mechanism = SASL_PLAIN;
-                char *token = strtok(NULL, ":");
-                size_t auth_n = sizeof(ctx->auth) - 1;
-                strncpy(ctx->auth, token, auth_n);
-            }
+            kirc_parse_mechanism(ctx, optarg);
             break;
 
         case ':':
@@ -145,30 +162,30 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     return 0;
 }
 
-static kirc_error_t kirc_run(kirc_t *ctx)
+static int kirc_run(kirc_t *ctx)
 {
     editor_t editor;
 
     if (editor_init(&editor, ctx) < 0) {
         fprintf(stderr, "editor_init failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     network_t network;
 
     if (network_init(&network, ctx) < 0) {
         fprintf(stderr, "network_init failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     if (ctx->nickname[0] == '\0') {
         fprintf(stderr, "nickname not specified\n");
-        return KIRC_ERR_PARSE;
+        return -1;
     }
 
     if (ctx->mechanism != SASL_NONE) {
@@ -211,12 +228,12 @@ static kirc_error_t kirc_run(kirc_t *ctx)
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
-        return KIRC_ERR_INTERNAL;
+        return -1;
     }
 
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
-        return KIRC_ERR_IO;
+        return -1;
     }
 
     struct pollfd fds[2] = {
@@ -297,7 +314,7 @@ static kirc_error_t kirc_run(kirc_t *ctx)
     terminal_disable_raw(&terminal);
     network_free(&network);
 
-    return KIRC_OK;
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -312,7 +329,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (kirc_run(&ctx) != KIRC_OK) {
+    if (kirc_run(&ctx) < 0) {
         return EXIT_FAILURE;
     }
 

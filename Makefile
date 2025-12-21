@@ -3,7 +3,7 @@
 
 include config.mk
 
-CFLAGS += -std=c99 -Wall -Wextra
+CFLAGS += -std=c99 -pedantic -Wall -Wextra
 CFLAGS += -Wno-unused-parameter
 CFLAGS += -g -Iinclude -Isrc
 
