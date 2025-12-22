@@ -53,16 +53,20 @@ Connect and create a log file:
     kirc -s irc.example.org -p 6667 mynick \
         | tee -a kirc-$(date +%Y%m%d).log
 
-Generating a base64 authentication token and
-connecting using the SASL PLAIN mechanism:
+Generate a BASE64 authentication token and
+connect using the SASL PLAIN mechanism:
 
     python3 -c ‘import base64; print(base64.encodebytes(b”alice\x00alice\x00password”))’
     # output: b ‘amlsbGVzAGppbGxlcwBzZXNhbWU=\n’
     kirc -a amlsbGVzAGppbGxlcwBzZXNhbWU= alice
-    
+
+Connect with TLS/SSL support using socat:
+
+    socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:irc.example.org:6697
+    kirc -s 127.0.0.1 alice
 
 Connect to an HTTP/HTTPS proxy server using
-socat or stunnel:
+socat:
 
     socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 \
          proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport>
