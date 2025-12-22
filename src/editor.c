@@ -295,10 +295,14 @@ int editor_render(editor_t *editor)
     int start = editor->cursor - (cols - size - 1) < 0 ?
         0 : editor->cursor - (cols - size - 1);
 
+    /*
     printf("\r\x1b[7m%s:\x1b[0m\x1b[7m%.*s\x1b[0m \x1b[0K",
         editor->ctx->selected, cols - size - 1,
         editor->scratch + start);
+    */
 
+    printf("\r%s:%.*s \x1b[0K", editor->ctx->selected,
+        cols - size - 1, editor->scratch + start);
 
     printf("\r\x1b[%dC", editor->cursor + size);
 
