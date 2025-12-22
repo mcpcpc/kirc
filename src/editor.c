@@ -1,7 +1,4 @@
 #include "editor.h"
-#include <locale.h>
-#include <wchar.h>
-#include <wctype.h>
 
 static void editor_backspace(editor_t *editor)
 {

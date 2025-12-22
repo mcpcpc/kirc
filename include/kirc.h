@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <locale.h>
 #include <netdb.h>
 #include <poll.h>
 #include <stdarg.h>
