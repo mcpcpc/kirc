@@ -2,6 +2,7 @@
 #define __KIRC_PROTOCOL_H
 
 #include "kirc.h"
+#include "ansi.h"
 
 typedef enum {
     PROTOCOL_EVENT_NONE = 0,
