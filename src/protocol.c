@@ -58,8 +58,13 @@ static void protocol_privmsg_indirect(protocol_t *protocol)
     char hhmm[6];
     get_time(hhmm);
 
+    /*
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
         hhmm, protocol->nickname, protocol->message);
+    */
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s [%s]:\r\n",
+        hhmm, protocol->nickname, protocol->message, protocol->channel);
+
 }
 
 static void protocol_privmsg(protocol_t *protocol)
