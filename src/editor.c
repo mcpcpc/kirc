@@ -276,7 +276,7 @@ static void editor_insert_bytes(editor_t *editor, const char *buf, int n)
 
 static void editor_clear(editor_t *editor)
 {
-    printf("\r\x1b[0K");
+    printf("\r" ANSI_CLEAR_LINE);
 }
 
 static int display_width_bytes(const char *s, int bytes)
