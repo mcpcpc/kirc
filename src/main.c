@@ -39,10 +39,10 @@ static int kirc_init(kirc_t *ctx)
     size_t siz = 0;
 
     siz = sizeof(ctx->server) - 1;
-    strncpy(ctx->server, "irc.libera.chat", siz);
+    strncpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
     
     siz = sizeof(ctx->port) - 1;
-    strncpy(ctx->port, "6667", siz);
+    strncpy(ctx->port, KIRC_DEFAULT_PORT, siz);
 
     ctx->mechanism = SASL_NONE;
 

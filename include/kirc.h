@@ -29,6 +29,22 @@
 #define KIRC_TIMEOUT_MS 5000
 #endif
 
+#ifndef KIRC_TIMESTAMP_FORMAT
+#define KIRC_TIMESTAMP_FORMAT "%H:%M"
+#endif
+
+#ifndef KIRC_DEFAULT_PORT
+#define KIRC_DEFAULT_PORT "6667"
+#endif
+
+#ifndef KIRC_DEFAULT_SERVER
+#define KIRC_DEFAULT_SERVER "irc.libera.chat"
+#endif
+
+#ifndef KIRC_DEFAULT_COLUMNS
+#define KIRC_DEFAULT_COLUMNS 80
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>

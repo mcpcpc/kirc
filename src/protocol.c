@@ -5,7 +5,7 @@ static void protocol_get_time(char *out)
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    strftime(out, 6, "%H:%M", info);
+    strftime(out, 6, KIRC_TIMESTAMP_FORMAT, info);
 }
 
 static void protocol_raw(protocol_t *protocol)

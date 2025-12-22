@@ -47,19 +47,19 @@ int terminal_columns(int tty_fd)
         STDOUT_FILENO);
 
     if (start == -1) {
-        return 80;
+        return KIRC_DEFAULT_COLUMNS;
     }
 
     /* Move far right */
     if (write(STDOUT_FILENO, "\x1b[999C", 6) != 6) {
-        return 80;
+        return KIRC_DEFAULT_COLUMNS;
     }
 
     int end = terminal_get_cursor_column(tty_fd,
         STDOUT_FILENO);
 
     if (end == -1) {
-        return 80;
+        return KIRC_DEFAULT_COLUMNS;
     }
 
     /* Move cursor back */
@@ -70,11 +70,11 @@ int terminal_columns(int tty_fd)
 
         if (write(STDOUT_FILENO, seq,
             strnlen(seq, sizeof(seq))) < 32) {
-            return 80;
+            return KIRC_DEFAULT_COLUMNS;
         }
     }
 
-    return (end > 0) ? end : 80;
+    return (end > 0) ? end : IRC_DEFAULT_COLUMNS;
 }
 
 int terminal_enable_raw(terminal_t *terminal)
