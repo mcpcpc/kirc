@@ -76,21 +76,8 @@ configuration. If you need persistent settings, wrap your
 invocation in a shell script or alias.
 
 For best results and rendering, use a terminal emulator with 256
-color support, such as xterm-256color.
+color support, such as `xterm-256color`.
 
-Contributing
-------------
-
-Contributions are welcome. Please open issues or pull requests on
-the project's GitHub repository. Keep changes small and focused —
-the project favors simplicity and clarity.
-
-Reporting Bugs
---------------
-
-Please open issues on GitHub with a clear description, steps to
-reproduce, and relevant environment details (OS, compiler, any
-runtime output).
 
 License
 -------
