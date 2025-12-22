@@ -13,7 +13,8 @@ static void protocol_raw(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET " " ANSI_REVERSE "%s" ANSI_RESET "\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_REVERSE "%s" ANSI_RESET "\r\n",
         hhmm, protocol->raw);
 }
 
@@ -31,7 +32,8 @@ static void protocol_error(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET " " ANSI_BOLD_RED "%s" ANSI_RESET "\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD_RED "%s" ANSI_RESET "\r\n",
         hhmm, protocol->message);
 }
 
@@ -40,7 +42,8 @@ static void protocol_notice(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET " " ANSI_BOLD_BLUE "%s" ANSI_RESET " %s\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD_BLUE "%s" ANSI_RESET " %s\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
@@ -49,7 +52,9 @@ static void protocol_privmsg_direct(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET " " ANSI_BOLD_BLUE "%s" ANSI_RESET " " ANSI_BLUE "%s" ANSI_RESET "\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD_BLUE "%s" ANSI_RESET
+        " " ANSI_BLUE "%s" ANSI_RESET "\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
@@ -58,7 +63,8 @@ static void protocol_privmsg_indirect(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s " ANSI_RESET ANSI_BOLD "%s" ANSI_RESET " [%s]: %s\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD "%s" ANSI_RESET " [%s]: %s\r\n",
         hhmm, protocol->nickname, protocol->channel, protocol->message);
 
 }
