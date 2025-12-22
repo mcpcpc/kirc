@@ -183,11 +183,6 @@ static int kirc_run(kirc_t *ctx)
         return -1;
     }
 
-    if (ctx->nickname[0] == '\0') {
-        fprintf(stderr, "nickname not specified\n");
-        return -1;
-    }
-
     if (ctx->mechanism != SASL_NONE) {
         network_send(&network, "CAP REQ :sasl\r\n");
     }
