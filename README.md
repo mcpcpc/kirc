@@ -53,12 +53,12 @@ Connect and create a log file:
     kirc -s irc.example.org -p 6667 mynick \
         | tee -a kirc-$(date +%Y%m%d).log
 
-Generate a BASE64 authentication token and
-connect using the SASL PLAIN mechanism:
+Generate a BASE64 authentication token and connect
+using the SASL PLAIN mechanism:
 
-    python3 -c ‘import base64; print(base64.encodebytes(b”alice\x00alice\x00password”))’
-    # output: b ‘amlsbGVzAGppbGxlcwBzZXNhbWU=\n’
-    kirc -a amlsbGVzAGppbGxlcwBzZXNhbWU= alice
+    python -c "import base64;print(base64.encodebytes(b'alice\x00alice\x00password'))"
+    # output: b'YWxpY2UAYWxpY2UAcGFzc3dvcmQ=\n'
+    kirc -a PLAIN:YWxpY2UAYWxpY2UAcGFzc3dvcmQ= alice
 
 Connect with TLS/SSL support using socat:
 
