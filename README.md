@@ -45,12 +45,21 @@ Connect to the default host with nickname `alice`:
 
 Connect to a specific server and join channels:
 
-    kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
+    kirc -s irc.example.org -p 6667 \
+        -c "#foo,#bar" alice
 
 Connect and create a log file:
 
     kirc -s irc.example.org -p 6667 mynick \
-        | tee -a raw-irc-$(date +%Y%m%d).log
+        | tee -a kirc-$(date +%Y%m%d).log
+
+Generating a base64 authentication token and
+connecting using the SASL PLAIN mechanism:
+
+    python3 -c ‘import base64; print(base64.encodebytes(b”alice\x00alice\x00password”))’
+    # output: b ‘amlsbGVzAGppbGxlcwBzZXNhbWU=\n’
+    kirc -a amlsbGVzAGppbGxlcwBzZXNhbWU= alice
+    
 
 Connect to an HTTP/HTTPS proxy server using
 socat or stunnel:
