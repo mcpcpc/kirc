@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-static void get_time(char *out)
+static void protocol_get_time(char *out)
 {
     time_t current;
     time(&current);
@@ -11,7 +11,7 @@ static void get_time(char *out)
 static void protocol_raw(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s \x1b[0m\x1b[7m%s\x1b[0m\r\n",
         hhmm, protocol->raw);
@@ -20,7 +20,7 @@ static void protocol_raw(protocol_t *protocol)
 static void protocol_info(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s %s\x1b[0m\r\n",
         hhmm, protocol->message);
@@ -29,7 +29,7 @@ static void protocol_info(protocol_t *protocol)
 static void protocol_error(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s \x1b[1;31m%s\x1b[0m\r\n",
         hhmm, protocol->message);
@@ -38,7 +38,7 @@ static void protocol_error(protocol_t *protocol)
 static void protocol_notice(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m %s\r\n",
         hhmm, protocol->nickname, protocol->message);
@@ -47,7 +47,7 @@ static void protocol_notice(protocol_t *protocol)
 static void protocol_privmsg_direct(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m \x1b[34m%s\x1b[0m\r\n",
         hhmm, protocol->nickname, protocol->message);
@@ -56,7 +56,7 @@ static void protocol_privmsg_direct(protocol_t *protocol)
 static void protocol_privmsg_indirect(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m [%s]: %s\r\n",
         hhmm, protocol->nickname, protocol->channel, protocol->message);
@@ -78,7 +78,7 @@ static void protocol_privmsg(protocol_t *protocol)
 static void protocol_nick(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     
     if (strcmp(protocol->nickname, protocol->ctx->nickname) == 0) {
