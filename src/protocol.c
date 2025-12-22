@@ -31,7 +31,7 @@ static void protocol_error(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s \x1b[1;31m%s" ANSI_RESET "\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET " " "\x1b[1;31m%s" ANSI_RESET "\r\n",
         hhmm, protocol->message);
 }
 
