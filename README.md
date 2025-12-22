@@ -64,7 +64,8 @@ connecting using the SASL PLAIN mechanism:
 Connect to an HTTP/HTTPS proxy server using
 socat or stunnel:
 
-    socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1  proxy:<proxyurl>:irc.libera.chat:6667,proxyport=<proxyport>
+    socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 \
+         proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport>
     kirc -s 127.0.0.1 -p 6667 alice
 
 Commands & Aliases
