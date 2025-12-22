@@ -74,7 +74,7 @@ int terminal_columns(int tty_fd)
         }
     }
 
-    return (end > 0) ? end : IRC_DEFAULT_COLUMNS;
+    return (end > 0) ? end : KIRC_DEFAULT_COLUMNS;
 }
 
 int terminal_enable_raw(terminal_t *terminal)
