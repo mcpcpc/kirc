@@ -90,6 +90,7 @@ static void protocol_nick(protocol_t *protocol)
     if (strcmp(protocol->nickname, protocol->ctx->nickname) == 0) {
         size_t siz = sizeof(protocol->ctx->nickname) - 1;
         strncpy(protocol->ctx->nickname, protocol->message, siz);
+        protocol->ctx->nickname[siz] = '\0';
         printf("\r" ANSI_CLEAR_LINE
             ANSI_DIM "%s you are now known as %s" ANSI_RESET "\r\n",
             hhmm, protocol->message);
@@ -116,11 +117,13 @@ int protocol_parse(protocol_t *protocol, char *line)
 
     size_t raw_n = sizeof(protocol->raw) - 1;
     strncpy(protocol->raw, line, raw_n);
+    protocol->raw[raw_n] = '\0';
 
     if (strncmp(line, "PING", 4) == 0) {
         protocol->event = PROTOCOL_EVENT_PING;
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, line + 6, message_n);
+        protocol->message[message_n] = '\0';
         return 0;
     }
 
@@ -133,16 +136,20 @@ int protocol_parse(protocol_t *protocol, char *line)
         protocol->event = PROTOCOL_EVENT_ERROR;
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, line + 7, message_n);
+        protocol->message[message_n] = '\0';
         return 0;
     }
 
-    char *prefix = strtok(line, " ") + 1;
+    char *token = strtok(line, " ");
+    if (token == NULL) return -1;
+    char *prefix = token + 1;
     char *suffix = strtok(NULL, ":");
     char *message = strtok(NULL, "\r");
 
     if (message != NULL) {
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, message, message_n);
+        protocol->message[message_n] = '\0';
     }
 
     char *nickname = strtok(prefix, "!");
@@ -150,6 +157,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (nickname != NULL) {
         size_t nickname_n = sizeof(protocol->nickname) - 1;
         strncpy(protocol->nickname, nickname, nickname_n);
+        protocol->nickname[nickname_n] = '\0';
     }
 
     char *command = strtok(suffix, "#& ");
@@ -157,6 +165,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (command != NULL) {
         size_t command_n = sizeof(protocol->command) - 1;
         strncpy(protocol->command, command, command_n);
+        protocol->command[command_n] = '\0';
     }
 
     char *channel = strtok(NULL, " \r");
@@ -164,6 +173,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (channel != NULL) {
         size_t channel_n = sizeof(protocol->channel) - 1;
         strncpy(protocol->channel, channel, channel_n);
+        protocol->channel[channel_n] = '\0';
     }
 
     char *params = strtok(NULL, ":\r");
@@ -171,6 +181,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (params != NULL) {
         size_t params_n = sizeof(protocol->params) - 1;
         strncpy(protocol->params, params, params_n);
+        protocol->params[params_n] = '\0';
     }
 
     for (int i = 0; map[i].command != NULL; i++) {
