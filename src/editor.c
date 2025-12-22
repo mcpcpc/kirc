@@ -229,11 +229,6 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
-    int i;
-    for (i = 0; i < 1; i++) {
-        /* single byte insertion */
-    }
-
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
 
