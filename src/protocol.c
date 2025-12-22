@@ -62,8 +62,8 @@ static void protocol_privmsg_indirect(protocol_t *protocol)
     printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s\r\n",
         hhmm, protocol->nickname, protocol->message);
     */
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m %s [%s]:\r\n",
-        hhmm, protocol->nickname, protocol->message, protocol->channel);
+    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m [%s]: %s\r\n",
+        hhmm, protocol->nickname, protocol->channel, protocol->message);
 
 }
 
