@@ -229,8 +229,6 @@ static void editor_escape(editor_t *editor)
 
 static void editor_insert(editor_t *editor, char c)
 {
-    char buf[1]; buf[0] = c;
-    /* delegate to byte-insert helper */
     int i;
     for (i = 0; i < 1; i++) {
         /* single byte insertion */
@@ -330,7 +328,6 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     editor->head = 0;
     editor->position = -1;
 
-    /* initialize C locale for multibyte/wide character handling */
     setlocale(LC_CTYPE, "");
 
     return 0;
