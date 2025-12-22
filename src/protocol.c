@@ -40,7 +40,7 @@ static void protocol_notice(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET " \x1b[1;34m%s" ANSI_RESET " %s\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s " ANSI_RESET "\x1b[1;34m%s" ANSI_RESET " %s\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 

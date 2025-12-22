@@ -3,6 +3,7 @@
 
 #include "kirc.h"
 #include "terminal.h"
+#include "ansi.h"
 
 typedef enum {
     EDITOR_EVENT_NONE = 0,

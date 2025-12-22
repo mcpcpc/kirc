@@ -444,7 +444,7 @@ int editor_render(editor_t *editor)
         fwrite(editor->scratch + start, 1, bytes_to_print, stdout);
     }
 
-    printf(" \x1b[0K");
+    printf(" " ANSI_CLEAR_LINE);
 
     printf("\r\x1b[%dC", cursor_disp + size);
 
