@@ -9,7 +9,7 @@ static void kirc_parse_channels(kirc_t *ctx,
     char *tok = NULL;
     size_t siz = 0, idx = 0;
 
-    for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHAN_LIMIT; tok = strtok(NULL, ",|")) {
+    for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHANNEL_LIMIT; tok = strtok(NULL, ",|")) {
         siz = sizeof(ctx->channels[idx]) - 1;
         strncpy(ctx->channels[idx], tok, siz);
         ctx->channels[idx][siz] = '\0';

@@ -32,7 +32,7 @@
 
 #define AUTHENTICATE_CHUNK_SIZE 400
 
-#define KIRC_CHAN_LIMIT         256
+#define KIRC_CHANNEL_LIMIT      256
 #define KIRC_HISTORY_SIZE       8
 #define KIRC_TIMEOUT_MS         5000
 #define KIRC_DEFAULT_COLUMNS    80
@@ -53,8 +53,8 @@ typedef struct {
     char realname[RFC1459_MESSAGE_MAX_LEN];
     char username[RFC1459_MESSAGE_MAX_LEN];
     char password[RFC1459_MESSAGE_MAX_LEN];
-    char channels[KIRC_CHAN_LIMIT][RFC1459_CHANNEL_MAX_LEN];
-    char selected[KIRC_CHAN_LIMIT];
+    char channels[KIRC_CHANNEL_LIMIT][RFC1459_CHANNEL_MAX_LEN];
+    char selected[KIRC_CHANNEL_LIMIT];
     char auth[RFC1459_MESSAGE_MAX_LEN];
     sasl_mechanism_t mechanism;
 } kirc_t;
