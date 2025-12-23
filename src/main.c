@@ -189,7 +189,7 @@ static int kirc_run(kirc_t *ctx)
 
     transport_t transport;
 
-    if (transport_init(&network, ctx) < 0) {
+    if (transport_init(&transport, ctx) < 0) {
         fprintf(stderr, "transport_init failed\n");
         return -1;
     }
