@@ -352,13 +352,13 @@ int editor_process_key(editor_t *editor)
         editor_backspace(editor);
         break;
 
-    case 13:  /* ENTER */
+    case CR:  /* ENTER */
         if (editor_enter(editor) > 0) {
             editor->event = EDITOR_EVENT_SEND;
         }
         break;
 
-    case 27:  /* ESCAPE */
+    case ESC:
         editor_escape(editor);
         break;
 

@@ -1,6 +1,9 @@
 #ifndef __KIRC_ANSI_H
 #define __KIRC_ANSI_H
 
+#define CR  0x0D
+#define ESC 0x1B
+
 #define ANSI_RESET          "\x1b[0m"
 #define ANSI_BOLD           "\x1b[1m"
 #define ANSI_DIM            "\x1b[2m"
