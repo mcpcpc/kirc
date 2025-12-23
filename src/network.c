@@ -204,7 +204,7 @@ static int network_authenticate_plain(network_t *network)
     }
     
     int len = strlen(network->ctx->auth);
-    int chunk_size = IRCV3_AUTHENTICATE_CHUNK_SIZE;
+    int chunk_size = AUTHENTICATE_CHUNK_SIZE;
 
     for (int offset = 0; offset < len; offset += chunk_size) {
         char chunk[chunk_size + 1];
