@@ -356,12 +356,12 @@ static const protocol_event_map_t map[] = {
 typedef struct {
     kirc_t *ctx;
     protocol_event_t event;
-    char raw[RFC1459_MESSAGE_MAX_LEN];
-    char channel[RFC1459_CHANNEL_MAX_LEN];
-    char message[RFC1459_MESSAGE_MAX_LEN];
-    char command[RFC1459_MESSAGE_MAX_LEN];
-    char nickname[RFC1459_MESSAGE_MAX_LEN];
-    char params[RFC1459_MESSAGE_MAX_LEN];
+    char raw[MESSAGE_MAX_LEN];
+    char channel[CHANNEL_MAX_LEN];
+    char message[MESSAGE_MAX_LEN];
+    char command[MESSAGE_MAX_LEN];
+    char nickname[MESSAGE_MAX_LEN];
+    char params[MESSAGE_MAX_LEN];
 } protocol_t;
 
 int protocol_init(protocol_t *protocol, kirc_t *ctx);

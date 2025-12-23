@@ -8,7 +8,7 @@
 typedef struct {
     kirc_t *ctx;
     transport_t *transport;
-    char buffer[RFC1459_MESSAGE_MAX_LEN];
+    char buffer[MESSAGE_MAX_LEN];
     int len;
 } network_t;
 

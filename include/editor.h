@@ -14,8 +14,8 @@ typedef enum {
 typedef struct {
     kirc_t *ctx;
     editor_event_t event;
-    char scratch[RFC1459_MESSAGE_MAX_LEN];
-    char history[KIRC_HISTORY_SIZE][RFC1459_MESSAGE_MAX_LEN];
+    char scratch[MESSAGE_MAX_LEN];
+    char history[KIRC_HISTORY_SIZE][MESSAGE_MAX_LEN];
     int head;
     int count;
     int position; /* -1 when not browsing history, otherwise index into history[] */
