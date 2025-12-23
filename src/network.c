@@ -29,7 +29,8 @@ int network_send(network_t *network, const char *fmt, ...)
     return 0;
 }
 
-int network_receive(network_t *network) {
+int network_receive(network_t *network)
+{
     size_t buffer_n = sizeof(network->buffer) - 1;
     ssize_t nread = transport_receive(
         network->transport,

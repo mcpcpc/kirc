@@ -11,7 +11,7 @@ typedef struct {
 ssize_t transport_send(transport_t *transport,
         const char *buffer, size_t len);
 ssize_t transport_receive(transport_t *transport,
-        char *buffer, size_t len)
+        char *buffer, size_t len);
 int transport_connect(transport_t *transport);
 
 int transport_init(transport_t *transport,
