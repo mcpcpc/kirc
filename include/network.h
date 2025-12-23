@@ -2,6 +2,7 @@
 #define __KIRC_NETWORK_H
 
 #include "kirc.h"
+#include "ansi.h"
 
 typedef struct {
     kirc_t *ctx;

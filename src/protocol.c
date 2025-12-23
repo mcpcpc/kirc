@@ -1,64 +1,70 @@
 #include "protocol.h"
 
-static void get_time(char *out)
+static void protocol_get_time(char *out)
 {
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    strftime(out, 6, "%H:%M", info);
+    strftime(out, 6, KIRC_TIMESTAMP_FORMAT, info);
 }
 
 static void protocol_raw(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
-    printf("\r\x1b[0K\x1b[2m%s \x1b[0m\x1b[7m%s\x1b[0m\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_REVERSE "%s" ANSI_RESET "\r\n",
         hhmm, protocol->raw);
 }
 
 static void protocol_info(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
-    printf("\r\x1b[0K\x1b[2m%s %s\x1b[0m\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s %s" ANSI_RESET "\r\n",
         hhmm, protocol->message);
 }
 
 static void protocol_error(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
-    printf("\r\x1b[0K\x1b[2m%s \x1b[1;31m%s\x1b[0m\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD_RED "%s" ANSI_RESET "\r\n",
         hhmm, protocol->message);
 }
 
 static void protocol_notice(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m %s\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD_BLUE "%s" ANSI_RESET " %s\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg_direct(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1;34m%s\x1b[0m \x1b[34m%s\x1b[0m\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD_BLUE "%s" ANSI_RESET
+        " " ANSI_BLUE "%s" ANSI_RESET "\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
 static void protocol_privmsg_indirect(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
-    printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[1m%s\x1b[0m [%s]: %s\r\n",
+    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+        " " ANSI_BOLD "%s" ANSI_RESET " [%s]: %s\r\n",
         hhmm, protocol->nickname, protocol->channel, protocol->message);
 
 }
@@ -78,18 +84,19 @@ static void protocol_privmsg(protocol_t *protocol)
 static void protocol_nick(protocol_t *protocol)
 {
     char hhmm[6];
-    get_time(hhmm);
+    protocol_get_time(hhmm);
 
     
     if (strcmp(protocol->nickname, protocol->ctx->nickname) == 0) {
         size_t siz = sizeof(protocol->ctx->nickname) - 1;
         strncpy(protocol->ctx->nickname, protocol->message, siz);
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
-            "you are now known as %s\x1b[0m\r\n",
+        protocol->ctx->nickname[siz] = '\0';
+        printf("\r" ANSI_CLEAR_LINE
+            ANSI_DIM "%s you are now known as %s" ANSI_RESET "\r\n",
             hhmm, protocol->message);
     } else {
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m \x1b[2m"
-            "%s is now known as %s\x1b[0m\r\n",
+        printf("\r" ANSI_CLEAR_LINE
+            ANSI_DIM "%s %s is now known as %s" ANSI_RESET "\r\n",
             hhmm, protocol->nickname, protocol->message);
     }
 
@@ -110,11 +117,13 @@ int protocol_parse(protocol_t *protocol, char *line)
 
     size_t raw_n = sizeof(protocol->raw) - 1;
     strncpy(protocol->raw, line, raw_n);
+    protocol->raw[raw_n] = '\0';
 
     if (strncmp(line, "PING", 4) == 0) {
         protocol->event = PROTOCOL_EVENT_PING;
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, line + 6, message_n);
+        protocol->message[message_n] = '\0';
         return 0;
     }
 
@@ -127,16 +136,20 @@ int protocol_parse(protocol_t *protocol, char *line)
         protocol->event = PROTOCOL_EVENT_ERROR;
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, line + 7, message_n);
+        protocol->message[message_n] = '\0';
         return 0;
     }
 
-    char *prefix = strtok(line, " ") + 1;
+    char *token = strtok(line, " ");
+    if (token == NULL) return -1;
+    char *prefix = token + 1;
     char *suffix = strtok(NULL, ":");
     char *message = strtok(NULL, "\r");
 
     if (message != NULL) {
         size_t message_n = sizeof(protocol->message) - 1;
         strncpy(protocol->message, message, message_n);
+        protocol->message[message_n] = '\0';
     }
 
     char *nickname = strtok(prefix, "!");
@@ -144,6 +157,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (nickname != NULL) {
         size_t nickname_n = sizeof(protocol->nickname) - 1;
         strncpy(protocol->nickname, nickname, nickname_n);
+        protocol->nickname[nickname_n] = '\0';
     }
 
     char *command = strtok(suffix, "#& ");
@@ -151,6 +165,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (command != NULL) {
         size_t command_n = sizeof(protocol->command) - 1;
         strncpy(protocol->command, command, command_n);
+        protocol->command[command_n] = '\0';
     }
 
     char *channel = strtok(NULL, " \r");
@@ -158,6 +173,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (channel != NULL) {
         size_t channel_n = sizeof(protocol->channel) - 1;
         strncpy(protocol->channel, channel, channel_n);
+        protocol->channel[channel_n] = '\0';
     }
 
     char *params = strtok(NULL, ":\r");
@@ -165,6 +181,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     if (params != NULL) {
         size_t params_n = sizeof(protocol->params) - 1;
         strncpy(protocol->params, params, params_n);
+        protocol->params[params_n] = '\0';
     }
 
     for (int i = 0; map[i].command != NULL; i++) {

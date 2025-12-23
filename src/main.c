@@ -9,9 +9,10 @@ static void kirc_parse_channels(kirc_t *ctx,
     char *tok = NULL;
     size_t siz = 0, idx = 0;
 
-    for (tok = strtok(value, ",|"); tok != NULL; tok = strtok(NULL, ",|")) {
+    for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHANNEL_LIMIT; tok = strtok(NULL, ",|")) {
         siz = sizeof(ctx->channels[idx]) - 1;
         strncpy(ctx->channels[idx], tok, siz);
+        ctx->channels[idx][siz] = '\0';
         idx++;
     }
 }
@@ -29,6 +30,7 @@ static void kirc_parse_mechanism(kirc_t *ctx,
         ctx->mechanism = SASL_PLAIN;
         siz = sizeof(ctx->auth) - 1;
         strncpy(ctx->auth, token, siz);
+        ctx->auth[siz] = '\0';
     }
 }
 
@@ -39,10 +41,12 @@ static int kirc_init(kirc_t *ctx)
     size_t siz = 0;
 
     siz = sizeof(ctx->server) - 1;
-    strncpy(ctx->server, "irc.libera.chat", siz);
+    strncpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
+    ctx->server[siz] = '\0';
     
     siz = sizeof(ctx->port) - 1;
-    strncpy(ctx->port, "6667", siz);
+    strncpy(ctx->port, KIRC_DEFAULT_PORT, siz);
+    ctx->port[siz] = '\0';
 
     ctx->mechanism = SASL_NONE;
 
@@ -52,12 +56,14 @@ static int kirc_init(kirc_t *ctx)
     if (env && *env) {
         siz = sizeof(ctx->server) - 1;
         strncpy(ctx->server, env, siz);
+        ctx->server[siz] = '\0';
     }
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
         siz = sizeof(ctx->port) - 1;
         strncpy(ctx->port, env, siz);
+        ctx->port[siz] = '\0';
     }
 
     env = getenv("KIRC_CHANNELS");
@@ -69,18 +75,21 @@ static int kirc_init(kirc_t *ctx)
     if (env && *env) {
         siz = sizeof(ctx->realname) - 1;
         strncpy(ctx->realname, env, siz);
+        ctx->realname[siz] = '\0';
     }
 
     env = getenv("KIRC_USERNAME");
     if (env && *env) {
         siz = sizeof(ctx->username) - 1;
         strncpy(ctx->username, env, siz);
+        ctx->username[siz] = '\0';
     }
 
     env = getenv("KIRC_PASSWORD");
     if (env && *env) {
         siz = sizeof(ctx->password) - 1;
         strncpy(ctx->password, env, siz);
+        ctx->password[siz] = '\0';
     }
 
     env = getenv("KIRC_AUTH");
@@ -106,26 +115,31 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         case 's':  /* server */
             siz = sizeof(ctx->server) - 1;
             strncpy(ctx->server, optarg, siz);
+            ctx->server[siz] = '\0';
             break;
 
         case 'p':  /* port */
             siz = sizeof(ctx->port) - 1;
             strncpy(ctx->port, optarg, siz);
+            ctx->port[siz] = '\0';
             break;
 
         case 'r':  /* realname */
             siz = sizeof(ctx->realname) - 1;
             strncpy(ctx->realname, optarg, siz);
+            ctx->realname[siz] = '\0';
             break;
 
         case 'u':  /* username */
             siz = sizeof(ctx->username) - 1;
             strncpy(ctx->username, optarg, siz);
+            ctx->username[siz] = '\0';
             break;
 
         case 'k':  /* password */
             siz = sizeof(ctx->password) - 1;
             strncpy(ctx->password, optarg, siz);
+            ctx->password[siz] = '\0';
             break;
 
         case 'c':  /* channel(s) */
@@ -158,6 +172,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
     size_t nickname_n = sizeof(ctx->nickname) - 1;
     strncpy(ctx->nickname, argv[optind], nickname_n);
+    ctx->nickname[nickname_n] = '\0';
 
     return 0;
 }
@@ -218,16 +233,20 @@ static int kirc_run(kirc_t *ctx)
 
     size_t selected_n = sizeof(ctx->selected) - 1;
     strncpy(ctx->selected, ctx->channels[0], selected_n);
+    ctx->selected[selected_n] = '\0';
 
     terminal_t terminal;
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
+        network_free(&network);
         return -1;
     }
 
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
+        terminal_disable_raw(&terminal);
+        network_free(&network);
         return -1;
     }
 
@@ -239,7 +258,6 @@ static int kirc_run(kirc_t *ctx)
     for (;;) {
         if (poll(fds, 2, -1) == -1) {
             if (errno == EINTR) continue;
-            //perror("poll");
             break;
         }
 

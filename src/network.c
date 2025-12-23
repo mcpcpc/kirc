@@ -44,7 +44,6 @@ int network_receive(network_t *network) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return 0;
         } else {
-            //perror("read");
             return -1;
         }
     }
@@ -141,11 +140,13 @@ static void network_send_private_msg(
     if (username && message) {
         network_send(network, "PRIVMSG %s :%s\r\n",
             username, message);
-        printf("\rto \x1b[1;31m%s\x1b[0m: %s\x1b[0K\r\n",
+        printf("\rto " ANSI_BOLD_RED "%s" ANSI_RESET
+            ": %s" ANSI_CLEAR_LINE "\r\n",
             username, message);
     } else {
-        char *err = "error: missing nickname or message";
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", err);
+        const char *err = "error: missing nickname or message";
+        printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+            "\r\n", err);
     }
 }
 
@@ -155,11 +156,13 @@ static void network_send_channel_msg(
     if (network->ctx->selected[0] != '\0') {
         network_send(network, "PRIVMSG %s :%s\r\n",
             network->ctx->selected, msg);
-        printf("\rto \x1b[1m%s\x1b[0m: %s\x1b[0K\r\n",
+        printf("\rto " ANSI_BOLD "%s" ANSI_RESET
+            ": %s" ANSI_CLEAR_LINE "\r\n",
             network->ctx->selected, msg);
     } else {
-        char *err = "error: no channel set";
-        printf("\r\x1b[0K\x1b[2m%s\x1b[0m\r\n", err);
+        const char *err = "error: no channel set";
+        printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
+            "\r\n", err);
     }
 }
 
@@ -201,7 +204,7 @@ static int network_authenticate_plain(network_t *network)
     }
     
     int len = strlen(network->ctx->auth);
-    int chunk_size = IRCV3_AUTHENTICATE_CHUNK_SIZE;
+    int chunk_size = AUTHENTICATE_CHUNK_SIZE;
 
     for (int offset = 0; offset < len; offset += chunk_size) {
         char chunk[chunk_size + 1];
@@ -251,7 +254,7 @@ int network_join_channels(network_t *network)
 
 int network_init(network_t *network, kirc_t *ctx)
 {
-    memset(network, 0, sizeof(*network));   
+    memset(network, 0, sizeof(*network));
 
     network->ctx = ctx;
 

@@ -45,7 +45,32 @@ Connect to the default host with nickname `alice`:
 
 Connect to a specific server and join channels:
 
-    kirc -s irc.example.org -p 6667 -c "#foo,#bar" alice
+    kirc -s irc.example.org -p 6667 \
+        -c "#foo,#bar" alice
+
+Connect and create a log file:
+
+    kirc -s irc.example.org -p 6667 mynick \
+        | tee -a kirc-$(date +%Y%m%d).log
+
+Generate a BASE64 authentication token and connect
+using the SASL PLAIN mechanism:
+
+    python -c "import base64;print(base64.encodebytes(b'alice\x00alice\x00password'))"
+    # output: b'YWxpY2UAYWxpY2UAcGFzc3dvcmQ=\n'
+    kirc -a PLAIN:YWxpY2UAYWxpY2UAcGFzc3dvcmQ= alice
+
+Connect with TLS/SSL support using socat:
+
+    socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:irc.example.org:6697
+    kirc -s 127.0.0.1 alice
+
+Connect to an HTTP/HTTPS proxy server using
+socat:
+
+    socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 \
+         proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport>
+    kirc -s 127.0.0.1 -p 6667 alice
 
 Commands & Aliases
 ------------------
@@ -76,21 +101,8 @@ configuration. If you need persistent settings, wrap your
 invocation in a shell script or alias.
 
 For best results and rendering, use a terminal emulator with 256
-color support, such as xterm-256color.
+color support, such as `xterm-256color`.
 
-Contributing
-------------
-
-Contributions are welcome. Please open issues or pull requests on
-the project's GitHub repository. Keep changes small and focused —
-the project favors simplicity and clarity.
-
-Reporting Bugs
---------------
-
-Please open issues on GitHub with a clear description, steps to
-reproduce, and relevant environment details (OS, compiler, any
-runtime output).
 
 License
 -------
