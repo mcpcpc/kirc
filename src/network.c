@@ -1,25 +1,15 @@
 #include "network.h"
 
-static int poll_wait_write(int fd, int timeout_ms)
+int network_send(network_t *network, const char *fmt, ...)
 {
-    struct pollfd pfd;
-    pfd.fd = fd;
-    pfd.events = POLLOUT;
-
-    for (;;) {
-        int rc = poll(&pfd, 1, timeout_ms);
-        if (rc > 0)
-            return 0;  /* ready */
-        if (rc == 0)
-            return -1;  /* timeout */
-        if (errno == EINTR)
-            continue;
-        return -1;  /* error */
+    if (network == NULL) {
+        return -1;
     }
-}
 
-void network_send(network_t *network, const char *fmt, ...)
-{
+    if (network->transport == NULL) {
+        return -1;
+    }
+
     char buf[RFC1459_MESSAGE_MAX_LEN];
     va_list ap;
 
@@ -29,14 +19,20 @@ void network_send(network_t *network, const char *fmt, ...)
 
     size_t len = strnlen(buf, sizeof(buf));
 
-    if (write(network->fd, buf, len) < 0) {
-        perror("write");
+    ssize_t nsent = transport_send(
+        network->transport, buf, len);
+
+    if (nsent < 0) {
+        return -1;
     }
+
+    return 0;
 }
 
 int network_receive(network_t *network) {
     size_t buffer_n = sizeof(network->buffer) - 1;
-    ssize_t nread = read(network->fd,
+    ssize_t nread = transport_receive(
+        network->transport,
         network->buffer + network->len,
         buffer_n - network->len);
 
@@ -60,75 +56,7 @@ int network_receive(network_t *network) {
 
 int network_connect(network_t *network)
 {
-    struct addrinfo hints, *res = NULL, *p = NULL;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_family = AF_UNSPEC;
-
-    int status = getaddrinfo(network->ctx->server,
-        network->ctx->port, &hints, &res);
-
-    if (status != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n",
-            gai_strerror(status));
-        return -1;
-    }
-
-    network->fd = -1;
-
-    for (p = res; p; p = p->ai_next) {
-        int fd = socket(p->ai_family, p->ai_socktype,
-            p->ai_protocol);
-
-        if (fd < 0) {
-            continue;
-        }
-
-        int flags = fcntl(fd, F_GETFL, 0);
-        
-        if (flags < 0) {
-            close(fd);
-            continue;
-        }
-
-        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
-        int rc = connect(fd, p->ai_addr, p->ai_addrlen);
-
-        if (rc == 0) {
-            network->fd = fd;
-            break;
-        }
-
-        if (errno == EINPROGRESS) {
-            int timeout_ms = KIRC_TIMEOUT_MS;
-            int rc = poll_wait_write(fd, timeout_ms);
-
-            if (rc == 0) {
-
-                int soerr = 0;
-                socklen_t slen = sizeof(soerr);
-
-                getsockopt(fd, SOL_SOCKET, SO_ERROR,
-                    &soerr, &slen);
-
-                if (soerr == 0) {
-                    network->fd = fd;
-                    break;
-                }
-            }
-        }
-
-        close(fd);
-    }
-
-    freeaddrinfo(res);
-
-    if (network->fd < 0) {
-        return -1;
-    }
-
-    return 0;
+    return transport_connect(network->transport);
 }
 
 static void network_send_private_msg(
@@ -252,13 +180,13 @@ int network_join_channels(network_t *network)
     return 0;
 }
 
-int network_init(network_t *network, kirc_t *ctx)
+int network_init(network_t *network, 
+        transport_t *transport, kirc_t *ctx)
 {
     memset(network, 0, sizeof(*network));
 
     network->ctx = ctx;
-
-    network->fd = -1;
+    network->transport = transport;
     network->len = 0;
 
     return 0;
@@ -266,9 +194,8 @@ int network_init(network_t *network, kirc_t *ctx)
 
 int network_free(network_t *network)
 {
-    if (network->fd != -1) {
-        close(network->fd);
-        network->fd = -1;
+    if (transport_free(network->transport) < 0) {
+        return -1;
     }
 
     return 0;

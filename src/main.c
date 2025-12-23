@@ -2,6 +2,7 @@
 #include "network.h"
 #include "protocol.h"
 #include "terminal.h"
+#include "transport.h"
 
 static void kirc_parse_channels(kirc_t *ctx,
         char *value)
@@ -186,9 +187,16 @@ static int kirc_run(kirc_t *ctx)
         return -1;
     }
 
+    transport_t transport;
+
+    if (transport_init(&network, ctx) < 0) {
+        fprintf(stderr, "transport_init failed\n");
+        return -1;
+    }
+
     network_t network;
 
-    if (network_init(&network, ctx) < 0) {
+    if (network_init(&network, &transport, ctx) < 0) {
         fprintf(stderr, "network_init failed\n");
         return -1;
     }
