@@ -22,7 +22,7 @@ ssize_t transport_send(transport_t *transport,
         const char *buffer, size_t len)
 {
     if (transport == NULL)
-        return -1
+        return -1;
 
     if (transport->fd < 0)
         return -1;
@@ -40,7 +40,7 @@ ssize_t transport_receive(transport_t *transport,
         char *buffer, size_t len)
 {
     if (transport == NULL)
-        return -1
+        return -1;
 
     if (transport->fd < 0)
         return -1;
