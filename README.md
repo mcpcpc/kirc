@@ -30,8 +30,8 @@ building: `./kirc`.
 
 Usage
 -----
-At minimum, supply a nickname to connect. For full options, see
-the manpage or run `kirc -h`.
+At minimum, supply a nickname to connect. For full options,
+see the manpage.
 
     kirc [-s server] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-a auth] <nickname>
