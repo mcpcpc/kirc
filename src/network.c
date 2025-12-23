@@ -144,7 +144,7 @@ static void network_send_private_msg(
             ": %s" ANSI_CLEAR_LINE "\r\n",
             username, message);
     } else {
-        char *err = "error: missing nickname or message";
+        const char *err = "error: missing nickname or message";
         printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
             "\r\n", err);
     }
@@ -160,7 +160,7 @@ static void network_send_channel_msg(
             ": %s" ANSI_CLEAR_LINE "\r\n",
             network->ctx->selected, msg);
     } else {
-        char *err = "error: no channel set";
+        const char *err = "error: no channel set";
         printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
             "\r\n", err);
     }
