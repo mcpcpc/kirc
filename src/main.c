@@ -239,12 +239,14 @@ static int kirc_run(kirc_t *ctx)
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
+        network_free(&network);
         return -1;
     }
 
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
         terminal_disable_raw(&terminal);
+        network_free(&network);
         return -1;
     }
 
