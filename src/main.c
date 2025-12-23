@@ -244,6 +244,7 @@ static int kirc_run(kirc_t *ctx)
 
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw: failed\n");
+        terminal_disable_raw(&terminal);
         return -1;
     }
 
