@@ -4,6 +4,7 @@
 include config.mk
 
 CFLAGS += -std=c99 -pedantic -Wall -Wextra
+CFLAGS += -Wformat-security -Wwrite-strings
 CFLAGS += -Wno-unused-parameter
 CFLAGS += -g -Iinclude -Isrc
 
