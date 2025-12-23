@@ -102,7 +102,7 @@ int transport_connect(transport_t *transport)
         int rc = connect(fd, p->ai_addr, p->ai_addrlen);
 
         if (rc == 0) {
-            network->fd = fd;
+            transport->fd = fd;
             break;
         }
 
