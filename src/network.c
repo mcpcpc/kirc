@@ -44,7 +44,6 @@ int network_receive(network_t *network) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return 0;
         } else {
-            //perror("read");
             return -1;
         }
     }

@@ -258,7 +258,6 @@ static int kirc_run(kirc_t *ctx)
     for (;;) {
         if (poll(fds, 2, -1) == -1) {
             if (errno == EINTR) continue;
-            //perror("poll");
             break;
         }
 
