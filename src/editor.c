@@ -339,20 +339,20 @@ int editor_process_key(editor_t *editor)
     editor->event = EDITOR_EVENT_NONE;
 
     switch(c) {
-    case 3:  /* CTRL-C */
+    case ETX:  /* CTRL-C */
         editor_clear(editor);
         editor->event = EDITOR_EVENT_TERMINATE;
         break;
 
-    case 21:  /* CTRL-U */
+    case NAK:  /* CTRL-U */
         editor_delete_line(editor);
         break;
 
-    case 127:  /* DELETE */
+    case DEL:
         editor_backspace(editor);
         break;
 
-    case CR:  /* ENTER */
+    case CR:
         if (editor_enter(editor) > 0) {
             editor->event = EDITOR_EVENT_SEND;
         }
