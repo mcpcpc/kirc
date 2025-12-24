@@ -127,6 +127,27 @@ int network_command_handler(network_t *network, char *msg)
             } else {
                 network_send(network, "%s\r\n", msg + 1);
             }
+            break;
+
+        case 'c':
+            if (strncmp(msg + 1, "ctcp ", 5) == 0) {
+                char *text = msg + 6;
+                char *target = strtok(text, " ");
+                char *command = strtok(NULL, "");
+                if (target && command) {
+                    network_send(network, "PRIVMSG %s :\001%s\001\r\n",
+                        target, command);
+                    printf("\rctcp: " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n"
+                        target, command);
+                } else {
+                    const char *err = "usage: /ctcp <nick> <command>";
+                    printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
+                        err);
+                } 
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
+            break;
 
         default:  /* send raw server command */
             network_send(network, "%s\r\n", msg + 1);
