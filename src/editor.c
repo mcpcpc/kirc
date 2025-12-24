@@ -1,3 +1,10 @@
+/*
+ * editor.c
+ * Text editor functionality for the IRC client
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "editor.h"
 
 static void editor_backspace(editor_t *editor)
@@ -271,7 +278,7 @@ static void editor_insert_bytes(editor_t *editor, const char *buf, int n)
 
 static void editor_clear(editor_t *editor)
 {
-    printf("\r" ANSI_CLEAR_LINE);
+    printf("\r" CLEAR_LINE);
 }
 
 static int display_width_bytes(const char *s, int bytes)
@@ -302,6 +309,15 @@ static int display_width_bytes(const char *s, int bytes)
     }
 
     return wsum;
+}
+
+static void editor_tab(editor_t *editor)
+{
+    int width = KIRC_TAB_WIDTH;
+
+    for (int i = 0; i < width; ++i) {
+        editor_insert(editor, ' ');
+    } 
 }
 
 char *editor_last_entry(editor_t *editor)
@@ -339,28 +355,59 @@ int editor_process_key(editor_t *editor)
     editor->event = EDITOR_EVENT_NONE;
 
     switch(c) {
-    case 3:  /* CTRL-C */
+    case HT:  /* CTRL-I or TAB */
+        editor_tab(editor);
+        break;
+
+    case ETX:  /* CTRL-C */
         editor_clear(editor);
         editor->event = EDITOR_EVENT_TERMINATE;
         break;
 
-    case 21:  /* CTRL-U */
+    case NAK:  /* CTRL-U */
         editor_delete_line(editor);
         break;
 
-    case 127:  /* DELETE */
+    case DEL:
         editor_backspace(editor);
         break;
 
-    case 13:  /* ENTER */
+    case CR:  /* CTRL-M or ENTER */
         if (editor_enter(editor) > 0) {
             editor->event = EDITOR_EVENT_SEND;
         }
         break;
 
-    case 27:  /* ESCAPE */
+    case ESC:  /* CTRL-[ */
         editor_escape(editor);
         break;
+
+    case SOH:  /* CTRL-A */
+    case STX:  /* CTRL-B */
+    case EOT:  /* CTRL-D */
+    case ENQ:  /* CTRL-E */
+    case ACK:  /* CTRL-F */
+    case BEL:  /* CTRL-G */
+    case LF:  /* CTRL-J */
+    case VT:  /* CTRL-K */
+    case FF:  /* CTRL-L */
+    case SO:  /* CTRL-N */
+    case SI:  /* CTRL-O */
+    case DLE:  /* CTRL-P */
+    case DC1:  /* CTRL-Q */
+    case DC2:  /* CTRL-R */
+    case DC3:  /* CTRL-S */
+    case DC4:  /* CTRL-T */
+    case SYN:  /* CTRL-V */
+    case ETB:  /* CTRL-W */
+    case CAN:  /* CTRL-X */
+    case EM:  /* CTRL-Y */
+    case SUB:  /* CTRL-Z */
+    case FS:  /* CTRL-\ */
+    case GS:  /* CTRL-] */
+    case RS:  /* CTRL-^ */
+    case US:  /* CTRL-_ */
+        break;  /* not implemented yet */
 
     default:
         /* handle UTF-8 multi-byte input: read remaining continuation bytes */
@@ -439,7 +486,7 @@ int editor_render(editor_t *editor)
         fwrite(editor->scratch + start, 1, bytes_to_print, stdout);
     }
 
-    printf(" " ANSI_CLEAR_LINE);
+    printf(" " CLEAR_LINE);
 
     printf("\r\x1b[%dC", cursor_disp + size);
 

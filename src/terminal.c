@@ -1,3 +1,10 @@
+/*
+ * terminal.c
+ * Terminal interface and display management
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "terminal.h"
 
 static int terminal_get_cursor_column(int in_fd, int out_fd)

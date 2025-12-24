@@ -1,3 +1,10 @@
+/*
+ * kirc.h
+ * Main header file for kirc IRC client
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_H
 #define __KIRC_H
 
@@ -24,21 +31,22 @@
 #include <wctype.h>
 
 #ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX           255
+#define HOST_NAME_MAX         255
 #endif
 
-#define RFC1459_CHANNEL_MAX_LEN 200
-#define RFC1459_MESSAGE_MAX_LEN 512
+#define CHANNEL_MAX_LEN       200  /* per RFC1459 */
+#define MESSAGE_MAX_LEN       512  /* per RFC1459 */
+#define AUTH_CHUNK_SIZE       400  /* per IRCv3.1 */
 
-#define AUTHENTICATE_CHUNK_SIZE 400
-
-#define KIRC_CHANNEL_LIMIT      256
-#define KIRC_HISTORY_SIZE       8
-#define KIRC_TIMEOUT_MS         5000
-#define KIRC_DEFAULT_COLUMNS    80
-#define KIRC_DEFAULT_PORT       "6667"
-#define KIRC_DEFAULT_SERVER     "irc.libera.chat"
-#define KIRC_TIMESTAMP_FORMAT   "%H:%M"
+#define KIRC_CHANNEL_LIMIT    256
+#define KIRC_HISTORY_SIZE     8
+#define KIRC_TAB_WIDTH        4
+#define KIRC_TIMEOUT_MS       5000
+#define KIRC_DEFAULT_COLUMNS  80
+#define KIRC_DEFAULT_PORT     "6667"
+#define KIRC_DEFAULT_SERVER   "irc.libera.chat"
+#define KIRC_TIMESTAMP_FORMAT "%H:%M"
+#define KIRC_TIMESTAMP_SIZE   6
 
 typedef enum {
     SASL_NONE = 0,
@@ -49,13 +57,13 @@ typedef enum {
 typedef struct {
     char server[HOST_NAME_MAX];
     char port[6];
-    char nickname[RFC1459_MESSAGE_MAX_LEN];
-    char realname[RFC1459_MESSAGE_MAX_LEN];
-    char username[RFC1459_MESSAGE_MAX_LEN];
-    char password[RFC1459_MESSAGE_MAX_LEN];
-    char channels[KIRC_CHANNEL_LIMIT][RFC1459_CHANNEL_MAX_LEN];
+    char nickname[MESSAGE_MAX_LEN];
+    char realname[MESSAGE_MAX_LEN];
+    char username[MESSAGE_MAX_LEN];
+    char password[MESSAGE_MAX_LEN];
+    char channels[KIRC_CHANNEL_LIMIT][CHANNEL_MAX_LEN];
     char selected[KIRC_CHANNEL_LIMIT];
-    char auth[RFC1459_MESSAGE_MAX_LEN];
+    char auth[MESSAGE_MAX_LEN];
     sasl_mechanism_t mechanism;
 } kirc_t;
 
