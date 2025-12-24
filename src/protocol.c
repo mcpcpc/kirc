@@ -110,6 +110,101 @@ static void protocol_nick(protocol_t *protocol)
 
 }
 
+static void protocol_ctcp_action(protocol_t *protocol)
+{
+    char hhmm[KIRC_TIMESTAMP_SIZE];
+    protocol_get_time(hhmm);
+
+    printf("\r" CLEAR_LINE DIM "%s * %s %s" RESET "\r\n",
+        hhmm, protocol->nickname, protocol->message);
+}
+
+static void protocol_ctcp_info(protocol_t *protocol)
+{
+}
+
+static int protocol_ctcp_parse(protocol_t *protocol)
+{
+    if ((protocol->event == PROTOCOL_EVENT_PRIVMSG) ||
+        (protocol->event == PROTOCOL_EVENT_NOTICE) &&
+        (protocol->message[0] == '\001')) {
+        char ctcp[MESSAGE_MAX_LEN];
+        size_t siz = sizeof(protocol->message);
+        size_t len = strnlen(protocol->message, siz);
+        size_t end = 1;
+
+        while ((end < len) && protocol->message[end] != '\001') {
+            end++;
+        }
+
+        size_t ctcp_len = (end > 1) ? end - 1 : 0;
+
+        if (ctcp_len > 0) {
+            size_t copy_n;
+
+            if (ctcp_len < sizeof(ctcp) - 1) {
+                copy_n = ctcp_len;
+            } else {
+                copy_n = sizeof(ctcp) - 1;
+            }
+
+            strncpy(ctcp, protocol->message + 1, copy_n);
+            ctcp[copy_n] = '\0';
+
+            char *command = strtok(ctcp, " ");
+            char *args = strtok(NULL, "");
+
+            if (command != NULL) {
+                if (strcmp(command, "ACTION") == 0) {
+                    protocol->event = PROTOCOL_EVENT_CTCP_ACTION;
+                    if (args != NULL) {
+                        siz = sizeof(protocol->message) - 1;
+                        strncpy(protocol->message, args, siz);
+                        protocol->message[siz] = '\0';
+                    } else {
+                        protocol->message[0] = '\0';
+                    }
+                } else if (strcmp(command, "VERSION") == 0) {
+                    protocol->event = PROTOCOL_EVENT_CTCP_VERSION;
+                    if (args != NULL) {
+                        siz = sizeof(protocol->params) - 1;
+                        strncpy(protocol->params, args, siz);
+                        protocol->params[siz] = '\0';
+                    } else {
+                        protocol->params[0] = '\0';
+                    }
+                } else if (strcmp(command, "PING") == 0) {
+                    protocol->event = PROTOCOL_EVENT_CTCP_PING;
+                    if (args != NULL) {
+                        siz = sizeof(protocol->message) - 1;
+                        strncpy(protocol->message, args, siz);
+                        protocol->message[siz] = '\0';
+                    } else {
+                        protocol->message[0] = '\0';
+                    }
+                } else if (strcmp(command, "TIME") == 0) {
+                    protocol->event = PROTOCOL_EVENT_CTCP_TIME;
+                } else if (strcmp(command, "CLIENTINFO") == 0) {
+                    protocol->event = PROTOCOL_EVENT_CTCP_CLIENTINFO;
+                } else if (strcmp(command, "DCC") == 0) {
+                    protocol->event = PROTOCOL_EVENT_CTCP_DCC;
+                    if (args != NULL) {
+                        siz = sizeof(protocol->message) - 1;
+                        strncpy(protocol->message, args, siz);
+                        protocol->message[siz] = '\0';
+                    } else {
+                        protocol->message[0] = '\0';
+                    }
+                } else {
+                    protocol->message[0] = '\0';
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
 int protocol_init(protocol_t *protocol, kirc_t *ctx)
 {
     memset(protocol, 0, sizeof(*protocol));
@@ -199,12 +294,26 @@ int protocol_parse(protocol_t *protocol, char *line)
         }
     }
 
+    protocol_ctcp_parse(protocol);
+
     return 0;
 }
 
 int protocol_handle(protocol_t *protocol)
 {
     switch (protocol->event) {
+    case PROTOCOL_EVENT_CTCP_ACTION:
+        protocol_ctcp_action(protocol);
+        break;
+
+    case PROTOCOL_EVENT_CTCP_CLIENTINFO:
+    case PROTOCOL_EVENT_CTCP_DCC:
+    case PROTOCOL_EVENT_CTCP_PING:
+    case PROTOCOL_EVENT_CTCP_TIME:
+    case PROTOCOL_EVENT_CTCP_VERSION:
+        protocol_ctcp_info(protocol);
+        break;
+
     case PROTOCOL_EVENT_JOIN:
     case PROTOCOL_EVENT_PART:
     case PROTOCOL_EVENT_PING:
