@@ -75,9 +75,12 @@ socat:
 Commands & Aliases
 ------------------
 
-    @<dest> <message>  send `PRIVMSG` to a specified user or channel.
-    /<command>         send a raw command to the IRC server.
-    /#<channel>        set a new default message channel.
+    @<dest> <message>   send `PRIVMSG` to a specified user or channel
+    /<command>          send a raw command to the IRC server
+    /#<channel>         set a new default message channel
+    /me <action>        send a CTCP ACTION to target
+    /ctcp <nick> <cmd>  send a raw CTCP command (e.g. “CLIENTINFO”,
+                        “DCC”, “PING”, “TIME“, and “VERSION”)
 
 Key Bindings
 ------------
