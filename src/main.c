@@ -319,6 +319,19 @@ static int kirc_run(kirc_t *ctx)
                         }
                         break;
 
+                    case PROTOCOL_EVENT_CTCP_TIME:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            char tbuf[128];
+                            time_t now;
+                            time(&now);
+                            struct tm *info = localtime(&now);
+                            strftime(tbuf, sizeof(tbuf), "%c", info);
+                            network_send(&network,
+                                "NOTICE %s :\001TIME %s\001\r\n",
+                                private.nickname, tbuf);
+                        }
+                        break;
+
                     case PROTOCOL_EVENT_CTCP_VERSION:
                         if (strcmp(protocol.command, "PRIVMSG") == 0) {
                             network_send(&network,
