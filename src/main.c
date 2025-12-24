@@ -344,8 +344,9 @@ static int kirc_run(kirc_t *ctx)
                     case PROTOCOL_EVENT_CTCP_VERSION:
                         if (strcmp(protocol.command, "PRIVMSG") == 0) {
                             network_send(&network,
-                                "NOTICE %s :\001VERSION kirc\001\r\n",
-                                protocol.nickname);
+                                "NOTICE %s :\001VERSION kirc %s\001\r\n",
+                                protocol.nickname, KIRC_VERSION_MAJOR "."
+                                KIRC_VERSION_MINOR "." KIRC_VERSION_PATCH);
                         }
                         break; 
 
