@@ -403,6 +403,10 @@ int editor_process_key(editor_t *editor)
     case CAN:  /* CTRL-X */
     case EM:  /* CTRL-Y */
     case SUB:  /* CTRL-Z */
+    case FS:  /* CTRL-\ */
+    case GS:  /* CTRL-] */
+    case RS:  /* CTRL-^ */
+    case US:  /* CTRL-_ */
         break;  /* not implemented yet */
 
     default:

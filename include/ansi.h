@@ -34,6 +34,10 @@
 #define EM           0x19
 #define SUB          0x1A
 #define ESC          0x1B
+#define FS           0x1C
+#define GS           0x1D
+#define RS           0x1E
+#define US           0x1F
 #define DEL          0x7F
 
 #define RESET        "\x1b[0m"
