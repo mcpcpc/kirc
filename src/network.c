@@ -105,12 +105,17 @@ int network_command_handler(network_t *network, char *msg)
     switch (msg[0]) {
     case '/':  /* system command message */
         switch (msg[1]) {
-        case '#':  /* set active channel */
-            siz = sizeof(network->ctx->target) - 1;
-            strncpy(network->ctx->target, msg + 1, siz);
+        case 's':  /* set target (channel or nickname) */
+            if (strncmp(msg + 1, "set ", 4) == 0) {
+                siz = sizeof(network->ctx->target) - 1;
+                strncpy(network->ctx->target, msg + 5, siz);
+                network->ctx->target[siz] = '\0';
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
             break;
 
-        case 'm':
+        case 'm':  /* send CTCP ACTION to target */
             if (strncmp(msg + 1, "me ", 3) == 0) {
                 char *text = msg + 4;
                 if (network->ctx->target[0] != '\0') {
@@ -129,7 +134,7 @@ int network_command_handler(network_t *network, char *msg)
             }
             break;
 
-        case 'c':
+        case 'c':  /* send CTCP command */
             if (strncmp(msg + 1, "ctcp ", 5) == 0) {
                 char *text = msg + 6;
                 char *target = strtok(text, " ");
