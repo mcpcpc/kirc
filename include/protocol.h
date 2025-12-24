@@ -1,3 +1,10 @@
+/*
+ * protocol.h
+ * Header for the protocol module
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_PROTOCOL_H
 #define __KIRC_PROTOCOL_H
 

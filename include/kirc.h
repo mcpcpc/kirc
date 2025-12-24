@@ -1,3 +1,10 @@
+/*
+ * kirc.h
+ * Main header file for kirc IRC client
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_H
 #define __KIRC_H
 

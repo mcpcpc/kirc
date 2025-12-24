@@ -1,3 +1,10 @@
+/*
+ * ansi.h
+ * ANSI escape codes and constants
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_ANSI_H
 #define __KIRC_ANSI_H
 

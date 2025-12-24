@@ -1,3 +1,10 @@
+/*
+ * network.h
+ * Header for the network module
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_NETWORK_H
 #define __KIRC_NETWORK_H
 

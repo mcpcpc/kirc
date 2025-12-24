@@ -1,3 +1,10 @@
+/*
+ * terminal.h
+ * Header for the terminal module
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_TERMINAL_H
 #define __KIRC_TERMINAL_H
 

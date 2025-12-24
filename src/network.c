@@ -1,3 +1,10 @@
+/*
+ * network.c
+ * Network connection management
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "network.h"
 
 int network_send(network_t *network, const char *fmt, ...)

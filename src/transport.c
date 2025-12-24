@@ -1,3 +1,10 @@
+/*
+ * transport.c
+ * Data transport layer
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "transport.h"
 
 static int poll_wait_write(int fd, int timeout_ms)

@@ -1,3 +1,10 @@
+/*
+ * main.c
+ * Main entry point for the kirc IRC client
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "editor.h"
 #include "network.h"
 #include "protocol.h"

@@ -1,3 +1,10 @@
+/*
+ * editor.h
+ * Header for the editor module
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_EDITOR_H
 #define __KIRC_EDITOR_H
 

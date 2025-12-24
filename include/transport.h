@@ -1,3 +1,10 @@
+/*
+ * transport.h
+ * Header for the transport module
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #ifndef __KIRC_TRANSPORT_H
 #define __KIRC_TRANSPORT_H
 

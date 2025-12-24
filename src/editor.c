@@ -1,3 +1,10 @@
+/*
+ * editor.c
+ * Text editor functionality for the IRC client
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "editor.h"
 
 static void editor_backspace(editor_t *editor)

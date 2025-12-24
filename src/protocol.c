@@ -1,3 +1,10 @@
+/*
+ * protocol.c
+ * IRC protocol handling
+ * Author: Michael Czigler
+ * License: MIT
+ */
+
 #include "protocol.h"
 
 static void protocol_get_time(char *out)
