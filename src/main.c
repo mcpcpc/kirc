@@ -246,9 +246,9 @@ static int kirc_run(kirc_t *ctx)
             ctx->password);
     }
 
-    size_t target_n = sizeof(ctx->target) - 1;
-    strncpy(ctx->target, ctx->channels[0], target_n);
-    ctx->target[target_n] = '\0';
+    size_t siz = sizeof(ctx->target) - 1;
+    strncpy(ctx->target, ctx->channels[0], siz);
+    ctx->target[siz] = '\0';
 
     terminal_t terminal;
 
