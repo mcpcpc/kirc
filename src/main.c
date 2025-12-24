@@ -6,7 +6,6 @@
  */
 
 #include "editor.h"
-#include "helper.h"
 #include "network.h"
 #include "protocol.h"
 #include "terminal.h"
