@@ -53,8 +53,7 @@ static void protocol_privmsg_direct(protocol_t *protocol)
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
-        " " BOLD_BLUE "%s" RESET
-        " " BLUE "%s" RESET "\r\n",
+        " " BOLD_BLUE "%s" RESET " " BLUE "%s" RESET "\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
@@ -65,7 +64,8 @@ static void protocol_privmsg_indirect(protocol_t *protocol)
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
         " " BOLD "%s" RESET " [%s]: %s\r\n",
-        hhmm, protocol->nickname, protocol->channel, protocol->message);
+        hhmm, protocol->nickname, protocol->channel,
+        protocol->message);
 
 }
 
