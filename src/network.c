@@ -69,13 +69,11 @@ static void network_send_private_msg(
     if (username && message) {
         network_send(network, "PRIVMSG %s :%s\r\n",
             username, message);
-        printf("\rto " ANSI_BOLD_RED "%s" ANSI_RESET
-            ": %s" ANSI_CLEAR_LINE "\r\n",
+        printf("\rto " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
             username, message);
     } else {
         const char *err = "error: missing nickname or message";
-        printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-            "\r\n", err);
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
     }
 }
 
@@ -85,13 +83,11 @@ static void network_send_channel_msg(
     if (network->ctx->selected[0] != '\0') {
         network_send(network, "PRIVMSG %s :%s\r\n",
             network->ctx->selected, msg);
-        printf("\rto " ANSI_BOLD "%s" ANSI_RESET
-            ": %s" ANSI_CLEAR_LINE "\r\n",
+        printf("\rto " BOLD "%s" RESET ": %s" CLEAR_LINE "\r\n",
             network->ctx->selected, msg);
     } else {
         const char *err = "error: no channel set";
-        printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-            "\r\n", err);
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
     }
 }
 

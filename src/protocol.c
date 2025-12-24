@@ -13,8 +13,8 @@ static void protocol_raw(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-        " " ANSI_REVERSE "%s" ANSI_RESET "\r\n",
+    printf("\r" CLEAR_LINE DIM "%s" RESET
+        " " REVERSE "%s" RESET "\r\n",
         hhmm, protocol->raw);
 }
 
@@ -23,7 +23,7 @@ static void protocol_info(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s %s" ANSI_RESET "\r\n",
+    printf("\r" CLEAR_LINE DIM "%s %s" RESET "\r\n",
         hhmm, protocol->message);
 }
 
@@ -32,8 +32,8 @@ static void protocol_error(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-        " " ANSI_BOLD_RED "%s" ANSI_RESET "\r\n",
+    printf("\r" CLEAR_LINE DIM "%s" RESET
+        " " BOLD_RED "%s" RESET "\r\n",
         hhmm, protocol->message);
 }
 
@@ -42,8 +42,8 @@ static void protocol_notice(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-        " " ANSI_BOLD_BLUE "%s" ANSI_RESET " %s\r\n",
+    printf("\r" CLEAR_LINE DIM "%s" RESET
+        " " BOLD_BLUE "%s" RESET " %s\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
@@ -52,9 +52,9 @@ static void protocol_privmsg_direct(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-        " " ANSI_BOLD_BLUE "%s" ANSI_RESET
-        " " ANSI_BLUE "%s" ANSI_RESET "\r\n",
+    printf("\r" CLEAR_LINE DIM "%s" RESET
+        " " BOLD_BLUE "%s" RESET
+        " " BLUE "%s" RESET "\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
@@ -63,8 +63,8 @@ static void protocol_privmsg_indirect(protocol_t *protocol)
     char hhmm[6];
     protocol_get_time(hhmm);
 
-    printf("\r" ANSI_CLEAR_LINE ANSI_DIM "%s" ANSI_RESET
-        " " ANSI_BOLD "%s" ANSI_RESET " [%s]: %s\r\n",
+    printf("\r" CLEAR_LINE DIM "%s" RESET
+        " " BOLD "%s" RESET " [%s]: %s\r\n",
         hhmm, protocol->nickname, protocol->channel, protocol->message);
 
 }
@@ -91,12 +91,12 @@ static void protocol_nick(protocol_t *protocol)
         size_t siz = sizeof(protocol->ctx->nickname) - 1;
         strncpy(protocol->ctx->nickname, protocol->message, siz);
         protocol->ctx->nickname[siz] = '\0';
-        printf("\r" ANSI_CLEAR_LINE
-            ANSI_DIM "%s you are now known as %s" ANSI_RESET "\r\n",
+        printf("\r" CLEAR_LINE
+            DIM "%s you are now known as %s" RESET "\r\n",
             hhmm, protocol->message);
     } else {
-        printf("\r" ANSI_CLEAR_LINE
-            ANSI_DIM "%s %s is now known as %s" ANSI_RESET "\r\n",
+        printf("\r" CLEAR_LINE
+            DIM "%s %s is now known as %s" RESET "\r\n",
             hhmm, protocol->nickname, protocol->message);
     }
 
