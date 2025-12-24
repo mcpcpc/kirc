@@ -398,6 +398,11 @@ int editor_process_key(editor_t *editor)
     case DC2:  /* CTRL-R */
     case DC3:  /* CTRL-S */
     case DC4:  /* CTRL-T */
+    case SYN:  /* CTRL-V */
+    case ETB:  /* CTRL-W */
+    case CAN:  /* CTRL-X */
+    case EM:  /* CTRL-Y */
+    case SUB:  /* CTRL-Z */
         break;  /* not implemented yet */
 
     default:

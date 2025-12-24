@@ -28,6 +28,11 @@
 #define DC3          0x13
 #define DC4          0x14
 #define NAK          0x15
+#define SYN          0x16
+#define ETB          0x17
+#define CAN          0x18
+#define EM           0x19
+#define SUB          0x1A
 #define ESC          0x1B
 #define DEL          0x7F
 
