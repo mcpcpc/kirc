@@ -305,13 +305,27 @@ static int kirc_run(kirc_t *ctx)
                     protocol_parse(&protocol, msg);
 
                     switch(protocol.event) {
+                    case PROTOCOL_EVENT_CTCP_PING:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            if (protocol.message[0] != '\0') {
+                                network_send(&network,
+                                    "NOTICE %s :\001PING %s\001\r\n",
+                                    private.nickname, private.message);
+                            } else {
+                                network_send(&network,
+                                    "NOTICE %s :\001PING\001\r\n",
+                                    private.nickname);
+                            }
+                        }
+                        break;
+
                     case PROTOCOL_EVENT_CTCP_VERSION:
                         if (strcmp(protocol.command, "PRIVMSG") == 0) {
                             network_send(&network,
                                 "NOTICE %s :\001VERSION kirc\001\r\n",
                                 protocol.nickname);
                         }
-                        break;
+                        break; 
 
                     case PROTOCOL_EVENT_PING:
                         network_send(&network, "PONG :%s\r\n",
