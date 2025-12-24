@@ -6,6 +6,7 @@
  */
 
 #include "editor.h"
+#include "helper.h"
 #include "network.h"
 #include "protocol.h"
 #include "terminal.h"
@@ -62,9 +63,12 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_SERVER");
     if (env && *env) {
+        /*
         siz = sizeof(ctx->server) - 1;
         strncpy(ctx->server, env, siz);
         ctx->server[siz] = '\0';
+        */
+        safecpy(ctx->server, env);
     }
 
     env = getenv("KIRC_PORT");
