@@ -10,7 +10,7 @@
 int safecpy(const char *s1, char *s2)
 {
     size_t n = sizeof(s1) - 1;
-    char *r = strncpy(s1, s2, siz);
+    char *r = strncpy(s1, s2, n);
 
     if (r == NULL) {
         return 1;
