@@ -121,6 +121,52 @@ static void protocol_ctcp_action(protocol_t *protocol)
 
 static void protocol_ctcp_info(protocol_t *protocol)
 {
+    char hhmm[KIRC_TIMESTAMP_SIZE];
+    protocol_get_time(hhmm);
+
+    const char *label = "";
+
+    switch(protocol->event) {
+    case PROTOCOL_EVENT_CTCP_CLIENTINFO:
+        label = "CLIENTINFO";
+        break;
+
+    case PROTOCOL_EVENT_CTCP_DCC:
+        label = "DCC";
+        break;
+
+    case PROTOCOL_EVENT_CTCP_PING:
+        label = "PING";
+        break;
+
+    case PROTOCOL_EVENT_CTCP_TIME:
+        label = "TIME";
+        break;
+
+    case PROTOCOL_EVENT_CTCP_VERSION: 
+        label = "VERSION";
+        break;
+
+    default:
+        label = "CTCP";
+        break;
+    }
+
+    if (protocol->params[0] != '\0') {
+        printf("\r" CLEAR_LINE DIM "%s " RESET
+            BOLD_BLUE "%s" RESET " %s: %s\r\n",
+            hhmm, protocol->nickname, label,
+            protocol->params);
+    } else if (protocol->message[0] != '\0') {
+        printf("\r" CLEAR_LINE DIM "%s " RESET
+            BOLD_BLUE "%s" RESET " %s: %s\r\n",
+            hhmm, protocol->nickname, label,
+            protocol->message);
+    } else {
+        printf("\r" CLEAR_LINE DIM "%s " RESET
+            BOLD_BLUE "%s" RESET " %s\r\n",
+            hhmm, protocol->nickname, label);
+    }
 }
 
 static int protocol_ctcp_parse(protocol_t *protocol)
