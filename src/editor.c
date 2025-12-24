@@ -382,6 +382,15 @@ int editor_process_key(editor_t *editor)
         editor_escape(editor);
         break;
 
+    case SOH:  /* CTRL-A */
+    case STX:  /* CTRL-B */
+    case EOT:  /* CTRL-D */
+    case ENQ:  /* CTRL-E */
+    case ACK:  /* CTRL-F */
+    case BEL:  /* CTRL-G */
+    case LF:  /* CTRL-J */
+        break;  /* not implemented yet */
+
     default:
         /* handle UTF-8 multi-byte input: read remaining continuation bytes */
         {

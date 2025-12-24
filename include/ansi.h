@@ -8,8 +8,15 @@
 #ifndef __KIRC_ANSI_H
 #define __KIRC_ANSI_H
 
+#define SOH          0x01
+#define STX          0x02
 #define ETX          0x03
+#define EOT          0x04
+#define ENQ          0x05
+#define ACK          0x06
+#define BEL          0x07
 #define HT           0x09
+#define LF           0x0A
 #define CR           0x0D
 #define NAK          0x15
 #define ESC          0x1B
