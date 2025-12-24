@@ -389,6 +389,15 @@ int editor_process_key(editor_t *editor)
     case ACK:  /* CTRL-F */
     case BEL:  /* CTRL-G */
     case LF:  /* CTRL-J */
+    case VT:  /* CTRL-K */
+    case FF:  /* CTRL-L */
+    case SO:  /* CTRL-N */
+    case SI:  /* CTRL-O */
+    case DLE:  /* CTRL-P */
+    case DC1:  /* CTRL-Q */
+    case DC2:  /* CTRL-R */
+    case DC3:  /* CTRL-S */
+    case DC4:  /* CTRL-T */
         break;  /* not implemented yet */
 
     default:
