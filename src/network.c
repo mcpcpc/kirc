@@ -110,6 +110,24 @@ int network_command_handler(network_t *network, char *msg)
             strncpy(network->ctx->selected, msg + 1, siz);
             break;
 
+        case 'm':
+            if (strncmp(msg + 1, "me ", 3) == 0) {
+                char *text = msg + 4;
+                if (network->ctx->selected[0] != '\0') {
+                    network_send(network,
+                        "PRIVMSG %s :\001ACTION %s\001\r\n",
+                        network->ctx->selected, text);
+                    printf("\rto " BOLD "%s" RESET ": * %s" CLEAR_LINE "\r\n",
+                        network->ctx->selected, text);
+                } else {
+                    const char *err = "error: no channel set";
+                    printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
+                        err);
+                }
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
+
         default:  /* send raw server command */
             network_send(network, "%s\r\n", msg + 1);
             break;  
