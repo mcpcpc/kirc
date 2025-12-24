@@ -316,7 +316,7 @@ static void editor_tab(editor_t *editor)
     int width = KIRC_TAB_WIDTH;
 
     for (int i = 0; i < width; ++i) {
-        editor_insert(editor_t *editor, ' ');
+        editor_insert(editor, ' ');
     } 
 }
 
