@@ -9,6 +9,7 @@
 #define __KIRC_ANSI_H
 
 #define ETX          0x03
+#define HT           0x09
 #define CR           0x0D
 #define NAK          0x15
 #define ESC          0x1B

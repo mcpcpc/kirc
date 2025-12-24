@@ -7,6 +7,11 @@
 
 #include "editor.h"
 
+static void editor_tab(editor_t *editor)
+{
+    // placeholder
+}
+
 static void editor_backspace(editor_t *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -346,6 +351,10 @@ int editor_process_key(editor_t *editor)
     editor->event = EDITOR_EVENT_NONE;
 
     switch(c) {
+    case HT:  /* CTRL-I or TAB */
+        editor_tab(editor);
+        break;
+
     case ETX:  /* CTRL-C */
         editor_clear(editor);
         editor->event = EDITOR_EVENT_TERMINATE;
@@ -359,13 +368,13 @@ int editor_process_key(editor_t *editor)
         editor_backspace(editor);
         break;
 
-    case CR:
+    case CR:  /* CTRL-M or ENTER */
         if (editor_enter(editor) > 0) {
             editor->event = EDITOR_EVENT_SEND;
         }
         break;
 
-    case ESC:
+    case ESC:  /* CTRL-[ */
         editor_escape(editor);
         break;
 
