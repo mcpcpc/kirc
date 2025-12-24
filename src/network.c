@@ -134,10 +134,10 @@ int network_command_handler(network_t *network, char *msg)
                 char *text = msg + 6;
                 char *target = strtok(text, " ");
                 char *command = strtok(NULL, "");
-                if (target && command) {
+                if ((target != NULL) && (command != NULL)) {
                     network_send(network, "PRIVMSG %s :\001%s\001\r\n",
                         target, command);
-                    printf("\rctcp: " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n"
+                    printf("\rctcp: " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
                         target, command);
                 } else {
                     const char *err = "usage: /ctcp <nick> <command>";
