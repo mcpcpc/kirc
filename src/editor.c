@@ -7,11 +7,6 @@
 
 #include "editor.h"
 
-static void editor_tab(editor_t *editor)
-{
-    // placeholder
-}
-
 static void editor_backspace(editor_t *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -314,6 +309,15 @@ static int display_width_bytes(const char *s, int bytes)
     }
 
     return wsum;
+}
+
+static void editor_tab(editor_t *editor)
+{
+    int width = KIRC_TAB_WIDTH;
+
+    for (int i = 0; i < width; ++i) {
+        editor_insert(editor_t *editor, ' ');
+    } 
 }
 
 char *editor_last_entry(editor_t *editor)

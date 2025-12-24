@@ -40,6 +40,7 @@
 
 #define KIRC_CHANNEL_LIMIT    256
 #define KIRC_HISTORY_SIZE     8
+#define KIRC_TAB_WIDTH        4
 #define KIRC_TIMEOUT_MS       5000
 #define KIRC_DEFAULT_COLUMNS  80
 #define KIRC_DEFAULT_PORT     "6667"
