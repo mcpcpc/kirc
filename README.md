@@ -75,26 +75,26 @@ socat:
 Commands & Aliases
 ------------------
 
-    @<dest> <message>   send `PRIVMSG` to a specified user or channel
-    /<command>          send a raw command to the IRC server
-    /#<channel>         set a new default message channel
-    /me <action>        send a CTCP ACTION to target
-    /ctcp <nick> <cmd>  send a raw CTCP command (e.g. “CLIENTINFO”,
-                        “DCC”, “PING”, “TIME“, and “VERSION”)
+    @<target> <message>  send `PRIVMSG` to a target user or channel
+    /<command>           send a raw command to the IRC server
+    /set <target>        set a new default message target
+    /me <action>         send a CTCP ACTION to set target
+    /ctcp <nick> <cmd>   send a raw CTCP command (e.g. “CLIENTINFO”,
+                         “DCC”, “PING”, “TIME“, and “VERSION”)
 
 Key Bindings
 ------------
 
 Control keys are mapped to familiar text-editing bindings:
 
-    CTRL+B             move cursor left
-    CTRL+F             move cursor right
-    CTRL+P             navigate command history (previous)
-    CTRL+N             navigate command history (next)
-    CTRL+E             move cursor to end of line
-    CTRL+A             move cursor to start of line
-    CTRL+U             delete entire line
-    CTRL+C             force quit kirc
+    CTRL+B               move cursor left
+    CTRL+F               move cursor right
+    CTRL+P               navigate command history (previous)
+    CTRL+N               navigate command history (next)
+    CTRL+E               move cursor to end of line
+    CTRL+A               move cursor to start of line
+    CTRL+U               delete entire line
+    CTRL+C               force quit kirc
 
 Configuration
 -------------

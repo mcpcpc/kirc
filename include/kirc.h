@@ -65,7 +65,7 @@ typedef struct {
     char username[MESSAGE_MAX_LEN];
     char password[MESSAGE_MAX_LEN];
     char channels[KIRC_CHANNEL_LIMIT][CHANNEL_MAX_LEN];
-    char selected[KIRC_CHANNEL_LIMIT];
+    char target[KIRC_CHANNEL_LIMIT];
     char auth[MESSAGE_MAX_LEN];
     sasl_mechanism_t mechanism;
 } kirc_t;

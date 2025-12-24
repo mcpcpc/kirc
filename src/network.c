@@ -87,11 +87,11 @@ static void network_send_private_msg(
 static void network_send_channel_msg(
         network_t *network, char *msg)
 {
-    if (network->ctx->selected[0] != '\0') {
+    if (network->ctx->target[0] != '\0') {
         network_send(network, "PRIVMSG %s :%s\r\n",
-            network->ctx->selected, msg);
+            network->ctx->target, msg);
         printf("\rto " BOLD "%s" RESET ": %s" CLEAR_LINE "\r\n",
-            network->ctx->selected, msg);
+            network->ctx->target, msg);
     } else {
         const char *err = "error: no channel set";
         printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
@@ -106,19 +106,19 @@ int network_command_handler(network_t *network, char *msg)
     case '/':  /* system command message */
         switch (msg[1]) {
         case '#':  /* set active channel */
-            siz = sizeof(network->ctx->selected) - 1;
-            strncpy(network->ctx->selected, msg + 1, siz);
+            siz = sizeof(network->ctx->target) - 1;
+            strncpy(network->ctx->target, msg + 1, siz);
             break;
 
         case 'm':
             if (strncmp(msg + 1, "me ", 3) == 0) {
                 char *text = msg + 4;
-                if (network->ctx->selected[0] != '\0') {
+                if (network->ctx->target[0] != '\0') {
                     network_send(network,
                         "PRIVMSG %s :\001ACTION %s\001\r\n",
-                        network->ctx->selected, text);
+                        network->ctx->target, text);
                     printf("\rto " BOLD "%s" RESET ": * %s" CLEAR_LINE "\r\n",
-                        network->ctx->selected, text);
+                        network->ctx->target, text);
                 } else {
                     const char *err = "error: no channel set";
                     printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
