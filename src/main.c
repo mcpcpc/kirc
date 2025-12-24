@@ -63,12 +63,9 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_SERVER");
     if (env && *env) {
-        /*
         siz = sizeof(ctx->server) - 1;
         strncpy(ctx->server, env, siz);
         ctx->server[siz] = '\0';
-        */
-        safecpy(ctx->server, env);
     }
 
     env = getenv("KIRC_PORT");
