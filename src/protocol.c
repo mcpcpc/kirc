@@ -5,12 +5,13 @@ static void protocol_get_time(char *out)
     time_t current;
     time(&current);
     struct tm *info = localtime(&current);
-    strftime(out, 6, KIRC_TIMESTAMP_FORMAT, info);
+    strftime(out, KIRC_TIMESTAMP_SIZE,
+        KIRC_TIMESTAMP_FORMAT, info);
 }
 
 static void protocol_raw(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
@@ -20,7 +21,7 @@ static void protocol_raw(protocol_t *protocol)
 
 static void protocol_info(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s %s" RESET "\r\n",
@@ -29,7 +30,7 @@ static void protocol_info(protocol_t *protocol)
 
 static void protocol_error(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
@@ -39,7 +40,7 @@ static void protocol_error(protocol_t *protocol)
 
 static void protocol_notice(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
@@ -49,7 +50,7 @@ static void protocol_notice(protocol_t *protocol)
 
 static void protocol_privmsg_direct(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
@@ -59,7 +60,7 @@ static void protocol_privmsg_direct(protocol_t *protocol)
 
 static void protocol_privmsg_indirect(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
@@ -83,7 +84,7 @@ static void protocol_privmsg(protocol_t *protocol)
 
 static void protocol_nick(protocol_t *protocol)
 {
-    char hhmm[6];
+    char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
     
