@@ -314,7 +314,7 @@ static int kirc_run(kirc_t *ctx)
                             } else {
                                 network_send(&network,
                                     "NOTICE %s :\001PING\001\r\n",
-                                    private.nickname);
+                                    protocol.nickname);
                             }
                         }
                         break;
@@ -328,7 +328,7 @@ static int kirc_run(kirc_t *ctx)
                             strftime(tbuf, sizeof(tbuf), "%c", info);
                             network_send(&network,
                                 "NOTICE %s :\001TIME %s\001\r\n",
-                                private.nickname, tbuf);
+                                protocol.nickname, tbuf);
                         }
                         break;
 
