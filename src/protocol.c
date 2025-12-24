@@ -125,8 +125,8 @@ static void protocol_ctcp_info(protocol_t *protocol)
 
 static int protocol_ctcp_parse(protocol_t *protocol)
 {
-    if ((protocol->event == PROTOCOL_EVENT_PRIVMSG) ||
-        (protocol->event == PROTOCOL_EVENT_NOTICE) &&
+    if (((protocol->event == PROTOCOL_EVENT_PRIVMSG) ||
+        (protocol->event == PROTOCOL_EVENT_NOTICE)) &&
         (protocol->message[0] == '\001')) {
         char ctcp[MESSAGE_MAX_LEN];
         size_t siz = sizeof(protocol->message);
