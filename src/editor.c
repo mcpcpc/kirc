@@ -368,6 +368,7 @@ int editor_process_key(editor_t *editor)
         editor_delete_line(editor);
         break;
 
+    case BS:  /* CTRL-H */
     case DEL:
         editor_backspace(editor);
         break;

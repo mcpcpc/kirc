@@ -15,6 +15,7 @@
 #define ENQ          0x05
 #define ACK          0x06
 #define BEL          0x07
+#define BS           0x08
 #define HT           0x09
 #define LF           0x0A
 #define VT           0x0B
