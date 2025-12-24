@@ -310,7 +310,7 @@ static int kirc_run(kirc_t *ctx)
                             if (protocol.message[0] != '\0') {
                                 network_send(&network,
                                     "NOTICE %s :\001PING %s\001\r\n",
-                                    private.nickname, private.message);
+                                    protocol.nickname, protocol.message);
                             } else {
                                 network_send(&network,
                                     "NOTICE %s :\001PING\001\r\n",
