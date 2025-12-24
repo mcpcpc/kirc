@@ -305,6 +305,15 @@ static int kirc_run(kirc_t *ctx)
                     protocol_parse(&protocol, msg);
 
                     switch(protocol.event) {
+                    case PROTOCOL_EVENT_CTCP_CLIENTINFO:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            network_send(&network,
+                                "NOTICE %s :\001PING ACTION CLIENTINFO "
+                                "DCC PING TIME VERSION\001\r\n",
+                                protocol.nickname);
+                        }
+                        break;
+
                     case PROTOCOL_EVENT_CTCP_PING:
                         if (strcmp(protocol.command, "PRIVMSG") == 0) {
                             if (protocol.message[0] != '\0') {
