@@ -13,6 +13,12 @@
 
 typedef enum {
     PROTOCOL_EVENT_NONE = 0,
+    PROTOCOL_EVENT_CTCP_ACTION,
+    PROTOCOL_EVENT_CTCP_CLIENTINFO,
+    PROTOCOL_EVENT_CTCP_DCC,
+    PROTOCOL_EVENT_CTCP_PING,
+    PROTOCOL_EVENT_CTCP_TIME,
+    PROTOCOL_EVENT_CTCP_VERSION,
     PROTOCOL_EVENT_ERROR,
     PROTOCOL_EVENT_EXT_CAP,
     PROTOCOL_EVENT_EXT_AUTHENTICATE,
@@ -373,6 +379,6 @@ typedef struct {
 
 int protocol_init(protocol_t *protocol, kirc_t *ctx);
 int protocol_parse(protocol_t *protocol, char *line);
-int protocol_render(protocol_t *protocol);
+int protocol_handle(protocol_t *protocol);
 
 #endif  // __KIRC_PROTOCOL_H

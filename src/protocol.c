@@ -202,7 +202,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     return 0;
 }
 
-int protocol_render(protocol_t *protocol)
+int protocol_handle(protocol_t *protocol)
 {
     switch (protocol->event) {
     case PROTOCOL_EVENT_JOIN:

@@ -45,6 +45,9 @@
 #define KIRC_DEFAULT_COLUMNS  80
 #define KIRC_DEFAULT_PORT     "6667"
 #define KIRC_DEFAULT_SERVER   "irc.libera.chat"
+#define KIRC_VERSION_MAJOR    "1"
+#define KIRC_VERSION_MINOR    "0"
+#define KIRC_VERSION_PATCH    "5"
 #define KIRC_TIMESTAMP_FORMAT "%H:%M"
 #define KIRC_TIMESTAMP_SIZE   6
 

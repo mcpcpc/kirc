@@ -442,7 +442,7 @@ int editor_process_key(editor_t *editor)
     return 0;
 }
 
-int editor_render(editor_t *editor)
+int editor_handle(editor_t *editor)
 {
     int cols = terminal_columns(STDIN_FILENO);
     int size = strlen(editor->ctx->selected) + 1;

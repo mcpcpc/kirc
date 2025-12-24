@@ -287,7 +287,7 @@ static int kirc_run(kirc_t *ctx)
                 network_command_handler(&network, msg);
             }
 
-            editor_render(&editor);
+            editor_handle(&editor);
         }
 
         if (fds[1].revents & POLLIN) {
@@ -322,7 +322,7 @@ static int kirc_run(kirc_t *ctx)
                         break; 
                     }
 
-                    protocol_render(&protocol);
+                    protocol_handle(&protocol);
 
                     msg = eol + 2;
                 }
@@ -332,7 +332,7 @@ static int kirc_run(kirc_t *ctx)
                 memmove(network.buffer, msg, remain);
                 network.len = remain;
 
-                editor_render(&editor);
+                editor_handle(&editor);
             }
             
         }
