@@ -9,6 +9,7 @@
 #define __KIRC_DCC_H
 
 #include "kirc.h"
+#include "ansi.h"
 
 typedef enum {
     DCC_TYPE_SEND = 0,
