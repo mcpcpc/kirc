@@ -17,7 +17,7 @@ int dcc_init(dcc_t *dcc, kirc_t *ctx)
     dcc->ctx = ctx;
     dcc->transfer_count = 0;
 
-    int limit = KIRC_DCC_TRANSFER_MAX;
+    int limit = KIRC_DCC_TRANSFERS_MAX;
 
     for (int i = 0; i < limit; ++i) {
         dcc->sock_fd[i].fd = -1;
@@ -35,7 +35,7 @@ int dcc_free(dcc_t *dcc)
         return -1;
     }
 
-    int limit = KIRC_DCC_TRANSFER_MAX;
+    int limit = KIRC_DCC_TRANSFERS_MAX;
 
     for (int i = 0; i < limit; ++i) {
         if (dcc->sock_fd[i].fd >= 0) {
