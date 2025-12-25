@@ -238,7 +238,7 @@ int dcc_process(dcc_t *dcc)
             }
 
             transfer->state = DCC_STATE_IDLE;
-            transfer->transfer_count--;
+            dcc->transfer_count--;
         }
     }
 
