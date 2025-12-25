@@ -244,3 +244,34 @@ int dcc_process(dcc_t *dcc)
 
     return 0;
 }
+
+int dcc_cancel(dcc_t *dcc, int transfer_id)
+{
+    if ((dcc == NULL) || (transfer_id < 0)) {
+        return -1;
+    }
+
+    dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
+
+    if (transfer->state == DCC_STATE_IDLE) {
+        return 0;
+    }
+
+    printf("\r" DIM "dcc: cancelling transfer %d"
+        RESET "\r\n", transfer_id);
+
+    if (dcc->sock_fd[transfer_id].fd >= 0) {
+        close(dcc->sock_fd[transfer_id].fd);
+        dcc->sock_fd[transfer_id].fd = -1;
+    }
+
+    if (dcc->transfer[transfer_id].file_fd >= 0) {
+        close(dcc->transfer[transfer_id].file_fd);
+        dcc->transfer[transfer_id].file_fd = -1;
+    }
+
+    transfer->state = DCC_STATE_IDLE;
+    dcc->transfer_count--;
+
+    return 0;
+}
