@@ -12,21 +12,18 @@
 #define _XOPEN_SOURCE 700
 #endif
 
-#include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <locale.h>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
