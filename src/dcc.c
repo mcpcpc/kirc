@@ -148,14 +148,14 @@ int dcc_process(dcc_t *dcc)
         dcc_transfer_t *transfer = &dcc->transfer[i];
 
         if (transfer->state == DCC_STATE_CONNECTING) {
-            if (dcc.sock_fd[i].revents & POLLOUT) {
+            if (dcc->sock_fd[i].revents & POLLOUT) {
                 int error = 0:
                 socklen_t len = sizeof(error);
                 if (getsockopt(dcc.sock_fd[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0) {
                     if (error == 0) {
                         printf("\r" DIM "dcc: %d connected" RESET "\r\n", i);
                         transfer->state = DCC_STATE_TRANSFERRING;
-                        dcc.sock_fd[i].events = POLLIN;
+                        dcc->sock_fd[i].events = POLLIN;
                     } else {
                         printf("\r" DIM "error: connection failed" RESET "\r\n");
                         transfer->state = DCC_STATE_ERROR;
@@ -169,7 +169,7 @@ int dcc_process(dcc_t *dcc)
         if ((transfer->type == DCC_TYPE_RECEIVING) &&
             (transfer->state == DCC_STATE_TRANSFERRING)) {
 
-            if (dcc.sock_fd[i].revents && POLLIN) {
+            if (dcc->sock_fd[i].revents && POLLIN) {
                 char buffer[KIRC_DCC_BUFFER_SIZE];
                 ssize_t nread = read(dcc->sock_fd[i].fd, buffer,
                     sizeof(buffer));
