@@ -84,7 +84,7 @@ int dcc_send(dcc_t *dcc, int transfer_id)
 
     if (nread == 0) {
         printf("\r" DIM "dcc: %d transfer complete" RESET "\r\n",
-            transfer_id););
+            transfer_id);
         transfer->state = DCC_STATE_COMPLETE;
         return 0;
     }
@@ -106,7 +106,7 @@ int dcc_send(dcc_t *dcc, int transfer_id)
 
     if (transfer->bytes_transferred >= transfer->bytes_filesize) {
         printf("\r" DIM "dcc: %d transfer complete" RESET "\r\n",
-            transfer_id););
+            transfer_id);
         transfer->state = DCC_STATE_COMPLETE;
     }
     
