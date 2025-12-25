@@ -112,3 +112,135 @@ int dcc_send(dcc_t *dcc, int transfer_id)
     
     return nsent;
 }
+
+int dcc_process(dcc_t *dcc)
+{
+    if (dcc == NULL) {
+        return -1;
+    }
+
+    if (dcc->transfer_count == 0) {
+        return 0;
+    }
+
+    int limit = KIRC_DCC_TRANSFERS_MAX;
+    int rc = poll(dcc->sock_fd, limit, 0);
+
+    if (rc < 0) {
+        if (errno == EINTR) {
+            return 0;
+        }
+
+        printf("\r" DIM "error: poll failed" RESET "\r\n");
+        return -1;
+    }
+
+    if (rc == 0) {
+        return 0;
+    }
+
+    /* process each transfer */
+    for (int i = 0; i < limit; ++i) {
+        if (dcc->sock_fd[i].fd < 0) {
+            continue;
+        }
+
+        dcc_transfer_t *transfer = &dcc->transfer[i];
+
+        if (transfer->state == DCC_STATE_CONNECTING) {
+            if (dcc.sock_fd[i].revents & POLLOUT) {
+                int error = 0:
+                socklen_t len = sizeof(error);
+                if (getsockopt(dcc.sock_fd[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0) {
+                    if (error == 0) {
+                        printf("\r" DIM "dcc: %d connected" RESET "\r\n", i);
+                        transfer->state = DCC_STATE_TRANSFERRING;
+                        dcc.sock_fd[i].events = POLLIN;
+                    } else {
+                        printf("\r" DIM "error: connection failed" RESET "\r\n");
+                        transfer->state = DCC_STATE_ERROR;
+                    }
+                }
+            }
+            continue;
+        }
+
+        /* handle receive transfers */
+        if ((transfer->type == DCC_TYPE_RECEIVING) &&
+            (transfer->state == DCC_STATE_TRANSFERRING)) {
+
+            if (dcc.sock_fd[i].revents && POLLIN) {
+                char buffer[KIRC_DCC_BUFFER_SIZE];
+                ssize_t nread = read(dcc->sock_fd[i].fd, buffer,
+                    sizeof(buffer));
+
+                if (nread < 0) {
+                    if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                        continue; 
+                    }
+
+                    printf("\r" DIM "error: receive failed" RESET "\r\n");
+                    transfer->state = DCC_STATE_ERROR;
+                    continue;
+                }
+                
+                if (nread == 0) {
+                    if (transfer->bytes_transferred >= transfer->bytes_filesize) {
+                        printf("\r" DIM "dcc: %d transfer complete (%u bytes)"
+                            RESET "\r\n", id, transfer->bytes_transferred);
+                        transfer->state = DCC_STATE_COMPLETE;
+                    } else {
+                        printf("\r" DIM "error: %d transfer incomplete (%u/%u bytes)"
+                            RESET "\r\n", id, transfer->bytes_transferred,
+                            transfer->bytes_filesize);
+                        transfer->state = DCC_STATE_COMPLETE;
+                    }
+                    continue;
+                }
+
+                ssize_t nwritten = write(transfer->file_fd, buffer, nread);
+
+                if (nwritten < 0) {
+                    printf("\r" DIM "error: write failed" RESET "\r\n");
+                    transfer->state = DCC_STATE_ERROR;
+                    continue;
+                }
+
+                transfer->bytes_transferred += nwritten;
+
+                if (transfer->bytes_transferred >= transfer->bytes_filesize) {
+                    printf("\r" DIM "dcc: %d transfer complete (%u bytes)" RESET "\r\n",
+                        id, transfer->bytes_transferred);
+                    transfer->state = DCC_STATE_COMPLETE;
+                }
+            }
+        }
+        
+        /* handle send transfer */
+        if ((transfer->type == DCC_TYPE_SEND) &&
+            (transfer->state == DCC_STATE_TRANSFERRING)) {
+            if (dcc->sock_fd[i].revents & POLLOUT) {
+                dcc_send(dcc, i);
+            }
+        }
+
+        /* cleanup completed or erro transfers */
+        if ((transfer->state == DCC_STATE_COMPLETE) ||
+            ((transfer->state == DCC_STATE_ERROR)) {
+            if (dcc->sock_fd[i].fd >= 0) {
+                close(dcc->sock_fd[i].fd);
+                dcc->sock_fd[i].fd = -1;
+            }
+
+            if (dcc->transfer[i].file_fd >= 0) {
+                close(dcc->transfer[i].file_fd);
+                dcc->transfer[i].file_fd = -1;
+            }
+
+            transfer->state = DCC_STATE_IDLE;
+            transfer->transfer_count--;
+        }
+    }
+
+    return 0;
+}
