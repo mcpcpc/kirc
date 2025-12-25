@@ -29,8 +29,8 @@ typedef struct {
     dcc_state_t state;
     char filename[NAME_MAX];
     char sender[MESSAGE_MAX_LEN];
-    unsigned long long bytes_filesize;
-    unsigned long long bytes_transferred;
+    unsigned long long filesize;
+    unsigned long long sent;
     int file_fd;
 } dcc_transfer_t;
 

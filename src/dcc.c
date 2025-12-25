@@ -102,11 +102,11 @@ int dcc_send(dcc_t *dcc, int transfer_id)
         return -1;
     }
 
-    transfer->bytes_transferred += nsent;
+    transfer->sent += nsent;
 
-    if (transfer->bytes_transferred >= transfer->bytes_filesize) {
-        printf("\r" DIM "dcc: %d transfer complete" RESET "\r\n",
-            transfer_id);
+    if (transfer->sent >= transfer->filesize) {
+        printf("\r" DIM "dcc: %d transfer complete" RESET
+            "\r\n", transfer_id);
         transfer->state = DCC_STATE_COMPLETE;
     }
     
@@ -185,14 +185,13 @@ int dcc_process(dcc_t *dcc)
                 }
                 
                 if (nread == 0) {
-                    if (transfer->bytes_transferred >= transfer->bytes_filesize) {
-                        printf("\r" DIM "dcc: %d transfer complete (%u bytes)"
-                            RESET "\r\n", i, transfer->bytes_transferred);
+                    if (transfer->sent >= transfer->filesize) {
+                        printf("\r" DIM "dcc: %d transfer complete (%llu bytes)"
+                            RESET "\r\n", i, transfer->sent);
                         transfer->state = DCC_STATE_COMPLETE;
                     } else {
-                        printf("\r" DIM "error: %d transfer incomplete (%u/%u bytes)"
-                            RESET "\r\n", i, transfer->bytes_transferred,
-                            transfer->bytes_filesize);
+                        printf("\r" DIM "error: %d transfer incomplete (%llu/%llu bytes)"
+                            RESET "\r\n", i, transfer->sent, transfer->filesize);
                         transfer->state = DCC_STATE_COMPLETE;
                     }
                     continue;
@@ -206,11 +205,11 @@ int dcc_process(dcc_t *dcc)
                     continue;
                 }
 
-                transfer->bytes_transferred += nwritten;
+                transfer->sent += nwritten;
 
-                if (transfer->bytes_transferred >= transfer->bytes_filesize) {
-                    printf("\r" DIM "dcc: %d transfer complete (%u bytes)" RESET "\r\n",
-                        i, transfer->bytes_transferred);
+                if (transfer->sent >= transfer->filesize) {
+                    printf("\r" DIM "dcc: %d transfer complete (%llu bytes)" RESET
+                        "\r\n", i, transfer->sent);
                     transfer->state = DCC_STATE_COMPLETE;
                 }
             }
