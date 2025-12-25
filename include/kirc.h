@@ -12,18 +12,21 @@
 #define _XOPEN_SOURCE 700
 #endif
 
+#include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <locale.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
@@ -47,6 +50,7 @@
 #define KIRC_VERSION_PATCH     "6"
 
 #define KIRC_CHANNEL_LIMIT     256
+#define KIRC_DCC_BUFFER_SIZE   8192
 #define KIRC_DCC_TRANSFERS_MAX 16
 #define KIRC_HISTORY_SIZE      8
 #define KIRC_TAB_WIDTH         4
