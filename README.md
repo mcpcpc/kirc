@@ -39,7 +39,7 @@ see the manpage.
 Examples
 --------
 
-Connect to the default host with nickname `alice`:
+Connect to the default server with nickname `alice`:
 
     kirc alice
 
