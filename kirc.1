@@ -78,7 +78,8 @@ Default SASL authentication token
 Send a raw IRC command to the server (e.g. /JOIN, /PART, /WHOIS, etc.)
 .TP
 .BI /set " <target>"
-Set the message channel or nickname to <target>
+Set the message channel or nickname to 
+.I <target>
 .TP
 .BI <message>
 Send PRIVMSG to set target with 
@@ -91,6 +92,11 @@ Send
 to a specified
 .I <target>
 nickname or channel
+.TP
+.BI /me " <action>"
+Send CTCP
+.I <action>
+to set target
 .SH KEY BINDINGS
 .TP
 .B CTRL+C
