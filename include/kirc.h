@@ -31,22 +31,27 @@
 #include <wctype.h>
 
 #ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX         255
+#define HOST_NAME_MAX          255
 #endif
 
-#define CHANNEL_MAX_LEN       200  /* per RFC1459 */
-#define MESSAGE_MAX_LEN       512  /* per RFC1459 */
-#define AUTH_CHUNK_SIZE       400  /* per IRCv3.1 */
+#define CHANNEL_MAX_LEN        200  /* per RFC1459 */
+#define MESSAGE_MAX_LEN        512  /* per RFC1459 */
+#define AUTH_CHUNK_SIZE        400  /* per IRCv3.1 */
 
-#define KIRC_CHANNEL_LIMIT    256
-#define KIRC_HISTORY_SIZE     8
-#define KIRC_TAB_WIDTH        4
-#define KIRC_TIMEOUT_MS       5000
+#define KIRC_VERSION_MAJOR     "1"
+#define KIRC_VERSION_MINOR     "0"
+#define KIRC_VERSION_PATCH     "5"
+
+#define KIRC_CHANNEL_LIMIT     256
+#define KIRC_HISTORY_SIZE      8
+#define KIRC_TAB_WIDTH         4
+#define KIRC_TIMEOUT_MS        5000
+#define KIRC_TIMESTAMP_SIZE    6
+#define KIRC_TIMESTAMP_FORMAT  "%H:%M"
+
 #define KIRC_DEFAULT_COLUMNS  80
 #define KIRC_DEFAULT_PORT     "6667"
 #define KIRC_DEFAULT_SERVER   "irc.libera.chat"
-#define KIRC_TIMESTAMP_FORMAT "%H:%M"
-#define KIRC_TIMESTAMP_SIZE   6
 
 typedef enum {
     SASL_NONE = 0,
@@ -62,7 +67,7 @@ typedef struct {
     char username[MESSAGE_MAX_LEN];
     char password[MESSAGE_MAX_LEN];
     char channels[KIRC_CHANNEL_LIMIT][CHANNEL_MAX_LEN];
-    char selected[KIRC_CHANNEL_LIMIT];
+    char target[KIRC_CHANNEL_LIMIT];
     char auth[MESSAGE_MAX_LEN];
     sasl_mechanism_t mechanism;
 } kirc_t;

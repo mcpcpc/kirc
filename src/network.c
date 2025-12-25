@@ -87,11 +87,11 @@ static void network_send_private_msg(
 static void network_send_channel_msg(
         network_t *network, char *msg)
 {
-    if (network->ctx->selected[0] != '\0') {
+    if (network->ctx->target[0] != '\0') {
         network_send(network, "PRIVMSG %s :%s\r\n",
-            network->ctx->selected, msg);
+            network->ctx->target, msg);
         printf("\rto " BOLD "%s" RESET ": %s" CLEAR_LINE "\r\n",
-            network->ctx->selected, msg);
+            network->ctx->target, msg);
     } else {
         const char *err = "error: no channel set";
         printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
@@ -105,9 +105,53 @@ int network_command_handler(network_t *network, char *msg)
     switch (msg[0]) {
     case '/':  /* system command message */
         switch (msg[1]) {
-        case '#':  /* set active channel */
-            siz = sizeof(network->ctx->selected) - 1;
-            strncpy(network->ctx->selected, msg + 1, siz);
+        case 's':  /* set target (channel or nickname) */
+            if (strncmp(msg + 1, "set ", 4) == 0) {
+                siz = sizeof(network->ctx->target) - 1;
+                strncpy(network->ctx->target, msg + 5, siz);
+                network->ctx->target[siz] = '\0';
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
+            break;
+
+        case 'm':  /* send CTCP ACTION to target */
+            if (strncmp(msg + 1, "me ", 3) == 0) {
+                char *text = msg + 4;
+                if (network->ctx->target[0] != '\0') {
+                    network_send(network,
+                        "PRIVMSG %s :\001ACTION %s\001\r\n",
+                        network->ctx->target, text);
+                    printf("\rto " BOLD "%s" RESET ": * %s" CLEAR_LINE "\r\n",
+                        network->ctx->target, text);
+                } else {
+                    const char *err = "error: no channel set";
+                    printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
+                        err);
+                }
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
+            break;
+
+        case 'c':  /* send CTCP command */
+            if (strncmp(msg + 1, "ctcp ", 5) == 0) {
+                char *text = msg + 6;
+                char *target = strtok(text, " ");
+                char *command = strtok(NULL, "");
+                if ((target != NULL) && (command != NULL)) {
+                    network_send(network, "PRIVMSG %s :\001%s\001\r\n",
+                        target, command);
+                    printf("\rctcp: " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
+                        target, command);
+                } else {
+                    const char *err = "usage: /ctcp <nick> <command>";
+                    printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
+                        err);
+                } 
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
             break;
 
         default:  /* send raw server command */

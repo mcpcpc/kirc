@@ -368,6 +368,7 @@ int editor_process_key(editor_t *editor)
         editor_delete_line(editor);
         break;
 
+    case BS:  /* CTRL-H */
     case DEL:
         editor_backspace(editor);
         break;
@@ -441,10 +442,10 @@ int editor_process_key(editor_t *editor)
     return 0;
 }
 
-int editor_render(editor_t *editor)
+int editor_handle(editor_t *editor)
 {
     int cols = terminal_columns(STDIN_FILENO);
-    int size = strlen(editor->ctx->selected) + 1;
+    int size = strlen(editor->ctx->target) + 1;
     int avail = cols - size - 1;
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
@@ -480,7 +481,7 @@ int editor_render(editor_t *editor)
     }
     bytes_to_print = p - start;
 
-    printf("\r%s:", editor->ctx->selected);
+    printf("\r%s:", editor->ctx->target);
 
     if (bytes_to_print > 0) {
         fwrite(editor->scratch + start, 1, bytes_to_print, stdout);

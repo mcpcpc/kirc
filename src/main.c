@@ -246,9 +246,9 @@ static int kirc_run(kirc_t *ctx)
             ctx->password);
     }
 
-    size_t selected_n = sizeof(ctx->selected) - 1;
-    strncpy(ctx->selected, ctx->channels[0], selected_n);
-    ctx->selected[selected_n] = '\0';
+    size_t siz = sizeof(ctx->target) - 1;
+    strncpy(ctx->target, ctx->channels[0], siz);
+    ctx->target[siz] = '\0';
 
     terminal_t terminal;
 
@@ -287,7 +287,7 @@ static int kirc_run(kirc_t *ctx)
                 network_command_handler(&network, msg);
             }
 
-            editor_render(&editor);
+            editor_handle(&editor);
         }
 
         if (fds[1].revents & POLLIN) {
@@ -305,6 +305,51 @@ static int kirc_run(kirc_t *ctx)
                     protocol_parse(&protocol, msg);
 
                     switch(protocol.event) {
+                    case PROTOCOL_EVENT_CTCP_CLIENTINFO:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            network_send(&network,
+                                "NOTICE %s :\001PING ACTION CLIENTINFO "
+                                "DCC PING TIME VERSION\001\r\n",
+                                protocol.nickname);
+                        }
+                        break;
+
+                    case PROTOCOL_EVENT_CTCP_PING:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            if (protocol.message[0] != '\0') {
+                                network_send(&network,
+                                    "NOTICE %s :\001PING %s\001\r\n",
+                                    protocol.nickname, protocol.message);
+                            } else {
+                                network_send(&network,
+                                    "NOTICE %s :\001PING\001\r\n",
+                                    protocol.nickname);
+                            }
+                        }
+                        break;
+
+                    case PROTOCOL_EVENT_CTCP_TIME:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            char tbuf[128];
+                            time_t now;
+                            time(&now);
+                            struct tm *info = localtime(&now);
+                            strftime(tbuf, sizeof(tbuf), "%c", info);
+                            network_send(&network,
+                                "NOTICE %s :\001TIME %s\001\r\n",
+                                protocol.nickname, tbuf);
+                        }
+                        break;
+
+                    case PROTOCOL_EVENT_CTCP_VERSION:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            network_send(&network,
+                                "NOTICE %s :\001VERSION kirc %s\001\r\n",
+                                protocol.nickname, KIRC_VERSION_MAJOR "."
+                                KIRC_VERSION_MINOR "." KIRC_VERSION_PATCH);
+                        }
+                        break; 
+
                     case PROTOCOL_EVENT_PING:
                         network_send(&network, "PONG :%s\r\n",
                             protocol.message);
@@ -322,7 +367,7 @@ static int kirc_run(kirc_t *ctx)
                         break; 
                     }
 
-                    protocol_render(&protocol);
+                    protocol_handle(&protocol);
 
                     msg = eol + 2;
                 }
@@ -332,7 +377,7 @@ static int kirc_run(kirc_t *ctx)
                 memmove(network.buffer, msg, remain);
                 network.len = remain;
 
-                editor_render(&editor);
+                editor_handle(&editor);
             }
             
         }

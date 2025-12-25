@@ -77,17 +77,33 @@ Default SASL authentication token
 .BI /<command>
 Send a raw IRC command to the server (e.g. /JOIN, /PART, /WHOIS, etc.)
 .TP
-.BI /#<channel>
-Set the default message channel to <channel>
+.BI /set " <target>"
+Set the default message channel or nickname to 
+.I <target>
 .TP
 .BI <message>
-Send PRIVMSG to default message channel with <message> as the content
+Send PRIVMSG to set target nickname or channel with 
+.I <message>
+as the content
 .TP
-.BI @<nickname> " <message>"
+.BI @<target> " <message>"
 Send
 .I <message>
 to a specified
-.I <nickname>
+.I <target>
+nickname or channel
+.TP
+.BI /me " <action>"
+Send CTCP
+.I <action>
+to set target nickname or channel
+.TP
+.BI /ctcp " <target> <command>"
+send a raw CTCP
+.I <command>
+(e.g. "CLIENTINFO", "DCC", "PING", "TIME", and "VERSION") to
+.I <target>
+nickname or channel
 .SH KEY BINDINGS
 .TP
 .B CTRL+C
