@@ -30,6 +30,10 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#ifndef NAME_MAX
+#define NAME_MAX               255
+#endif
+
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX          255
 #endif
@@ -40,9 +44,10 @@
 
 #define KIRC_VERSION_MAJOR     "1"
 #define KIRC_VERSION_MINOR     "0"
-#define KIRC_VERSION_PATCH     "5"
+#define KIRC_VERSION_PATCH     "6"
 
 #define KIRC_CHANNEL_LIMIT     256
+#define KIRC_DCC_TRANSFERS_MAX 16
 #define KIRC_HISTORY_SIZE      8
 #define KIRC_TAB_WIDTH         4
 #define KIRC_TIMEOUT_MS        5000
