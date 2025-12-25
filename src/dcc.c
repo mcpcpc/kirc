@@ -187,11 +187,11 @@ int dcc_process(dcc_t *dcc)
                 if (nread == 0) {
                     if (transfer->bytes_transferred >= transfer->bytes_filesize) {
                         printf("\r" DIM "dcc: %d transfer complete (%u bytes)"
-                            RESET "\r\n", id, transfer->bytes_transferred);
+                            RESET "\r\n", i, transfer->bytes_transferred);
                         transfer->state = DCC_STATE_COMPLETE;
                     } else {
                         printf("\r" DIM "error: %d transfer incomplete (%u/%u bytes)"
-                            RESET "\r\n", id, transfer->bytes_transferred,
+                            RESET "\r\n", i, transfer->bytes_transferred,
                             transfer->bytes_filesize);
                         transfer->state = DCC_STATE_COMPLETE;
                     }
@@ -210,7 +210,7 @@ int dcc_process(dcc_t *dcc)
 
                 if (transfer->bytes_transferred >= transfer->bytes_filesize) {
                     printf("\r" DIM "dcc: %d transfer complete (%u bytes)" RESET "\r\n",
-                        id, transfer->bytes_transferred);
+                        i, transfer->bytes_transferred);
                     transfer->state = DCC_STATE_COMPLETE;
                 }
             }
