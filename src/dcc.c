@@ -166,7 +166,7 @@ int dcc_process(dcc_t *dcc)
         }
 
         /* handle receive transfers */
-        if ((transfer->type == DCC_TYPE_RECEIVING) &&
+        if ((transfer->type == DCC_TYPE_RECEIVE) &&
             (transfer->state == DCC_STATE_TRANSFERRING)) {
 
             if (dcc->sock_fd[i].revents && POLLIN) {
