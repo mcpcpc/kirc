@@ -149,7 +149,7 @@ int dcc_process(dcc_t *dcc)
 
         if (transfer->state == DCC_STATE_CONNECTING) {
             if (dcc->sock_fd[i].revents & POLLOUT) {
-                int error = 0:
+                int error = 0;
                 socklen_t len = sizeof(error);
                 if (getsockopt(dcc->sock_fd[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0) {
                     if (error == 0) {
