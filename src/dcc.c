@@ -151,7 +151,7 @@ int dcc_process(dcc_t *dcc)
             if (dcc->sock_fd[i].revents & POLLOUT) {
                 int error = 0:
                 socklen_t len = sizeof(error);
-                if (getsockopt(dcc.sock_fd[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0) {
+                if (getsockopt(dcc->sock_fd[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0) {
                     if (error == 0) {
                         printf("\r" DIM "dcc: %d connected" RESET "\r\n", i);
                         transfer->state = DCC_STATE_TRANSFERRING;
