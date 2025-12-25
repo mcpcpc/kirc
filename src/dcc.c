@@ -244,6 +244,191 @@ int dcc_process(dcc_t *dcc)
     return 0;
 }
 
+int dcc_request(dcc_t *dcc, const char *sender, const char *params)
+{
+    if ((dcc == NULL) || (sender == NULL) || (params == NULL)) {
+        return -1;
+    }
+
+    /* find free transfer slot */
+    int transfer_id = -1;
+    int limit = KIRC_DCC_TRANSFERS_MAX;
+
+    for (int i = 0; i < limit; ++i) {
+        if (dcc->transfer[i].state == DCC_STATE_IDLE) {
+            transfer_id = i;
+            break;
+        }
+    }
+
+    if (transfer_id < 0) {
+        printf("\r" DIM "error: no free DCC transfer slots" RESET "\r\n");
+        return -1;
+    }
+
+    /* parse DCC SEND parameters: SEND filename ip port filesize */
+    char params_copy[MESSAGE_MAX_LEN];
+    size_t siz = sizeof(params_copy) - 1;
+    strncpy(params_copy, params, siz);
+    params_copy[siz] = '\0';
+
+    char *command = strtok(params_copy, " ");
+    if ((command == NULL) || (strcmp(command, "SEND") != 0)) {
+        printf("\r" DIM "error: unsupported DCC command" RESET "\r\n");
+        return -1;
+    }
+
+    char *filename_tok = strtok(NULL, " ");
+    if (filename_tok == NULL) {
+        printf("\r" DIM "error: invalid DCC SEND format" RESET "\r\n");
+        return -1;
+    }
+
+    /* handle quoted filenames */
+    char filename[NAME_MAX];
+    if (filename_tok[0] == '"') {
+        /* find closing quote */
+        char *end_quote = strchr(filename_tok + 1, '"');
+        if (end_quote != NULL) {
+            size_t len = end_quote - filename_tok - 1;
+            if (len >= NAME_MAX) {
+                len = NAME_MAX - 1;
+            }
+            strncpy(filename, filename_tok + 1, len);
+            filename[len] = '\0';
+        } else {
+            /* filename spans multiple tokens */
+            size_t len = strlen(filename_tok + 1);
+            if (len >= NAME_MAX) {
+                len = NAME_MAX - 1;
+            }
+            strncpy(filename, filename_tok + 1, len);
+            filename[len] = '\0';
+
+            /* continue reading until closing quote */
+            char *next = strtok(NULL, "\"");
+            if (next != NULL) {
+                size_t flen = strlen(filename);
+                size_t nlen = strlen(next);
+                if (flen + nlen + 1 < NAME_MAX) {
+                    filename[flen] = ' ';
+                    strncpy(filename + flen + 1, next, NAME_MAX - flen - 2);
+                    filename[NAME_MAX - 1] = '\0';
+                }
+            }
+        }
+    } else {
+        siz = sizeof(filename) - 1;
+        strncpy(filename, filename_tok, siz);
+        filename[siz] = '\0';
+    }
+
+    char *ip_str = strtok(NULL, " ");
+    char *port_str = strtok(NULL, " ");
+    char *filesize_str = strtok(NULL, " ");
+
+    if ((ip_str == NULL) || (port_str == NULL) || (filesize_str == NULL)) {
+        printf("\r" DIM "error: invalid DCC SEND format" RESET "\r\n");
+        return -1;
+    }
+
+    unsigned long ip_numeric;
+    unsigned long port = strtoul(port_str, NULL, 10);
+    unsigned long long filesize = strtoull(filesize_str, NULL, 10);
+
+    /* initialize transfer */
+    dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
+    transfer->type = DCC_TYPE_RECEIVE;
+    transfer->state = DCC_STATE_CONNECTING;
+    transfer->filesize = filesize;
+    transfer->sent = 0;
+    strncpy(transfer->filename, filename, NAME_MAX - 1);
+    transfer->filename[NAME_MAX - 1] = '\0';
+    strncpy(transfer->sender, sender, MESSAGE_MAX_LEN - 1);
+    transfer->sender[MESSAGE_MAX_LEN - 1] = '\0';
+
+    /* open file for writing */
+    transfer->file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (transfer->file_fd < 0) {
+        printf("\r" DIM "error: cannot create file %s" RESET "\r\n",
+            filename);
+        transfer->state = DCC_STATE_IDLE;
+        return -1;
+    }
+
+    /* convert IP address */
+    char ip_addr[16];
+    if (strchr(ip_str, '.') != NULL) {
+        /* dotted decimal format */
+        strncpy(ip_addr, ip_str, sizeof(ip_addr) - 1);
+        ip_addr[sizeof(ip_addr) - 1] = '\0';
+    } else {
+        /* numeric IP format (XDCC style) */
+        ip_numeric = strtoul(ip_str, NULL, 10);
+        snprintf(ip_addr, sizeof(ip_addr), "%lu.%lu.%lu.%lu",
+            (ip_numeric >> 24) & 0xFF,
+            (ip_numeric >> 16) & 0xFF,
+            (ip_numeric >> 8) & 0xFF,
+            ip_numeric & 0xFF);
+    }
+
+    /* create socket */
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    char port_str[16];
+    snprintf(port_str, sizeof(port_str), "%lu", port);
+
+    int rc = getaddrinfo(ip_addr, port_str, &hints, &res);
+    if (rc != 0) {
+        printf("\r" DIM "error: getaddrinfo failed: %s" RESET "\r\n",
+            gai_strerror(rc));
+        close(transfer->file_fd);
+        transfer->file_fd = -1;
+        transfer->state = DCC_STATE_IDLE;
+        return -1;
+    }
+
+    int sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sock_fd < 0) {
+        printf("\r" DIM "error: socket creation failed" RESET "\r\n");
+        freeaddrinfo(res);
+        close(transfer->file_fd);
+        transfer->file_fd = -1;
+        transfer->state = DCC_STATE_IDLE;
+        return -1;
+    }
+
+    /* set non-blocking */
+    int flags = fcntl(sock_fd, F_GETFL, 0);
+    fcntl(sock_fd, F_SETFL, flags | O_NONBLOCK);
+
+    /* connect */
+    rc = connect(sock_fd, res->ai_addr, res->ai_addrlen);
+    if ((rc < 0) && (errno != EINPROGRESS)) {
+        printf("\r" DIM "error: connection failed" RESET "\r\n");
+        close(sock_fd);
+        freeaddrinfo(res);
+        close(transfer->file_fd);
+        transfer->file_fd = -1;
+        transfer->state = DCC_STATE_IDLE;
+        return -1;
+    }
+
+    freeaddrinfo(res);
+
+    dcc->sock_fd[transfer_id].fd = sock_fd;
+    dcc->sock_fd[transfer_id].events = POLLOUT;
+    dcc->transfer_count++;
+
+    printf("\r" DIM "dcc: receiving %s from %s (%llu bytes)" RESET "\r\n",
+        filename, sender, filesize);
+
+    return transfer_id;
+}
+
 int dcc_cancel(dcc_t *dcc, int transfer_id)
 {
     if ((dcc == NULL) || (transfer_id < 0)) {
