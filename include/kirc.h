@@ -30,6 +30,10 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#ifndef NAME_MAX
+#define NAME_MAX              255
+#endif
+
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX         255
 #endif
