@@ -226,7 +226,7 @@ int dcc_process(dcc_t *dcc)
 
         /* cleanup completed or erro transfers */
         if ((transfer->state == DCC_STATE_COMPLETE) ||
-            ((transfer->state == DCC_STATE_ERROR)) {
+            (transfer->state == DCC_STATE_ERROR)) {
             if (dcc->sock_fd[i].fd >= 0) {
                 close(dcc->sock_fd[i].fd);
                 dcc->sock_fd[i].fd = -1;
