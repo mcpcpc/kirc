@@ -101,6 +101,25 @@ static int kirc_init(kirc_t *ctx)
     return 0;
 }
 
+static int kirc_free(kirc_t *ctx)
+{
+    size_t siz = -1;
+
+    siz = sizeof(kirc->auth);
+
+    if (secure_zero(kirc->auth, siz) < 0) {
+        return -1;
+    }
+
+    siz = sizeof(kirc->password);
+
+    if (secure_zero(kirc->password, siz) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 {
     if (argc < 2) {
@@ -386,6 +405,7 @@ static int kirc_run(kirc_t *ctx)
     }
 
     terminal_disable_raw(&terminal);
+
     dcc_free(&dcc);
     network_free(&network);
 
@@ -401,12 +421,16 @@ int main(int argc, char *argv[])
     }
 
     if (kirc_args(&ctx, argc, argv) < 0) {
+        kirc_free(&ctx);
         return EXIT_FAILURE;
     }
 
     if (kirc_run(&ctx) < 0) {
+        kirc_free(&ctx);
         return EXIT_FAILURE;
     }
+
+    kirc_free(&ctx);
 
     return EXIT_SUCCESS;
 }

@@ -18,3 +18,19 @@ char * safecpy(char *s1, const char *s2, size_t n)
  
     return out;
 }
+
+int secure_zero(void *ptr, size_t n)
+{
+    if ((ptr == NULL) || (n == 0)) {
+        return -1;
+    }
+
+    /* use volatile to prevent compiler optimization */
+    volatile unsigned char *p = ptr;
+
+    while (n--) {
+        *p++ = 0;
+    }
+    
+    return 0;
+}

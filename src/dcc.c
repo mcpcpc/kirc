@@ -61,14 +61,14 @@ int dcc_send(dcc_t *dcc, int transfer_id)
     dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
 
     if (transfer->type != DCC_TYPE_SEND) {
-        printf("\r" DIM "error: %d is not a SEND transfer" RESET "\r\n",
-            transfer_id);
+        printf("\r" CLEAR_LINE DIM "error: %d is not a SEND transfer"
+            RESET "\r\n", transfer_id);
         return -1;
     }
 
     if (transfer->state != DCC_STATE_TRANSFERRING) {
-        printf("\r" DIM "error: %d is not in the transferring state" RESET "\r\n",
-            transfer_id);
+        printf("\r" CLEAR_LINE DIM "error: %d is not in the transferring state"
+            RESET "\r\n", transfer_id);
         return -1;
     }
 
@@ -77,14 +77,15 @@ int dcc_send(dcc_t *dcc, int transfer_id)
         sizeof(buffer));
 
     if (nread < 0) {
-        printf("\r" DIM "error: file read failed" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: file read failed"
+            RESET "\r\n");
         transfer->state = DCC_STATE_ERROR;
         return -1;
     }
 
     if (nread == 0) {
-        printf("\r" DIM "dcc: %d transfer complete" RESET "\r\n",
-            transfer_id);
+        printf("\r" CLEAR_LINE DIM "dcc: %d transfer complete"
+            RESET "\r\n", transfer_id);
         transfer->state = DCC_STATE_COMPLETE;
         return 0;
     }
@@ -97,7 +98,8 @@ int dcc_send(dcc_t *dcc, int transfer_id)
             return 0;
         }
 
-        printf("\r" DIM "error: send failed" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: send failed"
+            RESET "\r\n");
         transfer->state = DCC_STATE_ERROR;
         return -1;
     }
@@ -105,8 +107,8 @@ int dcc_send(dcc_t *dcc, int transfer_id)
     transfer->sent += nsent;
 
     if (transfer->sent >= transfer->filesize) {
-        printf("\r" DIM "dcc: %d transfer complete" RESET
-            "\r\n", transfer_id);
+        printf("\r" CLEAR_LINE DIM "dcc: %d transfer complete"
+            RESET "\r\n", transfer_id);
         transfer->state = DCC_STATE_COMPLETE;
     }
     
@@ -131,7 +133,8 @@ int dcc_process(dcc_t *dcc)
             return 0;
         }
 
-        printf("\r" DIM "error: poll failed" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: poll failed"
+            RESET "\r\n");
         return -1;
     }
 
@@ -153,11 +156,13 @@ int dcc_process(dcc_t *dcc)
                 socklen_t len = sizeof(error);
                 if (getsockopt(dcc->sock_fd[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0) {
                     if (error == 0) {
-                        printf("\r" DIM "dcc: %d connected" RESET "\r\n", i);
+                        printf("\r" CLEAR_LINE DIM "dcc: %d connected"
+                            RESET "\r\n", i);
                         transfer->state = DCC_STATE_TRANSFERRING;
                         dcc->sock_fd[i].events = POLLIN;
                     } else {
-                        printf("\r" DIM "error: connection failed" RESET "\r\n");
+                        printf("\r" CLEAR_LINE DIM "error: connection failed"
+                            RESET "\r\n");
                         transfer->state = DCC_STATE_ERROR;
                     }
                 }
@@ -179,18 +184,19 @@ int dcc_process(dcc_t *dcc)
                         continue; 
                     }
 
-                    printf("\r" DIM "error: receive failed" RESET "\r\n");
+                    printf("\r" CLEAR_LINE DIM "error: receive failed"
+                        RESET "\r\n");
                     transfer->state = DCC_STATE_ERROR;
                     continue;
                 }
                 
                 if (nread == 0) {
                     if (transfer->sent >= transfer->filesize) {
-                        printf("\r" DIM "dcc: %d transfer complete (%llu bytes)"
+                        printf("\r" CLEAR_LINE DIM "dcc: %d transfer complete (%llu bytes)"
                             RESET "\r\n", i, transfer->sent);
                         transfer->state = DCC_STATE_COMPLETE;
                     } else {
-                        printf("\r" DIM "error: %d transfer incomplete (%llu/%llu bytes)"
+                        printf("\r" CLEAR_LINE DIM "error: %d transfer incomplete (%llu/%llu bytes)"
                             RESET "\r\n", i, transfer->sent, transfer->filesize);
                         transfer->state = DCC_STATE_COMPLETE;
                     }
@@ -200,7 +206,8 @@ int dcc_process(dcc_t *dcc)
                 ssize_t nwritten = write(transfer->file_fd, buffer, nread);
 
                 if (nwritten < 0) {
-                    printf("\r" DIM "error: write failed" RESET "\r\n");
+                    printf("\r" CLEAR_LINE DIM "error: write failed"
+                        RESET "\r\n");
                     transfer->state = DCC_STATE_ERROR;
                     continue;
                 }
@@ -208,8 +215,8 @@ int dcc_process(dcc_t *dcc)
                 transfer->sent += nwritten;
 
                 if (transfer->sent >= transfer->filesize) {
-                    printf("\r" DIM "dcc: %d transfer complete (%llu bytes)" RESET
-                        "\r\n", i, transfer->sent);
+                    printf("\r" CLEAR_LINE DIM "dcc: %d transfer complete (%llu bytes)"
+                        RESET "\r\n", i, transfer->sent);
                     transfer->state = DCC_STATE_COMPLETE;
                 }
             }
@@ -262,7 +269,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     }
 
     if (transfer_id < 0) {
-        printf("\r" DIM "error: no free DCC transfer slots" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: no free DCC transfer slots"
+            RESET "\r\n");
         return -1;
     }
 
@@ -273,13 +281,15 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
 
     char *command = strtok(params_copy, " ");
     if ((command == NULL) || (strcmp(command, "SEND") != 0)) {
-        printf("\r" DIM "error: unsupported DCC command" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: unsupported DCC command"
+            RESET "\r\n");
         return -1;
     }
 
     char *filename_tok = strtok(NULL, " ");
     if (filename_tok == NULL) {
-        printf("\r" DIM "error: invalid DCC SEND format" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: invalid DCC SEND format"
+            RESET "\r\n");
         return -1;
     }
 
@@ -328,7 +338,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     char *filesize = strtok(NULL, " ");
 
     if ((server == NULL) || (port == NULL) || (filesize == NULL)) {
-        printf("\r" DIM "error: invalid DCC SEND format" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: invalid DCC SEND format"
+            RESET "\r\n");
         return -1;
     }
 
@@ -349,8 +360,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     transfer->file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
     if (transfer->file_fd < 0) {
-        printf("\r" DIM "error: cannot create file %s" RESET "\r\n",
-            filename);
+        printf("\r" CLEAR_LINE DIM "error: cannot create file %s"
+            RESET "\r\n", filename);
         transfer->state = DCC_STATE_IDLE;
         return -1;
     }
@@ -363,8 +374,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
 
     int rc = getaddrinfo(server, port, &hints, &res);
     if (rc != 0) {
-        printf("\r" DIM "error: getaddrinfo failed: %s" RESET "\r\n",
-            gai_strerror(rc));
+        printf("\r" CLEAR_LINE DIM "error: getaddrinfo failed: %s"
+            RESET "\r\n", gai_strerror(rc));
         close(transfer->file_fd);
         transfer->file_fd = -1;
         transfer->state = DCC_STATE_IDLE;
@@ -373,7 +384,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
 
     int sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (sock_fd < 0) {
-        printf("\r" DIM "error: socket creation failed" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: socket creation failed"
+            RESET "\r\n");
         freeaddrinfo(res);
         close(transfer->file_fd);
         transfer->file_fd = -1;
@@ -388,7 +400,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     /* connect */
     rc = connect(sock_fd, res->ai_addr, res->ai_addrlen);
     if ((rc < 0) && (errno != EINPROGRESS)) {
-        printf("\r" DIM "error: connection failed" RESET "\r\n");
+        printf("\r" CLEAR_LINE DIM "error: connection failed"
+            RESET "\r\n");
         close(sock_fd);
         freeaddrinfo(res);
         close(transfer->file_fd);
@@ -403,8 +416,9 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     dcc->sock_fd[transfer_id].events = POLLOUT;
     dcc->transfer_count++;
 
-    printf("\r" DIM "dcc: receiving %s from %s (%llu bytes)" RESET "\r\n",
-        transfer->filename, transfer->sender, transfer->filesize);
+    printf("\r" CLEAR_LINE DIM "dcc: receiving %s from %s (%llu bytes)"
+        RESET "\r\n", transfer->filename, transfer->sender,
+        transfer->filesize);
 
     return transfer_id;
 }
@@ -422,7 +436,7 @@ int dcc_cancel(dcc_t *dcc, int transfer_id)
         return 0;
     }
 
-    printf("\r" DIM "dcc: cancelling transfer %d"
+    printf("\r" CLEAR_LINE DIM "dcc: cancelling transfer %d"
         RESET "\r\n", transfer_id);
 
     if (dcc->sock_fd[transfer_id].fd >= 0) {
