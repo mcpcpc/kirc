@@ -7,16 +7,16 @@
 
 #include "helper.h"
 
-char * safecpy(char *s1, const char *s2, size_t n)
+int safecpy(char *s1, const char *s2, size_t n)
 {
     if (n == 0) {
-        return s1;
+        return -1;
     }
     
     strncpy(s1, s2, n - 1);
     s1[n - 1] = '\0';
- 
-    return s1;
+    
+    return 0;
 }
 
 int secure_zero(void *ptr, size_t n)
