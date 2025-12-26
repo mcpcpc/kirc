@@ -322,7 +322,7 @@ static int kirc_run(kirc_t *ctx)
                         }
                         break;
 
-                    case PROTOCOL_EVENT_CTCTP_DCC:
+                    case PROTOCOL_EVENT_CTCP_DCC:
                         if (strcmp(protocol.command, "PRIVMSG") == 0) {
                             dcc_request(&dcc, protocol.nickname,
                                 protocol.message);
