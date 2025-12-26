@@ -269,8 +269,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     /* parse DCC SEND parameters: SEND filename ip port filesize */
     char params_copy[MESSAGE_MAX_LEN];
     size_t siz = sizeof(params_copy) - 1;
-    strncpy(params_copy, params, siz);
-    params_copy[siz] = '\0';
+    safecpy(params_copy, params, siz);
 
     char *command = strtok(params_copy, " ");
     if ((command == NULL) || (strcmp(command, "SEND") != 0)) {
@@ -294,22 +293,24 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
             if (len >= NAME_MAX) {
                 len = NAME_MAX - 1;
             }
-            strncpy(filename, filename_tok + 1, len);
-            filename[len] = '\0';
+            safecpy(filename, filename_tok + 1, len);
         } else {
             /* filename spans multiple tokens */
             size_t len = strlen(filename_tok + 1);
+
             if (len >= NAME_MAX) {
                 len = NAME_MAX - 1;
             }
-            strncpy(filename, filename_tok + 1, len);
-            filename[len] = '\0';
+
+            safecpy(filename, filename_tok + 1, len);
 
             /* continue reading until closing quote */
             char *next = strtok(NULL, "\"");
+
             if (next != NULL) {
                 size_t flen = strlen(filename);
                 size_t nlen = strlen(next);
+
                 if (flen + nlen + 1 < NAME_MAX) {
                     filename[flen] = ' ';
                     strncpy(filename + flen + 1, next, NAME_MAX - flen - 2);
@@ -319,8 +320,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
         }
     } else {
         siz = sizeof(filename) - 1;
-        strncpy(filename, filename_tok, siz);
-        filename[siz] = '\0';
+        safecpy(filename, filename_tok, siz);
     }
 
     char *server = strtok(NULL, " ");
@@ -340,12 +340,10 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     transfer->sent = 0;
     
     siz = sizeof(transfer->filename) - 1;
-    strncpy(transfer->filename, filename, siz);
-    transfer->filename[siz] = '\0';
+    safecpy(transfer->filename, filename, siz);
     
     siz = sizeof(transfer->sender) - 1;
-    strncpy(transfer->sender, sender, siz);
-    transfer->sender[siz] = '\0';
+    safecpy(transfer->sender, sender, siz);
 
     /* open file for writing */
     transfer->file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);

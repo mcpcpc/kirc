@@ -10,6 +10,7 @@
 
 #include "kirc.h"
 #include "ansi.h"
+#include "helper.h"
 
 typedef enum {
     DCC_TYPE_SEND = 0,
