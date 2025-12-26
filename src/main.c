@@ -105,14 +105,14 @@ static int kirc_free(kirc_t *ctx)
 {
     size_t siz = sizeof(ctx->auth);
 
-    if (secure_zero(ctx->auth, siz) < 0) {
+    if (memzero(ctx->auth, siz) < 0) {
         fprintf(stderr, "auth token value not safely cleared\n");
         return -1;
     }
 
     siz = sizeof(ctx->password);
 
-    if (secure_zero(ctx->password, siz) < 0) {
+    if (memzero(ctx->password, siz) < 0) {
         fprintf(stderr, "password value not safely cleared\n");
         return -1;
     }

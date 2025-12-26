@@ -11,6 +11,6 @@
 #include "kirc.h"
 
 int safecpy(char *s1, const char *s2, size_t n);
-int secure_zero(void *ptr, size_t n);
+int memzero(void *s, size_t n);
 
 #endif  // __KIRC_HELPER_H
