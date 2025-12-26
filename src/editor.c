@@ -334,9 +334,6 @@ int editor_init(editor_t *editor, kirc_t *ctx)
     
     editor->ctx = ctx;
     editor->event = EDITOR_EVENT_NONE;
-    editor->count = 0;
-    editor->cursor = 0;
-    editor->head = 0;
     editor->position = -1;
 
     setlocale(LC_CTYPE, "");

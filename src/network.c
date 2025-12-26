@@ -108,8 +108,7 @@ int network_command_handler(network_t *network, char *msg)
         case 's':  /* set target (channel or nickname) */
             if (strncmp(msg + 1, "set ", 4) == 0) {
                 siz = sizeof(network->ctx->target) - 1;
-                strncpy(network->ctx->target, msg + 5, siz);
-                network->ctx->target[siz] = '\0';
+                safecpy(network->ctx->target, msg + 5, siz);
             } else {
                 network_send(network, "%s\r\n", msg + 1);
             }
@@ -184,8 +183,7 @@ static int network_authenticate_plain(network_t *network)
 
     for (int offset = 0; offset < len; offset += chunk_size) {
         char chunk[chunk_size + 1];
-        strncpy(chunk, network->ctx->auth + offset, chunk_size);
-        chunk[chunk_size] = '\0';
+        safecpy(chunk, network->ctx->auth + offset, chunk_size);
         network_send(network, "AUTHENTICATE %s\r\n", chunk);
     }
     
@@ -235,7 +233,6 @@ int network_init(network_t *network,
 
     network->ctx = ctx;
     network->transport = transport;
-    network->len = 0;
 
     return 0;
 }

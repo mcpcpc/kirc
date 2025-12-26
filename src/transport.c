@@ -104,7 +104,10 @@ int transport_connect(transport_t *transport)
             continue;
         }
 
-        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+            close(fd);
+            continue;
+        }
 
         int rc = connect(fd, p->ai_addr, p->ai_addrlen);
 

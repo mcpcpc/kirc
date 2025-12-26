@@ -5,7 +5,9 @@
  * License: MIT
  */
 
+#include "dcc.h"
 #include "editor.h"
+#include "helper.h"
 #include "network.h"
 #include "protocol.h"
 #include "terminal.h"
@@ -19,8 +21,7 @@ static void kirc_parse_channels(kirc_t *ctx,
 
     for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHANNEL_LIMIT; tok = strtok(NULL, ",|")) {
         siz = sizeof(ctx->channels[idx]) - 1;
-        strncpy(ctx->channels[idx], tok, siz);
-        ctx->channels[idx][siz] = '\0';
+        safecpy(ctx->channels[idx], tok, siz);
         idx++;
     }
 }
@@ -37,8 +38,7 @@ static void kirc_parse_mechanism(kirc_t *ctx,
     } else if (strcmp(mechanism, "PLAIN") == 0) {
         ctx->mechanism = SASL_PLAIN;
         siz = sizeof(ctx->auth) - 1;
-        strncpy(ctx->auth, token, siz);
-        ctx->auth[siz] = '\0';
+        safecpy(ctx->auth, token, siz);
     }
 }
 
@@ -49,12 +49,10 @@ static int kirc_init(kirc_t *ctx)
     size_t siz = 0;
 
     siz = sizeof(ctx->server) - 1;
-    strncpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
-    ctx->server[siz] = '\0';
+    safecpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
     
     siz = sizeof(ctx->port) - 1;
-    strncpy(ctx->port, KIRC_DEFAULT_PORT, siz);
-    ctx->port[siz] = '\0';
+    safecpy(ctx->port, KIRC_DEFAULT_PORT, siz);
 
     ctx->mechanism = SASL_NONE;
 
@@ -63,15 +61,13 @@ static int kirc_init(kirc_t *ctx)
     env = getenv("KIRC_SERVER");
     if (env && *env) {
         siz = sizeof(ctx->server) - 1;
-        strncpy(ctx->server, env, siz);
-        ctx->server[siz] = '\0';
+        safecpy(ctx->server, env, siz);
     }
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
         siz = sizeof(ctx->port) - 1;
-        strncpy(ctx->port, env, siz);
-        ctx->port[siz] = '\0';
+        safecpy(ctx->port, env, siz);
     }
 
     env = getenv("KIRC_CHANNELS");
@@ -82,27 +78,45 @@ static int kirc_init(kirc_t *ctx)
     env = getenv("KIRC_REALNAME");
     if (env && *env) {
         siz = sizeof(ctx->realname) - 1;
-        strncpy(ctx->realname, env, siz);
-        ctx->realname[siz] = '\0';
+        safecpy(ctx->realname, env, siz);
     }
 
     env = getenv("KIRC_USERNAME");
     if (env && *env) {
         siz = sizeof(ctx->username) - 1;
-        strncpy(ctx->username, env, siz);
-        ctx->username[siz] = '\0';
+        safecpy(ctx->username, env, siz);
     }
 
     env = getenv("KIRC_PASSWORD");
     if (env && *env) {
         siz = sizeof(ctx->password) - 1;
-        strncpy(ctx->password, env, siz);
-        ctx->password[siz] = '\0';
+        safecpy(ctx->password, env, siz);
     }
 
     env = getenv("KIRC_AUTH");
     if (env && *env) {
         kirc_parse_mechanism(ctx, env);
+    }
+
+    return 0;
+}
+
+static int kirc_free(kirc_t *ctx)
+{
+    size_t siz = -1;
+
+    siz = sizeof(ctx->auth);
+
+    if (secure_zero(ctx->auth, siz) < 0) {
+        fprintf(stderr, "auth token value not safely cleared\n");
+        return -1;
+    }
+
+    siz = sizeof(ctx->password);
+
+    if (secure_zero(ctx->password, siz) < 0) {
+        fprintf(stderr, "password value not safely cleared\n");
+        return -1;
     }
 
     return 0;
@@ -122,32 +136,27 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         switch (opt) {
         case 's':  /* server */
             siz = sizeof(ctx->server) - 1;
-            strncpy(ctx->server, optarg, siz);
-            ctx->server[siz] = '\0';
+            safecpy(ctx->server, optarg, siz);
             break;
 
         case 'p':  /* port */
             siz = sizeof(ctx->port) - 1;
-            strncpy(ctx->port, optarg, siz);
-            ctx->port[siz] = '\0';
+            safecpy(ctx->port, optarg, siz);
             break;
 
         case 'r':  /* realname */
             siz = sizeof(ctx->realname) - 1;
-            strncpy(ctx->realname, optarg, siz);
-            ctx->realname[siz] = '\0';
+            safecpy(ctx->realname, optarg, siz);
             break;
 
         case 'u':  /* username */
             siz = sizeof(ctx->username) - 1;
-            strncpy(ctx->username, optarg, siz);
-            ctx->username[siz] = '\0';
+            safecpy(ctx->username, optarg, siz);
             break;
 
         case 'k':  /* password */
             siz = sizeof(ctx->password) - 1;
-            strncpy(ctx->password, optarg, siz);
-            ctx->password[siz] = '\0';
+            safecpy(ctx->password, optarg, siz);
             break;
 
         case 'c':  /* channel(s) */
@@ -179,8 +188,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     }
 
     size_t nickname_n = sizeof(ctx->nickname) - 1;
-    strncpy(ctx->nickname, argv[optind], nickname_n);
-    ctx->nickname[nickname_n] = '\0';
+    safecpy(ctx->nickname, argv[optind], nickname_n);
 
     return 0;
 }
@@ -208,8 +216,18 @@ static int kirc_run(kirc_t *ctx)
         return -1;
     }
 
+    dcc_t dcc;
+
+    if (dcc_init(&dcc, ctx) < 0) {
+        fprintf(stderr, "dcc_init failed\n");
+        network_free(&network);
+        return -1;
+    }
+
     if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
+        dcc_free(&dcc);
+        network_free(&network);
         return -1;
     }
 
@@ -247,20 +265,21 @@ static int kirc_run(kirc_t *ctx)
     }
 
     size_t siz = sizeof(ctx->target) - 1;
-    strncpy(ctx->target, ctx->channels[0], siz);
-    ctx->target[siz] = '\0';
+    safecpy(ctx->target, ctx->channels[0], siz);
 
     terminal_t terminal;
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
+        dcc_free(&dcc);
         network_free(&network);
         return -1;
     }
 
     if (terminal_enable_raw(&terminal) < 0) {
-        fprintf(stderr, "terminal_enable_raw: failed\n");
+        fprintf(stderr, "terminal_enable_raw failed\n");
         terminal_disable_raw(&terminal);
+        dcc_free(&dcc);
         network_free(&network);
         return -1;
     }
@@ -271,8 +290,29 @@ static int kirc_run(kirc_t *ctx)
     };
 
     for (;;) {
-        if (poll(fds, 2, -1) == -1) {
-            if (errno == EINTR) continue;
+        int rc = poll(fds, 2, -1);
+
+        if (rc == -1) {
+            if (errno == EINTR) {
+                continue;
+            }
+
+            fprintf(stderr, "poll error: %s\n",
+                strerror(errno));
+            break;
+        }
+
+        if (rc == 0) {
+            continue;
+        }
+
+        if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            fprintf(stderr, "stdin error or hangup\n");
+            break;
+        }
+
+        if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            fprintf(stderr, "network connection error or closed\n");
             break;
         }
 
@@ -291,7 +331,14 @@ static int kirc_run(kirc_t *ctx)
         }
 
         if (fds[1].revents & POLLIN) {
-            if (network_receive(&network) > 0) {
+            int recv = network_receive(&network);
+
+            if (recv < 0) {
+                fprintf(stderr, "network_receive error\n");
+                break;
+            }
+
+            if (recv > 0) {
                 char *msg = network.buffer;
 
                 for (;;) {
@@ -311,6 +358,13 @@ static int kirc_run(kirc_t *ctx)
                                 "NOTICE %s :\001PING ACTION CLIENTINFO "
                                 "DCC PING TIME VERSION\001\r\n",
                                 protocol.nickname);
+                        }
+                        break;
+
+                    case PROTOCOL_EVENT_CTCP_DCC:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            dcc_request(&dcc, protocol.nickname,
+                                protocol.message);
                         }
                         break;
 
@@ -382,9 +436,11 @@ static int kirc_run(kirc_t *ctx)
             
         }
 
+        dcc_process(&dcc);
     }
 
     terminal_disable_raw(&terminal);
+    dcc_free(&dcc);
     network_free(&network);
 
     return 0;
@@ -399,12 +455,16 @@ int main(int argc, char *argv[])
     }
 
     if (kirc_args(&ctx, argc, argv) < 0) {
+        kirc_free(&ctx);
         return EXIT_FAILURE;
     }
 
     if (kirc_run(&ctx) < 0) {
+        kirc_free(&ctx);
         return EXIT_FAILURE;
     }
+
+    kirc_free(&ctx);
 
     return EXIT_SUCCESS;
 }

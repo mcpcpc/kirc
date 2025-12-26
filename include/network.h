@@ -11,6 +11,7 @@
 #include "kirc.h"
 #include "transport.h"
 #include "ansi.h"
+#include "helper.h"
 
 typedef struct {
     kirc_t *ctx;
