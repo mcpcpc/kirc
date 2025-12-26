@@ -13,7 +13,7 @@ static int sanitize_filename(char *filename)
         return -1;
     }
 
-    if ((filename[0] == '\0') || (filename[0] == '\0')) {
+    if ((filename[0] == '\0') || (filename[0] == '.')) {
         return -1;
     }
 
