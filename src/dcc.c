@@ -276,7 +276,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
 
     /* parse DCC SEND parameters: SEND filename ip port filesize */
     char params_copy[MESSAGE_MAX_LEN];
-    size_t siz = sizeof(params_copy) - 1;
+    size_t siz = sizeof(params_copy);
     safecpy(params_copy, params, siz);
 
     char *command = strtok(params_copy, " ");
@@ -301,7 +301,9 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
         if (end_quote != NULL) {
             size_t len = end_quote - filename_tok - 1;
             if (len >= NAME_MAX) {
-                len = NAME_MAX - 1;
+                len = NAME_MAX;
+            } else {
+                len = len + 1;
             }
             safecpy(filename, filename_tok + 1, len);
         } else {
@@ -309,7 +311,9 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
             size_t len = strlen(filename_tok + 1);
 
             if (len >= NAME_MAX) {
-                len = NAME_MAX - 1;
+                len = NAME_MAX;
+            } else {
+                len = len + 1;
             }
 
             safecpy(filename, filename_tok + 1, len);
@@ -329,7 +333,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
             }
         }
     } else {
-        siz = sizeof(filename) - 1;
+        siz = sizeof(filename);
         safecpy(filename, filename_tok, siz);
     }
 
@@ -350,10 +354,10 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     transfer->filesize = strtoull(filesize, NULL, 10);
     transfer->sent = 0;
     
-    siz = sizeof(transfer->filename) - 1;
+    siz = sizeof(transfer->filename);
     safecpy(transfer->filename, filename, siz);
     
-    siz = sizeof(transfer->sender) - 1;
+    siz = sizeof(transfer->sender);
     safecpy(transfer->sender, sender, siz);
 
     /* open file for writing */

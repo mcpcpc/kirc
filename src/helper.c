@@ -13,10 +13,10 @@ char * safecpy(char *s1, const char *s2, size_t n)
         return s1;
     }
     
-    char *out = strncpy(s1, s2, n);
-    s1[n] = '\0';
+    strncpy(s1, s2, n - 1);
+    s1[n - 1] = '\0';
  
-    return out;
+    return s1;
 }
 
 int secure_zero(void *ptr, size_t n)

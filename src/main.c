@@ -20,7 +20,7 @@ static void kirc_parse_channels(kirc_t *ctx,
     size_t siz = 0, idx = 0;
 
     for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHANNEL_LIMIT; tok = strtok(NULL, ",|")) {
-        siz = sizeof(ctx->channels[idx]) - 1;
+        siz = sizeof(ctx->channels[idx]);
         safecpy(ctx->channels[idx], tok, siz);
         idx++;
     }
@@ -37,7 +37,7 @@ static void kirc_parse_mechanism(kirc_t *ctx,
         ctx->mechanism = SASL_EXTERNAL;
     } else if (strcmp(mechanism, "PLAIN") == 0) {
         ctx->mechanism = SASL_PLAIN;
-        siz = sizeof(ctx->auth) - 1;
+        siz = sizeof(ctx->auth);
         safecpy(ctx->auth, token, siz);
     }
 }
@@ -48,10 +48,10 @@ static int kirc_init(kirc_t *ctx)
     
     size_t siz = 0;
 
-    siz = sizeof(ctx->server) - 1;
+    siz = sizeof(ctx->server);
     safecpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
     
-    siz = sizeof(ctx->port) - 1;
+    siz = sizeof(ctx->port);
     safecpy(ctx->port, KIRC_DEFAULT_PORT, siz);
 
     ctx->mechanism = SASL_NONE;
@@ -60,13 +60,13 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_SERVER");
     if (env && *env) {
-        siz = sizeof(ctx->server) - 1;
+        siz = sizeof(ctx->server);
         safecpy(ctx->server, env, siz);
     }
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
-        siz = sizeof(ctx->port) - 1;
+        siz = sizeof(ctx->port);
         safecpy(ctx->port, env, siz);
     }
 
@@ -77,19 +77,19 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_REALNAME");
     if (env && *env) {
-        siz = sizeof(ctx->realname) - 1;
+        siz = sizeof(ctx->realname);
         safecpy(ctx->realname, env, siz);
     }
 
     env = getenv("KIRC_USERNAME");
     if (env && *env) {
-        siz = sizeof(ctx->username) - 1;
+        siz = sizeof(ctx->username);
         safecpy(ctx->username, env, siz);
     }
 
     env = getenv("KIRC_PASSWORD");
     if (env && *env) {
-        siz = sizeof(ctx->password) - 1;
+        siz = sizeof(ctx->password);
         safecpy(ctx->password, env, siz);
     }
 
@@ -135,27 +135,27 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:")) > 0) {
         switch (opt) {
         case 's':  /* server */
-            siz = sizeof(ctx->server) - 1;
+            siz = sizeof(ctx->server);
             safecpy(ctx->server, optarg, siz);
             break;
 
         case 'p':  /* port */
-            siz = sizeof(ctx->port) - 1;
+            siz = sizeof(ctx->port);
             safecpy(ctx->port, optarg, siz);
             break;
 
         case 'r':  /* realname */
-            siz = sizeof(ctx->realname) - 1;
+            siz = sizeof(ctx->realname);
             safecpy(ctx->realname, optarg, siz);
             break;
 
         case 'u':  /* username */
-            siz = sizeof(ctx->username) - 1;
+            siz = sizeof(ctx->username);
             safecpy(ctx->username, optarg, siz);
             break;
 
         case 'k':  /* password */
-            siz = sizeof(ctx->password) - 1;
+            siz = sizeof(ctx->password);
             safecpy(ctx->password, optarg, siz);
             break;
 
@@ -187,7 +187,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
         return -1;
     }
 
-    size_t nickname_n = sizeof(ctx->nickname) - 1;
+    size_t nickname_n = sizeof(ctx->nickname);
     safecpy(ctx->nickname, argv[optind], nickname_n);
 
     return 0;
@@ -264,7 +264,7 @@ static int kirc_run(kirc_t *ctx)
             ctx->password);
     }
 
-    size_t siz = sizeof(ctx->target) - 1;
+    size_t siz = sizeof(ctx->target);
     safecpy(ctx->target, ctx->channels[0], siz);
 
     terminal_t terminal;
