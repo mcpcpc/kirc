@@ -105,15 +105,15 @@ static int kirc_free(kirc_t *ctx)
 {
     size_t siz = -1;
 
-    siz = sizeof(kirc->auth);
+    siz = sizeof(ctx->auth);
 
-    if (secure_zero(kirc->auth, siz) < 0) {
+    if (secure_zero(ctx->auth, siz) < 0) {
         return -1;
     }
 
-    siz = sizeof(kirc->password);
+    siz = sizeof(ctx->password);
 
-    if (secure_zero(kirc->password, siz) < 0) {
+    if (secure_zero(ctx->password, siz) < 0) {
         return -1;
     }
 
