@@ -323,53 +323,38 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
         filename[siz] = '\0';
     }
 
-    char *ip_str = strtok(NULL, " ");
-    char *port_str = strtok(NULL, " ");
-    char *filesize_str = strtok(NULL, " ");
+    char *server = strtok(NULL, " ");
+    char *port = strtok(NULL, " ");
+    char *filesize = strtok(NULL, " ");
 
-    if ((ip_str == NULL) || (port_str == NULL) || (filesize_str == NULL)) {
+    if ((server == NULL) || (port == NULL) || (filesize == NULL)) {
         printf("\r" DIM "error: invalid DCC SEND format" RESET "\r\n");
         return -1;
     }
-
-    unsigned long ip_numeric;
-    unsigned long port = strtoul(port_str, NULL, 10);
-    unsigned long long filesize = strtoull(filesize_str, NULL, 10);
 
     /* initialize transfer */
     dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
     transfer->type = DCC_TYPE_RECEIVE;
     transfer->state = DCC_STATE_CONNECTING;
-    transfer->filesize = filesize;
+    transfer->filesize = strtoull(filesize, NULL, 10);
     transfer->sent = 0;
-    strncpy(transfer->filename, filename, NAME_MAX - 1);
-    transfer->filename[NAME_MAX - 1] = '\0';
-    strncpy(transfer->sender, sender, MESSAGE_MAX_LEN - 1);
-    transfer->sender[MESSAGE_MAX_LEN - 1] = '\0';
+    
+    siz = sizeof(transfer->filename) - 1;
+    strncpy(transfer->filename, filename, siz);
+    transfer->filename[siz] = '\0';
+    
+    siz = sizeof(transfer->sender) - 1;
+    strncpy(transfer->sender, sender, siz);
+    transfer->sender[siz] = '\0';
 
     /* open file for writing */
     transfer->file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
     if (transfer->file_fd < 0) {
         printf("\r" DIM "error: cannot create file %s" RESET "\r\n",
             filename);
         transfer->state = DCC_STATE_IDLE;
         return -1;
-    }
-
-    /* convert IP address */
-    char ip_addr[16];
-    if (strchr(ip_str, '.') != NULL) {
-        /* dotted decimal format */
-        strncpy(ip_addr, ip_str, sizeof(ip_addr) - 1);
-        ip_addr[sizeof(ip_addr) - 1] = '\0';
-    } else {
-        /* numeric IP format (XDCC style) */
-        ip_numeric = strtoul(ip_str, NULL, 10);
-        snprintf(ip_addr, sizeof(ip_addr), "%lu.%lu.%lu.%lu",
-            (ip_numeric >> 24) & 0xFF,
-            (ip_numeric >> 16) & 0xFF,
-            (ip_numeric >> 8) & 0xFF,
-            ip_numeric & 0xFF);
     }
 
     /* create socket */
@@ -378,10 +363,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    char port_str[16];
-    snprintf(port_str, sizeof(port_str), "%lu", port);
-
-    int rc = getaddrinfo(ip_addr, port_str, &hints, &res);
+    int rc = getaddrinfo(server, port, &hints, &res);
     if (rc != 0) {
         printf("\r" DIM "error: getaddrinfo failed: %s" RESET "\r\n",
             gai_strerror(rc));
