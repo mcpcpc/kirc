@@ -7,6 +7,7 @@
 
 #include "dcc.h"
 #include "editor.h"
+#include "helper.h"
 #include "network.h"
 #include "protocol.h"
 #include "terminal.h"
@@ -50,8 +51,11 @@ static int kirc_init(kirc_t *ctx)
     size_t siz = 0;
 
     siz = sizeof(ctx->server) - 1;
+    /*
     strncpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
     ctx->server[siz] = '\0';
+    */
+    safecpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
     
     siz = sizeof(ctx->port) - 1;
     strncpy(ctx->port, KIRC_DEFAULT_PORT, siz);
