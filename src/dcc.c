@@ -7,6 +7,35 @@
 
 #include "dcc.h"
 
+static int sanitize_filename(char *filename)
+{
+    if (filename == NULL) {
+        return -1;
+    }
+
+    if ((filename[0] == '\0') || (filename[0] == '\0')) {
+        return -1;
+    }
+
+    if (strstr(filename, "..") != NULL) {
+        return -1;
+    }
+
+    if (strchr(filename, '/') != NULL) {
+        return -1;
+    }
+
+    if (strchr(filename, '\\') != NULL) {
+        return -1;
+    }
+
+    if (strlen(filename) >= NAME_MAX) {
+        return -1;
+    }
+
+    return 0:
+}
+
 int dcc_init(dcc_t *dcc, kirc_t *ctx)
 {
     if ((dcc == NULL) || (ctx == NULL)) {
@@ -335,6 +364,12 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     } else {
         siz = sizeof(filename);
         safecpy(filename, filename_tok, siz);
+    }
+
+    if (sanitize_filename(filename) < 0) {
+        printf("\r" CLEAR_LINE DIM "error: invalid or unsafe filename"
+            RESET "\r\n");
+        return -1;
     }
 
     char *server = strtok(NULL, " ");
