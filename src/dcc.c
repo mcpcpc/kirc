@@ -415,7 +415,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
 int dcc_cancel(dcc_t *dcc, int transfer_id)
 {
     if ((dcc == NULL) || (transfer_id < 0) ||
-        (transfer_id >= KIRC_DCC_TRANSFERS_MAX) {
+        (transfer_id >= KIRC_DCC_TRANSFERS_MAX)) {
         return -1;
     }
 
