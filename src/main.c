@@ -285,8 +285,29 @@ static int kirc_run(kirc_t *ctx)
     };
 
     for (;;) {
-        if (poll(fds, 2, -1) == -1) {
-            if (errno == EINTR) continue;
+        int rc = poll(fds, 2, -1);
+
+        if (rc == -1) {
+            if (errno == EINTR) {
+                continue;
+            }
+
+            fprintf(stderr, "poll error: %s\n",
+                strerror(errno));
+            break;
+        }
+
+        if (rc == 0) {
+            continue;
+        }
+
+        if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            fprintf(stderr, "stdin error or hangup\n");
+            break;
+        }
+
+        if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            fprintf(stderr, "network connection error or closed\n");
             break;
         }
 
