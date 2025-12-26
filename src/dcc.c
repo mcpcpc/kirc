@@ -406,7 +406,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     dcc->transfer_count++;
 
     printf("\r" DIM "dcc: receiving %s from %s (%llu bytes)" RESET "\r\n",
-        filename, sender, filesize);
+        transfer->filename, transfer->sender, transfer->filesize);
 
     return transfer_id;
 }
