@@ -5,6 +5,7 @@
  * License: MIT
  */
 
+#include "dcc.h"
 #include "editor.h"
 #include "network.h"
 #include "protocol.h"
@@ -208,6 +209,13 @@ static int kirc_run(kirc_t *ctx)
         return -1;
     }
 
+    dcc_t dcc;
+
+    if (dcc_init(&dcc, ctx) < 0) {
+        fprintf(stderr, "dcc_init failed\n");
+        return -1;
+    }
+
     if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
         return -1;
@@ -314,6 +322,13 @@ static int kirc_run(kirc_t *ctx)
                         }
                         break;
 
+                    case PROTOCOL_EVENT_CTCTP_DCC:
+                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
+                            dcc_request(&dcc, protocol.nickname,
+                                protocol.message);
+                        }
+                        break;
+
                     case PROTOCOL_EVENT_CTCP_PING:
                         if (strcmp(protocol.command, "PRIVMSG") == 0) {
                             if (protocol.message[0] != '\0') {
@@ -382,8 +397,10 @@ static int kirc_run(kirc_t *ctx)
             
         }
 
+        dcc_process(&dcc);
     }
 
+    dcc_free(&dcc);
     terminal_disable_raw(&terminal);
     network_free(&network);
 
