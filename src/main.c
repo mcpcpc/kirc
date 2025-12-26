@@ -28,7 +28,7 @@ static int is_valid_port(const char *value) {
     }
 
     if ((errno == ERANGE && (port == LONG_MAX || port == LONG_MIN)) || 
-        ((port > 65535) || (port < 0))) {
+        ((port > KIRC_PORT_RANGE_MAX) || (port < 0))) {
         return -1;
     }
 
@@ -88,6 +88,10 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
+        if (is_valid_port(env) < 0) {
+            fprintf(stderr, "invalid port number\n");
+            return -1;
+        }
         siz = sizeof(ctx->port);
         safecpy(ctx->port, env, siz);
     }
@@ -161,8 +165,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
 
         case 'p':  /* port */
             if (is_valid_port(optarg) < 0) {
-                fprintf(stderr, "invalid port number\n",
-                    optarg);
+                fprintf(stderr, "invalid port number\n");
                 return -1;
             }
 
