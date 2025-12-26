@@ -13,7 +13,7 @@
 #include "terminal.h"
 #include "transport.h"
 
-static int is_valid_port(const char *value) {
+static int kirc_validate_port(const char *value) {
     if ((value == NULL) || (*value == '\0')) {
         return -1;
     }
@@ -88,7 +88,7 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
-        if (is_valid_port(env) < 0) {
+        if (kirc_validate_port(env) < 0) {
             fprintf(stderr, "invalid port number\n");
             return -1;
         }
@@ -164,7 +164,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             break;
 
         case 'p':  /* port */
-            if (is_valid_port(optarg) < 0) {
+            if (kirc_validate_port(optarg) < 0) {
                 fprintf(stderr, "invalid port number\n");
                 return -1;
             }
