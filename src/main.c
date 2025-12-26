@@ -220,11 +220,14 @@ static int kirc_run(kirc_t *ctx)
 
     if (dcc_init(&dcc, ctx) < 0) {
         fprintf(stderr, "dcc_init failed\n");
+        network_free(&network);
         return -1;
     }
 
     if (network_connect(&network) < 0) {
         fprintf(stderr, "network_connect failed\n");
+        dcc_free(&dcc);
+        network_free(&network);
         return -1;
     }
 
@@ -268,6 +271,7 @@ static int kirc_run(kirc_t *ctx)
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
+        dcc_free(&dcc);
         network_free(&network);
         return -1;
     }
@@ -275,6 +279,7 @@ static int kirc_run(kirc_t *ctx)
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw failed\n");
         terminal_disable_raw(&terminal);
+        dcc_free(&dcc);
         network_free(&network);
         return -1;
     }
@@ -435,7 +440,6 @@ static int kirc_run(kirc_t *ctx)
     }
 
     terminal_disable_raw(&terminal);
-
     dcc_free(&dcc);
     network_free(&network);
 
