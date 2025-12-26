@@ -379,6 +379,7 @@ int protocol_handle(protocol_t *protocol)
         break;
 
     case PROTOCOL_EVENT_KICK:
+    case PROTOCOL_EVENT_EXT_AUTHENTICATE:
     case PROTOCOL_EVENT_EXT_CAP:
     case PROTOCOL_EVENT_MODE:
     case PROTOCOL_EVENT_TOPIC:
