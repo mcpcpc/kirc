@@ -9,9 +9,11 @@
 
 char * safecpy(char *s1, const char *s2, size_t n)
 {
-    char *out;
+    if (n == 0) {
+        return s1;
+    }
     
-    out = strncpy(s1, s2, n);
+    char *out = strncpy(s1, s2, n);
     s1[n] = '\0';
  
     return out;
