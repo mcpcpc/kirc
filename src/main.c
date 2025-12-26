@@ -103,9 +103,7 @@ static int kirc_init(kirc_t *ctx)
 
 static int kirc_free(kirc_t *ctx)
 {
-    size_t siz = -1;
-
-    siz = sizeof(ctx->auth);
+    size_t siz = sizeof(ctx->auth);
 
     if (secure_zero(ctx->auth, siz) < 0) {
         fprintf(stderr, "auth token value not safely cleared\n");
@@ -432,8 +430,13 @@ static int kirc_run(kirc_t *ctx)
 
                 size_t remain = network.buffer
                     + network.len - msg;
-                memmove(network.buffer, msg, remain);
-                network.len = remain;
+
+                if ((remain > 0) && (remain < sizeof(network.buffer))) {
+                    memmove(network.buffer, msg, remain);
+                    network.len = remain;
+                } else {
+                    network.len = 0;
+                }
 
                 editor_handle(&editor);
             }
