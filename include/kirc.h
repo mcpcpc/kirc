@@ -55,9 +55,9 @@
 #define KIRC_TIMESTAMP_SIZE    6
 #define KIRC_TIMESTAMP_FORMAT  "%H:%M"
 
-#define KIRC_DEFAULT_COLUMNS  80
-#define KIRC_DEFAULT_PORT     "6667"
-#define KIRC_DEFAULT_SERVER   "irc.libera.chat"
+#define KIRC_DEFAULT_COLUMNS   80
+#define KIRC_DEFAULT_PORT      "6667"
+#define KIRC_DEFAULT_SERVER    "irc.libera.chat"
 
 typedef enum {
     SASL_NONE = 0,
