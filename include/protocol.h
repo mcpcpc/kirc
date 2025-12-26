@@ -23,6 +23,7 @@ typedef enum {
     PROTOCOL_EVENT_EXT_CAP,
     PROTOCOL_EVENT_EXT_AUTHENTICATE,
     PROTOCOL_EVENT_JOIN,
+    PROTOCOL_EVENT_KICK,
     PROTOCOL_EVENT_MODE,
     PROTOCOL_EVENT_NICK,
     PROTOCOL_EVENT_NOTICE,
@@ -198,6 +199,7 @@ typedef struct {
 static const protocol_event_map_t map[] = {
     { "CAP",     PROTOCOL_EVENT_EXT_CAP },
     { "JOIN",    PROTOCOL_EVENT_JOIN },
+    { "KICK",    PROTOCOL_EVENT_KICK },
     { "MODE",    PROTOCOL_EVENT_MODE },
     { "NICK",    PROTOCOL_EVENT_NICK },
     { "NOTICE",  PROTOCOL_EVENT_NOTICE },
