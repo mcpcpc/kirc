@@ -54,7 +54,8 @@ int dcc_free(dcc_t *dcc)
 
 int dcc_send(dcc_t *dcc, int transfer_id)
 {
-    if ((dcc == NULL) || (transfer_id < 0)) {
+    if ((dcc == NULL) || (transfer_id < 0) ||
+        (transfer_id >= KIRC_DCC_TRANSFERS_MAX)) {
         return -1;
     }
 
@@ -169,7 +170,7 @@ int dcc_process(dcc_t *dcc)
         if ((transfer->type == DCC_TYPE_RECEIVE) &&
             (transfer->state == DCC_STATE_TRANSFERRING)) {
 
-            if (dcc->sock_fd[i].revents && POLLIN) {
+            if (dcc->sock_fd[i].revents & POLLIN) {
                 char buffer[KIRC_DCC_BUFFER_SIZE];
                 ssize_t nread = read(dcc->sock_fd[i].fd, buffer,
                     sizeof(buffer));
@@ -223,7 +224,7 @@ int dcc_process(dcc_t *dcc)
             }
         }
 
-        /* cleanup completed or erro transfers */
+        /* cleanup completed or error transfers */
         if ((transfer->state == DCC_STATE_COMPLETE) ||
             (transfer->state == DCC_STATE_ERROR)) {
             if (dcc->sock_fd[i].fd >= 0) {
@@ -413,7 +414,8 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
 
 int dcc_cancel(dcc_t *dcc, int transfer_id)
 {
-    if ((dcc == NULL) || (transfer_id < 0)) {
+    if ((dcc == NULL) || (transfer_id < 0) ||
+        (transfer_id >= KIRC_DCC_TRANSFERS_MAX) {
         return -1;
     }
 
