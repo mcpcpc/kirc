@@ -13,6 +13,28 @@
 #include "terminal.h"
 #include "transport.h"
 
+static int is_valid_port(const char *value) {
+    if ((value == NULL) || (*value == '\0')) {
+        return -1;
+    }
+
+    errno = 0;
+    char *endptr;
+
+    long port = strtol(value, &endptr, 10);
+
+    if ((endptr == value) || (*endptr != '\0')) {
+        return -1;
+    }
+
+    if ((errno == ERANGE && (port == LONG_MAX || port == LONG_MIN)) || 
+        ((port > 65535) || (port < 0))) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static void kirc_parse_channels(kirc_t *ctx,
         char *value)
 {
@@ -138,6 +160,12 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             break;
 
         case 'p':  /* port */
+            if (is_valid_port(optarg) < 0) {
+                fprintf(stderr, "invalid port number\n",
+                    optarg);
+                return -1;
+            }
+
             siz = sizeof(ctx->port);
             safecpy(ctx->port, optarg, siz);
             break;
