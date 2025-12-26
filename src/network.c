@@ -179,15 +179,14 @@ static int network_authenticate_plain(network_t *network)
     }
     
     int len = strlen(network->ctx->auth);
-    int chunk_size = AUTH_CHUNK_SIZE;
 
-    for (int offset = 0; offset < len; offset += chunk_size) {
-        char chunk[chunk_size + 1];
-        safecpy(chunk, network->ctx->auth + offset, chunk_size);
+    for (int offset = 0; offset < len; offset += AUTH_CHUNK_SIZE) {
+        char chunk[AUTH_CHUNK_SIZE + 1];
+        safecpy(chunk, network->ctx->auth + offset, sizeof(chunk));
         network_send(network, "AUTHENTICATE %s\r\n", chunk);
     }
     
-    if (len % chunk_size == 0) {
+    if ((len > 0) && (len % AUTH_CHUNK_SIZE == 0)) {
         network_send(network, "AUTHENTICATE +\r\n");
     }
 
