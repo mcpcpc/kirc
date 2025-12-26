@@ -326,7 +326,14 @@ static int kirc_run(kirc_t *ctx)
         }
 
         if (fds[1].revents & POLLIN) {
-            if (network_receive(&network) > 0) {
+            int recv = network_receive(&network);
+
+            if (recv < 0) {
+                fprintf(stderr, "network_receive error\n");
+                break;
+            }
+
+            if (recv > 0) {
                 char *msg = network.buffer;
 
                 for (;;) {
