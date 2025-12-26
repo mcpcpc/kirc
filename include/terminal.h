@@ -9,6 +9,7 @@
 #define __KIRC_TERMINAL_H
 
 #include "kirc.h"
+#include "ansi.h"
 
 typedef struct {
     kirc_t *ctx;

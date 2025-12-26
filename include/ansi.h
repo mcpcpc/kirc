@@ -59,5 +59,6 @@
 #define BOLD_CYAN    "\x1b[1;36m"
 #define CLEAR_LINE   "\x1b[0K"
 #define CURSOR_HOME  "\x1b[H"
+#define CURSOR_POS   "\x1b[6n"
 
 #endif  // __KIRC_ANSI_H
