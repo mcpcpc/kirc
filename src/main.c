@@ -297,6 +297,7 @@ static int kirc_run(kirc_t *ctx)
                 continue;
             }
 
+            terminal_disable_raw(&terminal);
             fprintf(stderr, "poll error: %s\n",
                 strerror(errno));
             break;
@@ -307,11 +308,13 @@ static int kirc_run(kirc_t *ctx)
         }
 
         if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            terminal_disable_raw(&terminal);
             fprintf(stderr, "stdin error or hangup\n");
             break;
         }
 
         if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            terminal_disable_raw(&terminal);
             fprintf(stderr, "network connection error or closed\n");
             break;
         }
@@ -334,6 +337,7 @@ static int kirc_run(kirc_t *ctx)
             int recv = network_receive(&network);
 
             if (recv < 0) {
+                terminal_disable_raw(&terminal);
                 fprintf(stderr, "network_receive error\n");
                 break;
             }
