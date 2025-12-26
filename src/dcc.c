@@ -33,7 +33,7 @@ static int sanitize_filename(char *filename)
         return -1;
     }
 
-    return 0:
+    return 0;
 }
 
 int dcc_init(dcc_t *dcc, kirc_t *ctx)
