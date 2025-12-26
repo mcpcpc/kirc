@@ -15,7 +15,6 @@ int dcc_init(dcc_t *dcc, kirc_t *ctx)
 
     memset(dcc, 0, sizeof(*dcc));
     dcc->ctx = ctx;
-    dcc->transfer_count = 0;
 
     int limit = KIRC_DCC_TRANSFERS_MAX;
 

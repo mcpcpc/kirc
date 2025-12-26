@@ -235,7 +235,6 @@ int network_init(network_t *network,
 
     network->ctx = ctx;
     network->transport = transport;
-    network->len = 0;
 
     return 0;
 }
