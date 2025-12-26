@@ -385,8 +385,8 @@ static int kirc_run(kirc_t *ctx)
         dcc_process(&dcc);
     }
 
-    dcc_free(&dcc);
     terminal_disable_raw(&terminal);
+    dcc_free(&dcc);
     network_free(&network);
 
     return 0;
