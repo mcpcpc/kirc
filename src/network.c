@@ -125,7 +125,7 @@ int network_command_handler(network_t *network, char *msg)
                     printf("\rto " BOLD "%s" RESET ": * %s" CLEAR_LINE "\r\n",
                         network->ctx->target, text);
                     */
-                    printf("\rto " BOLD "%s" RESET ": \u007 %s" CLEAR_LINE "\r\n",
+                    printf("\rto " BOLD "%s" RESET ": \u2022 %s" CLEAR_LINE "\r\n",
                         network->ctx->target, text);
                 } else {
                     const char *err = "error: no channel set";
