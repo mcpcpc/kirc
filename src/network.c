@@ -199,7 +199,8 @@ int network_send_credentials(network_t *network)
         network_send(network, "CAP REQ :sasl\r\n");
     }
 
-    network_send(network, "NICK %s\r\n", ctx->nickname);
+    network_send(network, "NICK %s\r\n",
+        network->ctx->nickname);
     
     char *username, *realname;
     
