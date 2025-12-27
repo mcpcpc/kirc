@@ -24,6 +24,7 @@ int network_send(network_t *network, const char *fmt, ...);
 int network_receive(network_t *network);
 int network_connect(network_t *network);
 int network_command_handler(network_t *network, char *msg);
+int network_send_credentials(network_t *network);
 int network_authenticate(network_t *network);
 int network_join_channels(network_t *network);
 

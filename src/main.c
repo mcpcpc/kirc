@@ -283,37 +283,11 @@ static int kirc_run(kirc_context_t *ctx)
         return -1;
     }
 
-    if (ctx->mechanism != SASL_NONE) {
-        network_send(&network, "CAP REQ :sasl\r\n");
-    }
-
-    network_send(&network, "NICK %s\r\n", ctx->nickname);
-    
-    char *username, *realname;
-    
-    if (ctx->username[0] != '\0') {
-        username = ctx->username;
-    } else {
-        username = ctx->nickname;
-    }
-
-    if (ctx->realname[0] != '\0') {
-        realname = ctx->realname;
-    } else {
-        realname = ctx->nickname;
-    }
-
-    network_send(&network, "USER %s - - :%s\r\n",
-        username, realname);
-
-    if (ctx->mechanism != SASL_NONE) {
-        network_send(&network, "AUTHENTICATE %s\r\n",
-            (ctx->mechanism == SASL_EXTERNAL) ? "EXTERNAL" : "PLAIN");
-    }
-
-    if (ctx->password[0] != '\0') {
-        network_send(&network, "PASS %s\r\n",
-            ctx->password);
+    if (network_send_credentials(&network) < 0) {
+        fprintf(stderr, "network_send_credentials failed\n");
+        dcc_free(&dcc);
+        network_free(&network);
+        return -1;
     }
 
     size_t siz = sizeof(ctx->target);

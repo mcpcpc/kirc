@@ -193,6 +193,50 @@ static int network_authenticate_plain(network_t *network)
     return 0;
 }
 
+int network_send_credentials(network_t *network)
+{
+    if (network->ctx->mechanism != SASL_NONE) {
+        network_send(network, "CAP REQ :sasl\r\n");
+    }
+
+    network_send(network, "NICK %s\r\n", ctx->nickname);
+    
+    char *username, *realname;
+    
+    if (network->ctx->username[0] != '\0') {
+        username = network->ctx->username;
+    } else {
+        username = network->ctx->nickname;
+    }
+
+    if (network->ctx->realname[0] != '\0') {
+        realname = network->ctx->realname;
+    } else {
+        realname = network->ctx->nickname;
+    }
+
+    network_send(network, "USER %s - - :%s\r\n",
+        username, realname);
+
+    if (network->ctx->mechanism != SASL_NONE) {
+        if (network->ctx->mechanism == SASL_EXTERNAL) {
+            network_send(network, "AUTHENTICATE EXTERNAL\r\n");
+        } else if (network->ctx->mechanism == SASL_PLAIN) {
+            network_send(network, "AUTHENTICATE PLAIN\r\n");
+        } else {
+            fprintf(stderr, "unrecognized SASL mechanism\n");
+            return -1;
+        }
+    }
+
+    if (network->ctx->password[0] != '\0') {
+        network_send(network, "PASS %s\r\n",
+            network->ctx->password);
+    }
+
+    return 0;
+}
+
 int network_authenticate(network_t *network)
 {
     switch (network->ctx->mechanism) {
