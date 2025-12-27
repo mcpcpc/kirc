@@ -149,7 +149,7 @@ static int kirc_init(kirc_context_t *ctx)
     return 0;
 }
 
-static int kirc_free(kirc_t *ctx)
+static int kirc_free(kirc_context_t *ctx)
 {
     size_t siz = sizeof(ctx->auth);
 
