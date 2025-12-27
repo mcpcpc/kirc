@@ -328,7 +328,7 @@ char *editor_last_entry(editor_t *editor)
     return editor->history[last];
 }
 
-int editor_init(editor_t *editor, kirc_t *ctx)
+int editor_init(editor_t *editor, kirc_context_t *ctx)
 {
     memset(editor, 0, sizeof(*editor));
     

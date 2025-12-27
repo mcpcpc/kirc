@@ -226,7 +226,7 @@ int network_join_channels(network_t *network)
 }
 
 int network_init(network_t *network, 
-        transport_t *transport, kirc_t *ctx)
+        transport_t *transport, kirc_context_t *ctx)
 {
     memset(network, 0, sizeof(*network));
 

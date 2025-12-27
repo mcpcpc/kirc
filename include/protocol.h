@@ -374,7 +374,7 @@ static const protocol_event_table_t event_table[] = {
 };
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     protocol_event_t event;
     char raw[MESSAGE_MAX_LEN];
     char channel[CHANNEL_MAX_LEN];
@@ -389,7 +389,8 @@ typedef struct {
     void (*handler)(protocol_t *protocol);
 } protocol_dispatch_t;
 
-int protocol_init(protocol_t *protocol, kirc_t *ctx);
+int protocol_init(protocol_t *protocol,
+        kirc_context_t *ctx);
 int protocol_parse(protocol_t *protocol, char *line);
 int protocol_handle(protocol_t *protocol);
 

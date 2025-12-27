@@ -433,7 +433,8 @@ static const protocol_dispatch_t dispatch_table[] = {
     { PROTOCOL_EVENT_NONE,                      NULL } 
 };
 
-int protocol_init(protocol_t *protocol, kirc_t *ctx)
+int protocol_init(protocol_t *protocol,
+        kirc_context_t *ctx)
 {
     memset(protocol, 0, sizeof(*protocol));
 

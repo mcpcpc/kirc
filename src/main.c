@@ -70,7 +70,7 @@ static void kirc_parse_channels(kirc_t *ctx,
     }
 }
 
-static void kirc_parse_mechanism(kirc_t *ctx,
+static void kirc_parse_mechanism(kirc_context_t *ctx,
         char *value)
 {
     char *mechanism = strtok(value, ":");
@@ -86,7 +86,7 @@ static void kirc_parse_mechanism(kirc_t *ctx,
     }
 }
 
-static int kirc_init(kirc_t *ctx)
+static int kirc_init(kirc_context_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
     
@@ -168,7 +168,8 @@ static int kirc_free(kirc_t *ctx)
     return 0;
 }
 
-static int kirc_args(kirc_t *ctx, int argc, char *argv[])
+static int kirc_args(kirc_context_t *ctx, int argc,
+        char *argv[])
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
@@ -244,7 +245,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     return 0;
 }
 
-static int kirc_run(kirc_t *ctx)
+static int kirc_run(kirc_context_t *ctx)
 {
     editor_t editor;
 
@@ -510,7 +511,7 @@ static int kirc_run(kirc_t *ctx)
 
 int main(int argc, char *argv[])
 {
-    kirc_t ctx;
+    kirc_context_t ctx;
 
     if (kirc_init(&ctx) < 0) {
         return EXIT_FAILURE;

@@ -36,7 +36,7 @@ static int sanitize_filename(char *filename)
     return 0;
 }
 
-int dcc_init(dcc_t *dcc, kirc_t *ctx)
+int dcc_init(dcc_t *dcc, kirc_context_t *ctx)
 {
     if ((dcc == NULL) || (ctx == NULL)) {
         return -1;

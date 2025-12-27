@@ -77,6 +77,6 @@ typedef struct {
     char target[KIRC_CHANNEL_LIMIT];
     char auth[MESSAGE_MAX_LEN];
     sasl_mechanism_t mechanism;
-} kirc_t;
+} kirc_context_t;
 
 #endif  // __KIRC_H

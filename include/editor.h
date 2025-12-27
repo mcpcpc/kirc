@@ -19,7 +19,7 @@ typedef enum {
 } editor_event_t;
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     editor_event_t event;
     char scratch[MESSAGE_MAX_LEN];
     char history[KIRC_HISTORY_SIZE][MESSAGE_MAX_LEN];
@@ -30,7 +30,7 @@ typedef struct {
 } editor_t;
 
 char *editor_last_entry(editor_t *editor);
-int editor_init(editor_t *editor, kirc_t *ctx);
+int editor_init(editor_t *editor, kirc_context_t *ctx);
 int editor_process_key(editor_t *editor);
 int editor_handle(editor_t *editor);
 
