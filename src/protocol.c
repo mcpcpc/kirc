@@ -120,7 +120,7 @@ static void protocol_ctcp_action(protocol_t *protocol)
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s * %s %s" RESET "\r\n",
+    printf("\r" CLEAR_LINE DIM "%s \u2022 %s %s" RESET "\r\n",
         hhmm, protocol->nickname, protocol->message);
 }
 
