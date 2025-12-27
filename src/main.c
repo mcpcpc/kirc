@@ -13,7 +13,7 @@
 #include "terminal.h"
 #include "transport.h"
 
-static int kirc_validate_port(const char *value) {
+static int validate_port(const char *value) {
     if ((value == NULL) || (*value == '\0')) {
         return -1;
     }
@@ -33,6 +33,28 @@ static int kirc_validate_port(const char *value) {
     }
 
     return 0;
+}
+
+static char * find_message_end(const char *buffer,
+        size_t len)
+{
+    for (size_t i = 0; i + 1 < len; ++i) {
+        if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
+            int ctcp_count = 0;
+
+            for (size_t j = 0; j < i; ++j) {
+                if (buffer[j] == '\001') {
+                    ctcp_count++;
+                }
+            }
+
+            if (ctcp_count % 2 == 0) {
+                return (char *)(buffer + i);
+            }
+        }
+    }
+
+    return NULL;
 }
 
 static void kirc_parse_channels(kirc_t *ctx,
@@ -88,7 +110,7 @@ static int kirc_init(kirc_t *ctx)
 
     env = getenv("KIRC_PORT");
     if (env && *env) {
-        if (kirc_validate_port(env) < 0) {
+        if (validate_port(env) < 0) {
             fprintf(stderr, "invalid port number\n");
             return -1;
         }
@@ -164,7 +186,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
             break;
 
         case 'p':  /* port */
-            if (kirc_validate_port(optarg) < 0) {
+            if (validate_port(optarg) < 0) {
                 fprintf(stderr, "invalid port number\n");
                 return -1;
             }
@@ -373,10 +395,11 @@ static int kirc_run(kirc_t *ctx)
 
             if (recv > 0) {
                 char *msg = network.buffer;
+                size_t remaining = network.len;
 
                 for (;;) {
-                    char *eol = strstr(msg, "\r\n");
-                    if (!eol) break; 
+                    char *eol = find_message_end(msg, remaining);
+                    if (!eol) break; /* no complete message found */
 
                     *eol = '\0';
 
@@ -457,14 +480,15 @@ static int kirc_run(kirc_t *ctx)
                     protocol_handle(&protocol);
 
                     msg = eol + 2;
+                    remaining = network.buffer + network.len - msg;
                 }
 
-                size_t remain = network.buffer
-                    + network.len - msg;
-
-                if ((remain > 0) && (remain < sizeof(network.buffer))) {
-                    memmove(network.buffer, msg, remain);
-                    network.len = remain;
+                if (remaining > 0) {
+                    if ((remaining < sizeof(network.buffer)) &&
+                        (msg > network.buffer)) {
+                        memmove(network.buffer, msg, remaining);
+                    }
+                    network.len = remaining;
                 } else {
                     network.len = 0;
                 }
