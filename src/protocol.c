@@ -528,5 +528,7 @@ int protocol_handle(protocol_t *protocol)
         }
     }
 
+    protocol_raw(protocol);
+
     return -1;
 }
