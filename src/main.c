@@ -57,7 +57,7 @@ static char * find_message_end(const char *buffer,
     return NULL;
 }
 
-static void kirc_parse_channels(kirc_t *ctx,
+static void kirc_parse_channels(kirc_context_t *ctx,
         char *value)
 {
     char *tok = NULL;
