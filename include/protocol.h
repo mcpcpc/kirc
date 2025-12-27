@@ -386,7 +386,7 @@ typedef struct {
 
 typedef struct {
     protocol_event_t event;
-    void (*func)(protocol_t *protocol);
+    void (*handler)(protocol_t *protocol);
 } protocol_dispatch_t;
 
 void protocol_ctcp_action(protocol_t *protocol);
