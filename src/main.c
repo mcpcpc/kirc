@@ -49,7 +49,7 @@ static char * find_message_end(const char *buffer,
             }
 
             if (ctcp_count % 2 == 0) {
-                return (char *)(buffer + 1);
+                return (char *)(buffer + i);
             }
         }
     }
