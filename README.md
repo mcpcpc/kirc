@@ -96,6 +96,31 @@ Control keys are mapped to familiar text-editing bindings:
     CTRL+U               delete entire line
     CTRL+C               force quit kirc
 
+
+DCC File Transfers
+------------------
+
+kirc supports Direct Client-to-Client file transfers, including
+XDCC file requests commonly used on IRC file servers.
+
+When another user sends you a file via DCC SEND, kirc will
+automatically detect the incoming file transfer request and begin
+downloading the file the current working directory. The file
+transfer will display:
+
+    dcc: receiving <filename> from <sender> (<size> bytes)
+
+Transfer progress and completion messages will appear as the file
+downloads. To request a file from an XDCC bot, use the standard
+XDCC request format:
+
+    /ctcp <botname> XDCC SEND #<packet_number>
+
+The bot will initiate a DCC SEND transfer, which kirc will
+automatically handle. Note that kirc supports up to 16
+simultaneous DCC transfers. Files are saved to the current working
+directory with their original filenames. 
+
 Configuration
 -------------
 

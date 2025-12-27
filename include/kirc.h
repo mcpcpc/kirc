@@ -44,12 +44,13 @@
 
 #define KIRC_VERSION_MAJOR     "1"
 #define KIRC_VERSION_MINOR     "0"
-#define KIRC_VERSION_PATCH     "6"
+#define KIRC_VERSION_PATCH     "7"
 
 #define KIRC_CHANNEL_LIMIT     256
 #define KIRC_DCC_BUFFER_SIZE   8192
 #define KIRC_DCC_TRANSFERS_MAX 16
 #define KIRC_HISTORY_SIZE      64
+#define KIRC_PORT_RANGE_MAX    65535
 #define KIRC_TAB_WIDTH         4
 #define KIRC_TIMEOUT_MS        5000
 #define KIRC_TIMESTAMP_SIZE    6

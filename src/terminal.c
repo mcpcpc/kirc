@@ -14,7 +14,7 @@ static int terminal_get_cursor_column(int in_fd, int out_fd)
     int row = 0, col = 0;
 
     /* Request cursor position */
-    if (write(out_fd, "\x1b[6n", 4) != 4) {
+    if (write(out_fd, CURSOR_POS, 4) != 4) {
         return -1;
     }
 

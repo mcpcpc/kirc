@@ -188,10 +188,10 @@ static int protocol_ctcp_parse(protocol_t *protocol)
         if (ctcp_len > 0) {
             size_t copy_n;
 
-            if (ctcp_len < sizeof(ctcp) - 1) {
-                copy_n = ctcp_len;
+            if (ctcp_len < sizeof(ctcp)) {
+                copy_n = ctcp_len + 1;
             } else {
-                copy_n = sizeof(ctcp) - 1;
+                copy_n = sizeof(ctcp);
             }
 
             safecpy(ctcp, protocol->message + 1, copy_n); 
@@ -203,7 +203,7 @@ static int protocol_ctcp_parse(protocol_t *protocol)
                 if (strcmp(command, "ACTION") == 0) {
                     protocol->event = PROTOCOL_EVENT_CTCP_ACTION;
                     if (args != NULL) {
-                        siz = sizeof(protocol->message) - 1;
+                        siz = sizeof(protocol->message);
                         safecpy(protocol->message, args, siz);
                     } else {
                         protocol->message[0] = '\0';
@@ -211,7 +211,7 @@ static int protocol_ctcp_parse(protocol_t *protocol)
                 } else if (strcmp(command, "VERSION") == 0) {
                     protocol->event = PROTOCOL_EVENT_CTCP_VERSION;
                     if (args != NULL) {
-                        siz = sizeof(protocol->params) - 1;
+                        siz = sizeof(protocol->params);
                         safecpy(protocol->params, args, siz);
                     } else {
                         protocol->params[0] = '\0';
@@ -219,7 +219,7 @@ static int protocol_ctcp_parse(protocol_t *protocol)
                 } else if (strcmp(command, "PING") == 0) {
                     protocol->event = PROTOCOL_EVENT_CTCP_PING;
                     if (args != NULL) {
-                        siz = sizeof(protocol->message) - 1;
+                        siz = sizeof(protocol->message);
                         safecpy(protocol->message, args, siz);
                     } else {
                         protocol->message[0] = '\0';
@@ -231,7 +231,7 @@ static int protocol_ctcp_parse(protocol_t *protocol)
                 } else if (strcmp(command, "DCC") == 0) {
                     protocol->event = PROTOCOL_EVENT_CTCP_DCC;
                     if (args != NULL) {
-                        siz = sizeof(protocol->message) - 1;
+                        siz = sizeof(protocol->message);
                         safecpy(protocol->message, args, siz);
                     } else {
                         protocol->message[0] = '\0';
@@ -259,12 +259,12 @@ int protocol_init(protocol_t *protocol, kirc_t *ctx)
 int protocol_parse(protocol_t *protocol, char *line)
 {
 
-    size_t raw_n = sizeof(protocol->raw) - 1;
+    size_t raw_n = sizeof(protocol->raw);
     safecpy(protocol->raw, line, raw_n);
 
     if (strncmp(line, "PING", 4) == 0) {
         protocol->event = PROTOCOL_EVENT_PING;
-        size_t message_n = sizeof(protocol->message) - 1;
+        size_t message_n = sizeof(protocol->message);
         safecpy(protocol->message, line + 6, message_n);
         return 0;
     }
@@ -276,7 +276,7 @@ int protocol_parse(protocol_t *protocol, char *line)
 
     if (strncmp(line, "ERROR", 5) == 0) {
         protocol->event = PROTOCOL_EVENT_ERROR;
-        size_t message_n = sizeof(protocol->message) - 1;
+        size_t message_n = sizeof(protocol->message);
         safecpy(protocol->message, line + 7, message_n);
         return 0;
     }
@@ -288,35 +288,35 @@ int protocol_parse(protocol_t *protocol, char *line)
     char *message = strtok(NULL, "\r");
 
     if (message != NULL) {
-        size_t message_n = sizeof(protocol->message) - 1;
+        size_t message_n = sizeof(protocol->message);
         safecpy(protocol->message, message, message_n);
     }
 
     char *nickname = strtok(prefix, "!");
 
     if (nickname != NULL) {
-        size_t nickname_n = sizeof(protocol->nickname) - 1;
+        size_t nickname_n = sizeof(protocol->nickname);
         safecpy(protocol->nickname, nickname, nickname_n);
     }
 
     char *command = strtok(suffix, "#& ");
 
     if (command != NULL) {
-        size_t command_n = sizeof(protocol->command) - 1;
+        size_t command_n = sizeof(protocol->command);
         safecpy(protocol->command, command, command_n);
     }
 
     char *channel = strtok(NULL, " \r");
 
     if (channel != NULL) {
-        size_t channel_n = sizeof(protocol->channel) - 1;
+        size_t channel_n = sizeof(protocol->channel);
         safecpy(protocol->channel, channel, channel_n);
     }
 
     char *params = strtok(NULL, ":\r");
 
     if (params != NULL) {
-        size_t params_n = sizeof(protocol->params) - 1;
+        size_t params_n = sizeof(protocol->params);
         safecpy(protocol->params, params, params_n);
     }
 
@@ -527,6 +527,7 @@ int protocol_handle(protocol_t *protocol)
     case PROTOCOL_EVENT_491_ERR_NOOPERHOST:
     case PROTOCOL_EVENT_501_ERR_UMODEUNKNOWNFLAG:
     case PROTOCOL_EVENT_502_ERR_USERSDONTMATCH:
+    case PROTOCOL_EVENT_524_ERR_HELPNOTFOUND:
     case PROTOCOL_EVENT_902_ERR_NICKLOCKED:
     case PROTOCOL_EVENT_904_ERR_SASLFAIL:
     case PROTOCOL_EVENT_905_ERR_SASLTOOLONG:
