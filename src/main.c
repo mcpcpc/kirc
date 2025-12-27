@@ -395,7 +395,7 @@ static int kirc_run(kirc_t *ctx)
 
             if (recv > 0) {
                 char *msg = network.buffer;
-                size_t remaining = network.len);
+                size_t remaining = network.len;
 
                 for (;;) {
                     char *eol = find_message_end(msg, remaining);
