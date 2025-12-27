@@ -12,7 +12,7 @@
 #include "ansi.h"
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     struct termios original;
     int raw_mode_enabled;
 } terminal_t;
