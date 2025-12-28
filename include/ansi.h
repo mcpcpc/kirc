@@ -44,6 +44,7 @@
 #define RESET        "\x1b[0m"
 #define BOLD         "\x1b[1m"
 #define DIM          "\x1b[2m"
+#define ITALIC       "\x1b[3m"
 #define REVERSE      "\x1b[7m"
 #define RED          "\x1b[31m"
 #define GREEN        "\x1b[32m"
