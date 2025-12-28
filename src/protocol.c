@@ -447,8 +447,9 @@ int protocol_init(protocol_t *protocol,
 int protocol_parse(protocol_t *protocol, char *line)
 {
 
-    size_t raw_n = sizeof(protocol->raw);
-    safecpy(protocol->raw, line, raw_n);
+    char line_copy[MESSAGE_MAX_LEN];
+    safecpy(line_copy, line, sizeof(line_copy));
+    safecpy(protocol->raw, line, sizeof(protocol->raw));
 
     if (strncmp(line, "PING", 4) == 0) {
         protocol->event = PROTOCOL_EVENT_PING;
@@ -469,7 +470,7 @@ int protocol_parse(protocol_t *protocol, char *line)
         return 0;
     }
 
-    char *token = strtok(line, " ");
+    char *token = strtok(line_copy, " ");
 
     if (token == NULL) {
         return -1;
