@@ -14,6 +14,13 @@ int config_validate_port(const char *value)
         return -1;
     }
 
+    /* Check for invalid chars before conversion */
+    for (const char *p = value; *p != '\0'; ++p) {
+        if ((*p < '0') || (*p > '9')) {
+            return -1;
+        }
+    }
+
     errno = 0;
     char *endptr;
 
@@ -23,8 +30,11 @@ int config_validate_port(const char *value)
         return -1;
     }
 
-    if ((errno == ERANGE && (port == LONG_MAX || port == LONG_MIN)) || 
-        ((port > KIRC_PORT_RANGE_MAX) || (port < 0))) {
+    if (errno == ERANGE) {
+        return -1;
+    }
+
+    if ((port > KIRC_PORT_RANGE_MAX) || (port < 0)) {
         return -1;
     }
 
