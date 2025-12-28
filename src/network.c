@@ -170,7 +170,7 @@ int network_command_handler(network_t *network, char *msg)
 
         case 'm':  /* send CTCP ACTION to target */
             if (strncmp(msg + 1, "me ", 3) == 0) {
-                network_send_ctcp_command(network, msg + 4);
+                network_send_ctcp_action(network, msg + 4);
             } else {
                 network_send(network, "%s\r\n", msg + 1);
             }
