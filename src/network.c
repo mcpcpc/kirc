@@ -67,10 +67,13 @@ int network_connect(network_t *network)
     return transport_connect(network->transport);
 }
 
-static void network_send_private_msg(
-        network_t *network, char *msg)
+static void network_send_private_msg(network_t *network,
+        char *msg)
 {
-    char *username = strtok(msg + 1, " ");
+    char msg_copy[MESSAGE_MAX_LEN];
+    safecpy(msg_copy, msg, sizeof(msg_copy));
+
+    char *username = strtok(msg_copy, " ");
 
     if (username == NULL) {
         const char *err = "error: message malformed";
@@ -90,6 +93,49 @@ static void network_send_private_msg(
         username, message);
     printf("\rto " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
         username, message);
+}
+
+static void network_send_ctcp_action(network_t *network,
+        char *msg)
+{
+    if (network->ctx->target[0] != '\0') {
+        network_send(network,
+            "PRIVMSG %s :\001ACTION %s\001\r\n",
+            network->ctx->target, msg);
+        printf("\rto \u2022 " BOLD "%s" RESET ": %s" CLEAR_LINE "\r\n",
+            network->ctx->target, msg);
+    } else {
+        const char *err = "error: no channel set";
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+    }
+}
+
+static void network_send_ctcp_command(network_t *network,
+        char *msg)
+{
+    char msg_copy[MESSAGE_MAX_LEN];
+    safecpy(msg_copy, msg, sizeof(msg_copy));
+
+    char *target = strtok(msg_copy, " ");
+
+    if (target == NULL) {
+        const char *err = "usage: /ctcp <nick> <command>";
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+        return;
+    }
+ 
+    char *command = strtok(NULL, "");
+
+    if (command == NULL) {
+        const char *err = "usage: /ctcp <nick> <command>";
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+        return;
+    }
+
+    network_send(network, "PRIVMSG %s :\001%s\001\r\n",
+        target, command);
+    printf("\rctcp: " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
+        target, command);
 }
 
 static void network_send_channel_msg(
@@ -124,18 +170,7 @@ int network_command_handler(network_t *network, char *msg)
 
         case 'm':  /* send CTCP ACTION to target */
             if (strncmp(msg + 1, "me ", 3) == 0) {
-                char *text = msg + 4;
-                if (network->ctx->target[0] != '\0') {
-                    network_send(network,
-                        "PRIVMSG %s :\001ACTION %s\001\r\n",
-                        network->ctx->target, text);
-                    printf("\rto \u2022 " BOLD "%s" RESET ": %s" CLEAR_LINE "\r\n",
-                        network->ctx->target, text);
-                } else {
-                    const char *err = "error: no channel set";
-                    printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
-                        err);
-                }
+                network_send_ctcp_command(network, msg + 4);
             } else {
                 network_send(network, "%s\r\n", msg + 1);
             }
@@ -143,19 +178,7 @@ int network_command_handler(network_t *network, char *msg)
 
         case 'c':  /* send CTCP command */
             if (strncmp(msg + 1, "ctcp ", 5) == 0) {
-                char *text = msg + 6;
-                char *target = strtok(text, " ");
-                char *command = strtok(NULL, "");
-                if ((target != NULL) && (command != NULL)) {
-                    network_send(network, "PRIVMSG %s :\001%s\001\r\n",
-                        target, command);
-                    printf("\rctcp: " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
-                        target, command);
-                } else {
-                    const char *err = "usage: /ctcp <nick> <command>";
-                    printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n",
-                        err);
-                } 
+                network_send_ctcp_command(network, msg + 6);
             } else {
                 network_send(network, "%s\r\n", msg + 1);
             }
@@ -168,7 +191,7 @@ int network_command_handler(network_t *network, char *msg)
         break;
 
     case '@':  /* private message */
-        network_send_private_msg(network, msg);
+        network_send_private_msg(network, msg + 1);
         break;
 
     default:  /* channel message */
