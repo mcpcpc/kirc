@@ -7,7 +7,7 @@
 
 #include "editor.h"
 
-/* Helper: Get byte length of previous UTF-8 character before pos */
+/* Get byte length of previous UTF-8 character before pos */
 static int utf8_prev_char_len(const char *s, int pos)
 {
     if (pos <= 0) {
@@ -23,7 +23,7 @@ static int utf8_prev_char_len(const char *s, int pos)
     return pos - prev;
 }
 
-/* Helper: Get byte length of next UTF-8 character at pos using mbrtowc */
+/* Get byte length of next UTF-8 character at pos using mbrtowc */
 static int utf8_next_char_len(const char *s, int pos, int maxlen)
 {
     if (pos >= maxlen) {
@@ -49,7 +49,7 @@ static int utf8_next_char_len(const char *s, int pos, int maxlen)
     return (int)ret;
 }
 
-/* Helper: Validate UTF-8 sequence */
+/* Validate UTF-8 sequence */
 static int utf8_validate(const char *s, int len)
 {
     mbstate_t st;
