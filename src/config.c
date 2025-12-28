@@ -34,12 +34,11 @@ int config_validate_port(const char *value)
 void config_parse_channels(kirc_context_t *ctx, char *value)
 {
     char *tok = NULL;
-    size_t siz = 0, idx = 0;
+    size_t idx = 0;
 
     for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHANNEL_LIMIT; 
-         tok = strtok(NULL, ",|")) {
-        siz = sizeof(ctx->channels[idx]);
-        safecpy(ctx->channels[idx], tok, siz);
+        tok = strtok(NULL, ",|")) {
+        safecpy(ctx->channels[idx], tok, sizeof(ctx->channels[idx]));
         idx++;
     }
 }
@@ -48,19 +47,17 @@ void config_parse_mechanism(kirc_context_t *ctx, char *value)
 {
     char *mechanism = strtok(value, ":");
     char *token = strtok(NULL, ":");
-    size_t siz = 0;
 
     if (strcmp(mechanism, "EXTERNAL") == 0) {
         ctx->mechanism = SASL_EXTERNAL;
     } else if (strcmp(mechanism, "PLAIN") == 0) {
         ctx->mechanism = SASL_PLAIN;
-        siz = sizeof(ctx->auth);
-        safecpy(ctx->auth, token, siz);
+        safecpy(ctx->auth, token, sizeof(ctx->auth));
     }
 }
 
 static int config_apply_env(kirc_context_t *ctx, const char *env_name, 
-                           char *dest, size_t dest_size)
+        char *dest, size_t dest_size)
 {
     char *env = getenv(env_name);
     if (env && *env) {
@@ -72,19 +69,15 @@ static int config_apply_env(kirc_context_t *ctx, const char *env_name,
 int config_init(kirc_context_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
-    
-    size_t siz = 0;
 
-    /* Set defaults */
-    siz = sizeof(ctx->server);
-    safecpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
+    safecpy(ctx->server, KIRC_DEFAULT_SERVER,
+        sizeof(ctx->server));
     
-    siz = sizeof(ctx->port);
-    safecpy(ctx->port, KIRC_DEFAULT_PORT, siz);
+    safecpy(ctx->port, KIRC_DEFAULT_PORT,
+        sizeof(ctx->port));
 
     ctx->mechanism = SASL_NONE;
 
-    /* Load environment variables */
     config_apply_env(ctx, "KIRC_SERVER", ctx->server, sizeof(ctx->server));
 
     char *env_port = getenv("KIRC_PORT");
@@ -93,18 +86,24 @@ int config_init(kirc_context_t *ctx)
             fprintf(stderr, "invalid port number in KIRC_PORT\n");
             return -1;
         }
-        siz = sizeof(ctx->port);
-        safecpy(ctx->port, env_port, siz);
+
+        safecpy(ctx->port, env_port, sizeof(ctx->port));
     }
 
     char *env_channels = getenv("KIRC_CHANNELS");
+
     if (env_channels && *env_channels) {
         config_parse_channels(ctx, env_channels);
     }
 
-    config_apply_env(ctx, "KIRC_REALNAME", ctx->realname, sizeof(ctx->realname));
-    config_apply_env(ctx, "KIRC_USERNAME", ctx->username, sizeof(ctx->username));
-    config_apply_env(ctx, "KIRC_PASSWORD", ctx->password, sizeof(ctx->password));
+    config_apply_env(ctx, "KIRC_REALNAME", ctx->realname,
+        sizeof(ctx->realname));
+
+    config_apply_env(ctx, "KIRC_USERNAME", ctx->username,
+        sizeof(ctx->username));
+
+    config_apply_env(ctx, "KIRC_PASSWORD", ctx->password,
+        sizeof(ctx->password));
 
     char *env_auth = getenv("KIRC_AUTH");
     if (env_auth && *env_auth) {
@@ -122,13 +121,11 @@ int config_parse_args(kirc_context_t *ctx, int argc, char *argv[])
     }
 
     int opt;
-    size_t siz = 0;
 
     while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:")) > 0) {
         switch (opt) {
         case 's':  /* server */
-            siz = sizeof(ctx->server);
-            safecpy(ctx->server, optarg, siz);
+            safecpy(ctx->server, optarg, sizeof(ctx->server));
             break;
 
         case 'p':  /* port */
@@ -136,23 +133,19 @@ int config_parse_args(kirc_context_t *ctx, int argc, char *argv[])
                 fprintf(stderr, "invalid port number\n");
                 return -1;
             }
-            siz = sizeof(ctx->port);
-            safecpy(ctx->port, optarg, siz);
+            safecpy(ctx->port, optarg, sizeof(ctx->port));
             break;
 
         case 'r':  /* realname */
-            siz = sizeof(ctx->realname);
-            safecpy(ctx->realname, optarg, siz);
+            safecpy(ctx->realname, optarg, sizeof(ctx->realname));
             break;
 
         case 'u':  /* username */
-            siz = sizeof(ctx->username);
-            safecpy(ctx->username, optarg, siz);
+            safecpy(ctx->username, optarg, sizeof(ctx->username));
             break;
 
         case 'k':  /* password */
-            siz = sizeof(ctx->password);
-            safecpy(ctx->password, optarg, siz);
+            safecpy(ctx->password, optarg, sizeof(ctx->password));
             break;
 
         case 'c':  /* channel(s) */
@@ -189,16 +182,12 @@ int config_parse_args(kirc_context_t *ctx, int argc, char *argv[])
 
 int config_free(kirc_context_t *ctx)
 {
-    size_t siz = sizeof(ctx->auth);
-
-    if (memzero(ctx->auth, siz) < 0) {
+    if (memzero(ctx->auth, sizeof(ctx->auth)) < 0) {
         fprintf(stderr, "auth token value not safely cleared\n");
         return -1;
     }
 
-    siz = sizeof(ctx->password);
-
-    if (memzero(ctx->password, siz) < 0) {
+    if (memzero(ctx->password, sizeof(ctx->password)) < 0) {
         fprintf(stderr, "password value not safely cleared\n");
         return -1;
     }
