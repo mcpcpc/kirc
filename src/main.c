@@ -38,17 +38,15 @@ static int validate_port(const char *value) {
 static char * find_message_end(const char *buffer,
         size_t len)
 {
+    int ctcp_active = 0;
+
     for (size_t i = 0; i + 1 < len; ++i) {
-        if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
-            int ctcp_count = 0;
-
-            for (size_t j = 0; j < i; ++j) {
-                if (buffer[j] == '\001') {
-                    ctcp_count++;
-                }
-            }
-
-            if (ctcp_count % 2 == 0) {
+        if (buffer[i] == '\001') {
+            /* Toggle CTCP state when marker encountered */
+            ctcp_active = !ctcp_active;
+        } else if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
+            /* Message end found only if not inside CTCP sequence */
+            if (!ctcp_active) {
                 return (char *)(buffer + i);
             }
         }
