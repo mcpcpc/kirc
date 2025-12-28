@@ -1,6 +1,6 @@
 /*
  * dcc.c
- * Direct client-to-client (DCC) handling
+ * Direct client-to-client (DCC) event handling
  * Author: Michael Czigler
  * License: MIT
  */

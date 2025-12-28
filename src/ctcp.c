@@ -1,6 +1,6 @@
 /*
  * ctcp.c
- * CTCP event handling
+ * Client-to-client protocol (CTCP) event handling
  * Author: Michael Czigler
  * License: MIT
  */
