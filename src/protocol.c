@@ -470,9 +470,18 @@ int protocol_parse(protocol_t *protocol, char *line)
     }
 
     char *token = strtok(line, " ");
-    if (token == NULL) return -1;
+
+    if (token == NULL) {
+        return -1;
+    }
+
     char *prefix = token + 1;
     char *suffix = strtok(NULL, ":");
+
+    if (suffix == NULL) {
+        return -1;
+    }
+
     char *message = strtok(NULL, "\r");
 
     if (message != NULL) {
