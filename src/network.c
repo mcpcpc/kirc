@@ -71,17 +71,25 @@ static void network_send_private_msg(
         network_t *network, char *msg)
 {
     char *username = strtok(msg + 1, " ");
+
+    if (username == NULL) {
+        const char *err = "error: message malformed";
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+        return;
+    }
+
     char *message = strtok(NULL, "");
 
-    if (username && message) {
-        network_send(network, "PRIVMSG %s :%s\r\n",
-            username, message);
-        printf("\rto " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
-            username, message);
-    } else {
-        const char *err = "error: missing nickname or message";
+    if (message == NULL) {
+        const char *err = "error: message malformed";
         printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+        return;
     }
+
+    network_send(network, "PRIVMSG %s :%s\r\n",
+        username, message);
+    printf("\rto " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
+        username, message);
 }
 
 static void network_send_channel_msg(
