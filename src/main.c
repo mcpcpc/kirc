@@ -5,243 +5,16 @@
  * License: MIT
  */
 
+#include "config.h"
+#include "ctcp.h"
 #include "dcc.h"
 #include "editor.h"
 #include "helper.h"
 #include "network.h"
+#include "parser.h"
 #include "protocol.h"
 #include "terminal.h"
 #include "transport.h"
-
-static int validate_port(const char *value) {
-    if ((value == NULL) || (*value == '\0')) {
-        return -1;
-    }
-
-    errno = 0;
-    char *endptr;
-
-    long port = strtol(value, &endptr, 10);
-
-    if ((endptr == value) || (*endptr != '\0')) {
-        return -1;
-    }
-
-    if ((errno == ERANGE && (port == LONG_MAX || port == LONG_MIN)) || 
-        ((port > KIRC_PORT_RANGE_MAX) || (port < 0))) {
-        return -1;
-    }
-
-    return 0;
-}
-
-static char * find_message_end(const char *buffer,
-        size_t len)
-{
-    int ctcp_active = 0;
-
-    for (size_t i = 0; i + 1 < len; ++i) {
-        if (buffer[i] == '\001') {
-            /* Toggle CTCP state when marker encountered */
-            ctcp_active = !ctcp_active;
-        } else if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
-            /* Message end found only if not inside CTCP sequence */
-            if (!ctcp_active) {
-                return (char *)(buffer + i);
-            }
-        }
-    }
-
-    return NULL;
-}
-
-static void kirc_parse_channels(kirc_context_t *ctx,
-        char *value)
-{
-    char *tok = NULL;
-    size_t siz = 0, idx = 0;
-
-    for (tok = strtok(value, ",|"); tok != NULL && idx < KIRC_CHANNEL_LIMIT; tok = strtok(NULL, ",|")) {
-        siz = sizeof(ctx->channels[idx]);
-        safecpy(ctx->channels[idx], tok, siz);
-        idx++;
-    }
-}
-
-static void kirc_parse_mechanism(kirc_context_t *ctx,
-        char *value)
-{
-    char *mechanism = strtok(value, ":");
-    char *token = strtok(NULL, ":");
-    size_t siz = 0;
-
-    if (strcmp(mechanism, "EXTERNAL") == 0) {
-        ctx->mechanism = SASL_EXTERNAL;
-    } else if (strcmp(mechanism, "PLAIN") == 0) {
-        ctx->mechanism = SASL_PLAIN;
-        siz = sizeof(ctx->auth);
-        safecpy(ctx->auth, token, siz);
-    }
-}
-
-static int kirc_init(kirc_context_t *ctx)
-{
-    memset(ctx, 0, sizeof(*ctx));
-    
-    size_t siz = 0;
-
-    siz = sizeof(ctx->server);
-    safecpy(ctx->server, KIRC_DEFAULT_SERVER, siz);
-    
-    siz = sizeof(ctx->port);
-    safecpy(ctx->port, KIRC_DEFAULT_PORT, siz);
-
-    ctx->mechanism = SASL_NONE;
-
-    char *env;
-
-    env = getenv("KIRC_SERVER");
-    if (env && *env) {
-        siz = sizeof(ctx->server);
-        safecpy(ctx->server, env, siz);
-    }
-
-    env = getenv("KIRC_PORT");
-    if (env && *env) {
-        if (validate_port(env) < 0) {
-            fprintf(stderr, "invalid port number\n");
-            return -1;
-        }
-        siz = sizeof(ctx->port);
-        safecpy(ctx->port, env, siz);
-    }
-
-    env = getenv("KIRC_CHANNELS");
-    if (env && *env) {
-        kirc_parse_channels(ctx, env);
-    }
-
-    env = getenv("KIRC_REALNAME");
-    if (env && *env) {
-        siz = sizeof(ctx->realname);
-        safecpy(ctx->realname, env, siz);
-    }
-
-    env = getenv("KIRC_USERNAME");
-    if (env && *env) {
-        siz = sizeof(ctx->username);
-        safecpy(ctx->username, env, siz);
-    }
-
-    env = getenv("KIRC_PASSWORD");
-    if (env && *env) {
-        siz = sizeof(ctx->password);
-        safecpy(ctx->password, env, siz);
-    }
-
-    env = getenv("KIRC_AUTH");
-    if (env && *env) {
-        kirc_parse_mechanism(ctx, env);
-    }
-
-    return 0;
-}
-
-static int kirc_free(kirc_context_t *ctx)
-{
-    size_t siz = sizeof(ctx->auth);
-
-    if (memzero(ctx->auth, siz) < 0) {
-        fprintf(stderr, "auth token value not safely cleared\n");
-        return -1;
-    }
-
-    siz = sizeof(ctx->password);
-
-    if (memzero(ctx->password, siz) < 0) {
-        fprintf(stderr, "password value not safely cleared\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-static int kirc_args(kirc_context_t *ctx, int argc,
-        char *argv[])
-{
-    if (argc < 2) {
-        fprintf(stderr, "%s: no arguments\n", argv[0]);
-        return -1;
-    }
-
-    int opt;
-    size_t siz = 0;
-
-    while ((opt = getopt(argc, argv, "s:p:r:u:k:c:a:")) > 0) {
-        switch (opt) {
-        case 's':  /* server */
-            siz = sizeof(ctx->server);
-            safecpy(ctx->server, optarg, siz);
-            break;
-
-        case 'p':  /* port */
-            if (validate_port(optarg) < 0) {
-                fprintf(stderr, "invalid port number\n");
-                return -1;
-            }
-
-            siz = sizeof(ctx->port);
-            safecpy(ctx->port, optarg, siz);
-            break;
-
-        case 'r':  /* realname */
-            siz = sizeof(ctx->realname);
-            safecpy(ctx->realname, optarg, siz);
-            break;
-
-        case 'u':  /* username */
-            siz = sizeof(ctx->username);
-            safecpy(ctx->username, optarg, siz);
-            break;
-
-        case 'k':  /* password */
-            siz = sizeof(ctx->password);
-            safecpy(ctx->password, optarg, siz);
-            break;
-
-        case 'c':  /* channel(s) */
-            kirc_parse_channels(ctx, optarg);
-            break;
-
-        case 'a':  /* SASL authentication */
-            kirc_parse_mechanism(ctx, optarg);
-            break;
-
-        case ':':
-            fprintf(stderr, "%s: missing -%c value\n",
-                argv[0], opt);
-            return -1;
-
-        case '?':
-            fprintf(stderr, "%s: unknown argument\n",
-                argv[0]);
-            return -1;
-
-        default:
-            return -1;
-        }
-    }
-
-    if (optind >= argc) {
-        fprintf(stderr, "nickname not specified\n");
-        return -1;
-    }
-
-    size_t nickname_n = sizeof(ctx->nickname);
-    safecpy(ctx->nickname, argv[optind], nickname_n);
-
-    return 0;
-}
 
 static int kirc_run(kirc_context_t *ctx)
 {
@@ -371,7 +144,7 @@ static int kirc_run(kirc_context_t *ctx)
                 size_t remaining = network.len;
 
                 for (;;) {
-                    char *eol = find_message_end(msg, remaining);
+                    char *eol = parser_find_message_end(msg, remaining);
                     if (!eol) break; /* no complete message found */
 
                     *eol = '\0';
@@ -382,12 +155,10 @@ static int kirc_run(kirc_context_t *ctx)
 
                     switch(protocol.event) {
                     case PROTOCOL_EVENT_CTCP_CLIENTINFO:
-                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
-                            network_send(&network,
-                                "NOTICE %s :\001PING ACTION CLIENTINFO "
-                                "DCC PING TIME VERSION\001\r\n",
-                                protocol.nickname);
-                        }
+                    case PROTOCOL_EVENT_CTCP_PING:
+                    case PROTOCOL_EVENT_CTCP_TIME:
+                    case PROTOCOL_EVENT_CTCP_VERSION:
+                        ctcp_handle_event(&network, &protocol);
                         break;
 
                     case PROTOCOL_EVENT_CTCP_DCC:
@@ -396,42 +167,6 @@ static int kirc_run(kirc_context_t *ctx)
                                 protocol.message);
                         }
                         break;
-
-                    case PROTOCOL_EVENT_CTCP_PING:
-                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
-                            if (protocol.message[0] != '\0') {
-                                network_send(&network,
-                                    "NOTICE %s :\001PING %s\001\r\n",
-                                    protocol.nickname, protocol.message);
-                            } else {
-                                network_send(&network,
-                                    "NOTICE %s :\001PING\001\r\n",
-                                    protocol.nickname);
-                            }
-                        }
-                        break;
-
-                    case PROTOCOL_EVENT_CTCP_TIME:
-                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
-                            char tbuf[128];
-                            time_t now;
-                            time(&now);
-                            struct tm *info = localtime(&now);
-                            strftime(tbuf, sizeof(tbuf), "%c", info);
-                            network_send(&network,
-                                "NOTICE %s :\001TIME %s\001\r\n",
-                                protocol.nickname, tbuf);
-                        }
-                        break;
-
-                    case PROTOCOL_EVENT_CTCP_VERSION:
-                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
-                            network_send(&network,
-                                "NOTICE %s :\001VERSION kirc %s\001\r\n",
-                                protocol.nickname, KIRC_VERSION_MAJOR "."
-                                KIRC_VERSION_MINOR "." KIRC_VERSION_PATCH);
-                        }
-                        break; 
 
                     case PROTOCOL_EVENT_PING:
                         network_send(&network, "PONG :%s\r\n",
@@ -485,21 +220,21 @@ int main(int argc, char *argv[])
 {
     kirc_context_t ctx;
 
-    if (kirc_init(&ctx) < 0) {
+    if (config_init(&ctx) < 0) {
         return EXIT_FAILURE;
     }
 
-    if (kirc_args(&ctx, argc, argv) < 0) {
-        kirc_free(&ctx);
+    if (config_parse_args(&ctx, argc, argv) < 0) {
+        config_free(&ctx);
         return EXIT_FAILURE;
     }
 
     if (kirc_run(&ctx) < 0) {
-        kirc_free(&ctx);
+        config_free(&ctx);
         return EXIT_FAILURE;
     }
 
-    kirc_free(&ctx);
+    config_free(&ctx);
 
     return EXIT_SUCCESS;
 }
