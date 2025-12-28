@@ -38,17 +38,15 @@ static int validate_port(const char *value) {
 static char * find_message_end(const char *buffer,
         size_t len)
 {
+    int ctcp_active = 0;
+
     for (size_t i = 0; i + 1 < len; ++i) {
-        if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
-            int ctcp_count = 0;
-
-            for (size_t j = 0; j < i; ++j) {
-                if (buffer[j] == '\001') {
-                    ctcp_count++;
-                }
-            }
-
-            if (ctcp_count % 2 == 0) {
+        if (buffer[i] == '\001') {
+            /* Toggle CTCP state when marker encountered */
+            ctcp_active = !ctcp_active;
+        } else if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
+            /* Message end found only if not inside CTCP sequence */
+            if (!ctcp_active) {
                 return (char *)(buffer + i);
             }
         }
@@ -57,7 +55,7 @@ static char * find_message_end(const char *buffer,
     return NULL;
 }
 
-static void kirc_parse_channels(kirc_t *ctx,
+static void kirc_parse_channels(kirc_context_t *ctx,
         char *value)
 {
     char *tok = NULL;
@@ -70,7 +68,7 @@ static void kirc_parse_channels(kirc_t *ctx,
     }
 }
 
-static void kirc_parse_mechanism(kirc_t *ctx,
+static void kirc_parse_mechanism(kirc_context_t *ctx,
         char *value)
 {
     char *mechanism = strtok(value, ":");
@@ -86,7 +84,7 @@ static void kirc_parse_mechanism(kirc_t *ctx,
     }
 }
 
-static int kirc_init(kirc_t *ctx)
+static int kirc_init(kirc_context_t *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
     
@@ -149,7 +147,7 @@ static int kirc_init(kirc_t *ctx)
     return 0;
 }
 
-static int kirc_free(kirc_t *ctx)
+static int kirc_free(kirc_context_t *ctx)
 {
     size_t siz = sizeof(ctx->auth);
 
@@ -168,7 +166,8 @@ static int kirc_free(kirc_t *ctx)
     return 0;
 }
 
-static int kirc_args(kirc_t *ctx, int argc, char *argv[])
+static int kirc_args(kirc_context_t *ctx, int argc,
+        char *argv[])
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
@@ -244,7 +243,7 @@ static int kirc_args(kirc_t *ctx, int argc, char *argv[])
     return 0;
 }
 
-static int kirc_run(kirc_t *ctx)
+static int kirc_run(kirc_context_t *ctx)
 {
     editor_t editor;
 
@@ -282,37 +281,11 @@ static int kirc_run(kirc_t *ctx)
         return -1;
     }
 
-    if (ctx->mechanism != SASL_NONE) {
-        network_send(&network, "CAP REQ :sasl\r\n");
-    }
-
-    network_send(&network, "NICK %s\r\n", ctx->nickname);
-    
-    char *username, *realname;
-    
-    if (ctx->username[0] != '\0') {
-        username = ctx->username;
-    } else {
-        username = ctx->nickname;
-    }
-
-    if (ctx->realname[0] != '\0') {
-        realname = ctx->realname;
-    } else {
-        realname = ctx->nickname;
-    }
-
-    network_send(&network, "USER %s - - :%s\r\n",
-        username, realname);
-
-    if (ctx->mechanism != SASL_NONE) {
-        network_send(&network, "AUTHENTICATE %s\r\n",
-            (ctx->mechanism == SASL_EXTERNAL) ? "EXTERNAL" : "PLAIN");
-    }
-
-    if (ctx->password[0] != '\0') {
-        network_send(&network, "PASS %s\r\n",
-            ctx->password);
+    if (network_send_credentials(&network) < 0) {
+        fprintf(stderr, "network_send_credentials failed\n");
+        dcc_free(&dcc);
+        network_free(&network);
+        return -1;
     }
 
     size_t siz = sizeof(ctx->target);
@@ -510,7 +483,7 @@ static int kirc_run(kirc_t *ctx)
 
 int main(int argc, char *argv[])
 {
-    kirc_t ctx;
+    kirc_context_t ctx;
 
     if (kirc_init(&ctx) < 0) {
         return EXIT_FAILURE;

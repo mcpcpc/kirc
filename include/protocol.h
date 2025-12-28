@@ -197,9 +197,9 @@ typedef enum {
 typedef struct {
     const char *command;
     protocol_event_t event;
-} protocol_event_map_t;
+} protocol_event_table_t;
 
-static const protocol_event_map_t map[] = {
+static const protocol_event_table_t event_table[] = {
     { "CAP",     PROTOCOL_EVENT_EXT_CAP },
     { "JOIN",    PROTOCOL_EVENT_JOIN },
     { "KICK",    PROTOCOL_EVENT_KICK },
@@ -374,7 +374,7 @@ static const protocol_event_map_t map[] = {
 };
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     protocol_event_t event;
     char raw[MESSAGE_MAX_LEN];
     char channel[CHANNEL_MAX_LEN];
@@ -384,7 +384,13 @@ typedef struct {
     char params[MESSAGE_MAX_LEN];
 } protocol_t;
 
-int protocol_init(protocol_t *protocol, kirc_t *ctx);
+typedef struct {
+    protocol_event_t event;
+    void (*handler)(protocol_t *protocol);
+} protocol_dispatch_t;
+
+int protocol_init(protocol_t *protocol,
+        kirc_context_t *ctx);
 int protocol_parse(protocol_t *protocol, char *line);
 int protocol_handle(protocol_t *protocol);
 

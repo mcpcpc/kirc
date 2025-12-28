@@ -12,14 +12,15 @@
 #include "ansi.h"
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     struct termios original;
     int raw_mode_enabled;
 } terminal_t;
 
 int terminal_columns(int tty_fd);
 
-int terminal_init(terminal_t *terminal, kirc_t *ctx);
+int terminal_init(terminal_t *terminal,
+        kirc_context_t *ctx);
 int terminal_enable_raw(terminal_t *terminal);
 void terminal_disable_raw(terminal_t *terminal);
 

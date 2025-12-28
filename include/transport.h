@@ -11,7 +11,7 @@
 #include "kirc.h"
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     int fd;
 } transport_t;
 
@@ -22,7 +22,7 @@ ssize_t transport_receive(transport_t *transport,
 
 int transport_connect(transport_t *transport);
 int transport_init(transport_t *transport,
-        kirc_t *ctx);
+        kirc_context_t *ctx);
 int transport_free(transport_t *transport);
 
 #endif  // __KIRC_TRANSPORT_H

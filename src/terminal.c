@@ -127,7 +127,8 @@ void terminal_disable_raw(terminal_t *terminal)
     terminal->raw_mode_enabled = 0;
 }
 
-int terminal_init(terminal_t *terminal, kirc_t *ctx)
+int terminal_init(terminal_t *terminal,
+        kirc_context_t *ctx)
 {
     memset(terminal, 0, sizeof(*terminal));   
 

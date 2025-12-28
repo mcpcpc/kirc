@@ -36,13 +36,13 @@ typedef struct {
 } dcc_transfer_t;
 
 typedef struct {
-    kirc_t *ctx;
+    kirc_context_t *ctx;
     struct pollfd sock_fd[KIRC_DCC_TRANSFERS_MAX];
     dcc_transfer_t transfer[KIRC_DCC_TRANSFERS_MAX];
     int transfer_count;
 } dcc_t;
 
-int dcc_init(dcc_t *dcc, kirc_t *ctx);
+int dcc_init(dcc_t *dcc, kirc_context_t *ctx);
 int dcc_free(dcc_t *dcc);
 int dcc_request(dcc_t *dcc, const char *sender,
         const char *params);

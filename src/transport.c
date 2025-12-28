@@ -148,7 +148,7 @@ int transport_connect(transport_t *transport)
 }
 
 int transport_init(transport_t *transport,
-        kirc_t *ctx)
+        kirc_context_t *ctx)
 {
     memset(transport, 0, sizeof(*transport));
 

@@ -44,7 +44,7 @@
 
 #define KIRC_VERSION_MAJOR     "1"
 #define KIRC_VERSION_MINOR     "0"
-#define KIRC_VERSION_PATCH     "8"
+#define KIRC_VERSION_PATCH     "9"
 
 #define KIRC_CHANNEL_LIMIT     256
 #define KIRC_DCC_BUFFER_SIZE   8192
@@ -77,6 +77,6 @@ typedef struct {
     char target[KIRC_CHANNEL_LIMIT];
     char auth[MESSAGE_MAX_LEN];
     sasl_mechanism_t mechanism;
-} kirc_t;
+} kirc_context_t;
 
 #endif  // __KIRC_H
