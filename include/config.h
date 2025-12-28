@@ -1,6 +1,6 @@
 /*
  * config.h
- * Configuration parsing and initialization
+ * Header for configuration module
  * Author: Michael Czigler
  * License: MIT
  */

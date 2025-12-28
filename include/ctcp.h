@@ -1,6 +1,6 @@
 /*
  * ctcp.h
- * CTCP event handling
+ * Header for the CTCP module
  * Author: Michael Czigler
  * License: MIT
  */
