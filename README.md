@@ -46,18 +46,6 @@ using the SASL PLAIN mechanism:
     # output: b'YWxpY2UAYWxpY2UAcGFzc3dvcmQ=\n'
     kirc -a PLAIN:YWxpY2UAYWxpY2UAcGFzc3dvcmQ= alice
 
-Connect with TLS/SSL support using socat:
-
-    socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:irc.example.org:6697
-    kirc -s 127.0.0.1 alice
-
-Connect to an HTTP/HTTPS proxy server using
-socat:
-
-    socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 \
-         proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport>
-    kirc -s 127.0.0.1 -p 6667 alice
-
 License
 -------
 
