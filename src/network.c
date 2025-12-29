@@ -89,6 +89,15 @@ static void network_send_private_msg(network_t *network,
         return;
     }
 
+    size_t overhead = strlen(username) + 13;
+    size_t msg_len = strlen(message);
+    
+    if (overhead + msg_len >= MESSAGE_MAX_LEN) {
+        const char *err = "error: message too long";
+        printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+        return;
+    }
+
     network_send(network, "PRIVMSG %s :%s\r\n",
         username, message);
     printf("\rto " BOLD_RED "%s" RESET ": %s" CLEAR_LINE "\r\n",
@@ -99,6 +108,16 @@ static void network_send_ctcp_action(network_t *network,
         char *msg)
 {
     if (network->ctx->target[0] != '\0') {
+        /* Validate total message length: "PRIVMSG " + target + " :\001ACTION " + msg + "\001\r\n" */
+        size_t overhead = 10 + strlen(network->ctx->target) + 10 + 3; /* "PRIVMSG " + target + " :\001ACTION " + "\001\r\n" */
+        size_t msg_len = strlen(msg);
+        
+        if (overhead + msg_len >= MESSAGE_MAX_LEN) {
+            const char *err = "error: message too long";
+            printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+            return;
+        }
+
         network_send(network,
             "PRIVMSG %s :\001ACTION %s\001\r\n",
             network->ctx->target, msg);
@@ -142,6 +161,16 @@ static void network_send_channel_msg(
         network_t *network, char *msg)
 {
     if (network->ctx->target[0] != '\0') {
+        /* Validate total message length: "PRIVMSG " + target + " :" + msg + "\r\n" */
+        size_t overhead = 10 + strlen(network->ctx->target) + 3 + 2; /* "PRIVMSG " + target + " :" + "\r\n" */
+        size_t msg_len = strlen(msg);
+        
+        if (overhead + msg_len >= MESSAGE_MAX_LEN) {
+            const char *err = "error: message too long";
+            printf("\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+            return;
+        }
+
         network_send(network, "PRIVMSG %s :%s\r\n",
             network->ctx->target, msg);
         printf("\rto " BOLD "%s" RESET ": %s" CLEAR_LINE "\r\n",
