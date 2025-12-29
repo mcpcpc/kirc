@@ -55,21 +55,19 @@ static void ctcp_handle_version(network_t *network, protocol_t *protocol)
     }
 }
 
-static const ctcp_dispatch_entry_t ctcp_dispatch_table[] = {
+static const ctcp_dispatch_t ctcp_table[] = {
     { PROTOCOL_EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo },
-    { PROTOCOL_EVENT_CTCP_PING, ctcp_handle_ping },
-    { PROTOCOL_EVENT_CTCP_TIME, ctcp_handle_time },
-    { PROTOCOL_EVENT_CTCP_VERSION, ctcp_handle_version },
-    { PROTOCOL_EVENT_NONE, NULL }  /* sentinel */
+    { PROTOCOL_EVENT_CTCP_PING,       ctcp_handle_ping },
+    { PROTOCOL_EVENT_CTCP_TIME,       ctcp_handle_time },
+    { PROTOCOL_EVENT_CTCP_VERSION,    ctcp_handle_version },
+    { PROTOCOL_EVENT_NONE,            NULL }
 };
 
 void ctcp_handle_event(network_t *network, protocol_t *protocol)
 {
-    for (const ctcp_dispatch_entry_t *entry = ctcp_dispatch_table; 
-         entry->handler != NULL; 
-         ++entry) {
-        if (entry->event == protocol->event) {
-            entry->handler(network, protocol);
+    for(int i = 0; ctcp_table[i].handler != NULL; ++i) {
+        if (ctcp_table[i].event == protocol->event) {
+            ctcp_table[i].handler(protocol);
             return;
         }
     }

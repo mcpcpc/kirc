@@ -15,7 +15,7 @@
 typedef struct {
     protocol_event_t event;
     void (*handler)(network_t *network, protocol_t *protocol);
-} ctcp_dispatch_entry_t;
+} ctcp_dispatch_t;
 
 /* Handle all CTCP events based on protocol event type */
 void ctcp_handle_event(network_t *network, protocol_t *protocol);
