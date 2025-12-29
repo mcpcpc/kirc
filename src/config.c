@@ -40,7 +40,7 @@ static int config_validate_port(const char *value)
     return 0;
 }
 
-static void config_parse_channels(kirc_context_t *ctx, char *value)
+static void config_parse_channels(struct kirc_context *ctx, char *value)
 {
     char *tok = NULL;
     size_t idx = 0;
@@ -52,7 +52,7 @@ static void config_parse_channels(kirc_context_t *ctx, char *value)
     }
 }
 
-static void config_parse_mechanism(kirc_context_t *ctx, char *value)
+static void config_parse_mechanism(struct kirc_context *ctx, char *value)
 {
     char *mechanism = strtok(value, ":");
 
@@ -74,7 +74,7 @@ static void config_parse_mechanism(kirc_context_t *ctx, char *value)
     }
 }
 
-static int config_apply_env(kirc_context_t *ctx, const char *env_name, 
+static int config_apply_env(struct kirc_context *ctx, const char *env_name, 
         char *dest, size_t dest_size)
 {
     char *env = getenv(env_name);
@@ -84,7 +84,7 @@ static int config_apply_env(kirc_context_t *ctx, const char *env_name,
     return 0;
 }
 
-int config_init(kirc_context_t *ctx)
+int config_init(struct kirc_context *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
 
@@ -131,7 +131,7 @@ int config_init(kirc_context_t *ctx)
     return 0;
 }
 
-int config_parse_args(kirc_context_t *ctx, int argc, char *argv[])
+int config_parse_args(struct kirc_context *ctx, int argc, char *argv[])
 {
     if (argc < 2) {
         fprintf(stderr, "%s: no arguments\n", argv[0]);
@@ -198,7 +198,7 @@ int config_parse_args(kirc_context_t *ctx, int argc, char *argv[])
     return 0;
 }
 
-int config_free(kirc_context_t *ctx)
+int config_free(struct kirc_context *ctx)
 {
     if (memzero(ctx->auth, sizeof(ctx->auth)) < 0) {
         fprintf(stderr, "auth token value not safely cleared\n");

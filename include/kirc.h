@@ -60,13 +60,13 @@
 #define KIRC_DEFAULT_PORT      "6667"
 #define KIRC_DEFAULT_SERVER    "irc.libera.chat"
 
-typedef enum {
+enum sasl_mechanism {
     SASL_NONE = 0,
     SASL_PLAIN,
     SASL_EXTERNAL
-} sasl_mechanism_t;
+};
 
-typedef struct {
+struct kirc_context {
     char server[HOST_NAME_MAX];
     char port[6];
     char nickname[MESSAGE_MAX_LEN];
@@ -76,7 +76,7 @@ typedef struct {
     char channels[KIRC_CHANNEL_LIMIT][CHANNEL_MAX_LEN];
     char target[KIRC_CHANNEL_LIMIT];
     char auth[MESSAGE_MAX_LEN];
-    sasl_mechanism_t mechanism;
-} kirc_context_t;
+    enum sasl_mechanism mechanism;
+};
 
 #endif  // __KIRC_H

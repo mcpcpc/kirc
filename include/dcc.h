@@ -12,42 +12,42 @@
 #include "ansi.h"
 #include "helper.h"
 
-typedef enum {
+enum dcc_type {
     DCC_TYPE_SEND = 0,
     DCC_TYPE_RECEIVE
-} dcc_type_t;
+};
 
-typedef enum {
+enum dcc_state {
     DCC_STATE_IDLE = 0,
     DCC_STATE_CONNECTING,
     DCC_STATE_TRANSFERRING,
     DCC_STATE_COMPLETE,
     DCC_STATE_ERROR
-} dcc_state_t;
+};
 
-typedef struct {
-    dcc_type_t type;
-    dcc_state_t state;
+struct dcc_transfer {
+    enum dcc_type type;
+    enum dcc_state state;
     char filename[NAME_MAX];
     char sender[MESSAGE_MAX_LEN];
     unsigned long long filesize;
     unsigned long long sent;
     int file_fd;
-} dcc_transfer_t;
+};
 
-typedef struct {
-    kirc_context_t *ctx;
+struct dcc {
+    struct kirc_context *ctx;
     struct pollfd sock_fd[KIRC_DCC_TRANSFERS_MAX];
-    dcc_transfer_t transfer[KIRC_DCC_TRANSFERS_MAX];
+    struct dcc_transfer transfer[KIRC_DCC_TRANSFERS_MAX];
     int transfer_count;
-} dcc_t;
+};
 
-int dcc_init(dcc_t *dcc, kirc_context_t *ctx);
-int dcc_free(dcc_t *dcc);
-int dcc_request(dcc_t *dcc, const char *sender,
+int dcc_init(struct dcc *dcc, struct kirc_context *ctx);
+int dcc_free(struct dcc *dcc);
+int dcc_request(struct dcc *dcc, const char *sender,
         const char *params);
-int dcc_send(dcc_t *dcc, int transfer_id);
-int dcc_process(dcc_t *dcc);
-int dcc_cancel(dcc_t *dcc, int transfer_id);
+int dcc_send(struct dcc *dcc, int transfer_id);
+int dcc_process(struct dcc *dcc);
+int dcc_cancel(struct dcc *dcc, int transfer_id);
 
 #endif  // __KIRC_DCC_H

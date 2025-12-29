@@ -84,7 +84,7 @@ int terminal_columns(int tty_fd)
     return (end > 0) ? end : KIRC_DEFAULT_COLUMNS;
 }
 
-int terminal_enable_raw(terminal_t *terminal)
+int terminal_enable_raw(struct terminal *terminal)
 {
     if (!isatty(STDIN_FILENO)) {
         return -1;
@@ -117,7 +117,7 @@ int terminal_enable_raw(terminal_t *terminal)
     return 0;
 }
 
-void terminal_disable_raw(terminal_t *terminal)
+void terminal_disable_raw(struct terminal *terminal)
 {
     if (!terminal->raw_mode_enabled) {
         return;
@@ -127,8 +127,8 @@ void terminal_disable_raw(terminal_t *terminal)
     terminal->raw_mode_enabled = 0;
 }
 
-int terminal_init(terminal_t *terminal,
-        kirc_context_t *ctx)
+int terminal_init(struct terminal *terminal,
+        struct kirc_context *ctx)
 {
     memset(terminal, 0, sizeof(*terminal));   
 

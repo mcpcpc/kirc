@@ -12,7 +12,7 @@
 #include "ansi.h"
 #include "helper.h"
 
-typedef enum {
+enum protocol_event {
     PROTOCOL_EVENT_NONE = 0,
     PROTOCOL_EVENT_CTCP_ACTION,
     PROTOCOL_EVENT_CTCP_CLIENTINFO,
@@ -192,14 +192,14 @@ typedef enum {
     PROTOCOL_EVENT_906_ERR_SASLABORTED,
     PROTOCOL_EVENT_907_ERR_SASLALREADY,
     PROTOCOL_EVENT_908_RPL_SASLMECHS
-} protocol_event_t;
+};
 
-typedef struct {
+struct protocol_event_table {
     const char *command;
-    protocol_event_t event;
-} protocol_event_table_t;
+    enum protocol_event event;
+};
 
-static const protocol_event_table_t event_table[] = {
+static const struct protocol_event_table event_table[] = {
     { "CAP",     PROTOCOL_EVENT_EXT_CAP },
     { "JOIN",    PROTOCOL_EVENT_JOIN },
     { "KICK",    PROTOCOL_EVENT_KICK },
@@ -373,25 +373,25 @@ static const protocol_event_table_t event_table[] = {
     { NULL,      PROTOCOL_EVENT_NONE }
 };
 
-typedef struct {
-    kirc_context_t *ctx;
-    protocol_event_t event;
+struct protocol {
+    struct kirc_context *ctx;
+    enum protocol_event event;
     char raw[MESSAGE_MAX_LEN];
     char channel[CHANNEL_MAX_LEN];
     char message[MESSAGE_MAX_LEN];
     char command[MESSAGE_MAX_LEN];
     char nickname[MESSAGE_MAX_LEN];
     char params[MESSAGE_MAX_LEN];
-} protocol_t;
+};
 
-typedef struct {
-    protocol_event_t event;
-    void (*handler)(protocol_t *protocol);
-} protocol_dispatch_t;
+struct protocol_dispatch {
+    enum protocol_event event;
+    void (*handler)(struct protocol *protocol);
+};
 
-int protocol_init(protocol_t *protocol,
-        kirc_context_t *ctx);
-int protocol_parse(protocol_t *protocol, char *line);
-int protocol_handle(protocol_t *protocol);
+int protocol_init(struct protocol *protocol,
+        struct kirc_context *ctx);
+int protocol_parse(struct protocol *protocol, char *line);
+int protocol_handle(struct protocol *protocol);
 
 #endif  // __KIRC_PROTOCOL_H

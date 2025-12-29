@@ -7,7 +7,7 @@
 
 #include "ctcp.h"
 
-static void ctcp_handle_clientinfo(network_t *network, protocol_t *protocol)
+static void ctcp_handle_clientinfo(struct network *network, struct protocol *protocol)
 {
     if (strcmp(protocol->command, "PRIVMSG") == 0) {
         network_send(network,
@@ -16,7 +16,7 @@ static void ctcp_handle_clientinfo(network_t *network, protocol_t *protocol)
     }
 }
 
-static void ctcp_handle_ping(network_t *network, protocol_t *protocol)
+static void ctcp_handle_ping(struct network *network, struct protocol *protocol)
 {
     if (strcmp(protocol->command, "PRIVMSG") == 0) {
         if (protocol->message[0] != '\0') {
@@ -31,7 +31,7 @@ static void ctcp_handle_ping(network_t *network, protocol_t *protocol)
     }
 }
 
-static void ctcp_handle_time(network_t *network, protocol_t *protocol)
+static void ctcp_handle_time(struct network *network, struct protocol *protocol)
 {
     if (strcmp(protocol->command, "PRIVMSG") == 0) {
         char tbuf[128];
@@ -45,7 +45,7 @@ static void ctcp_handle_time(network_t *network, protocol_t *protocol)
     }
 }
 
-static void ctcp_handle_version(network_t *network, protocol_t *protocol)
+static void ctcp_handle_version(struct network *network, struct protocol *protocol)
 {
     if (strcmp(protocol->command, "PRIVMSG") == 0) {
         network_send(network,
@@ -55,7 +55,7 @@ static void ctcp_handle_version(network_t *network, protocol_t *protocol)
     }
 }
 
-static const ctcp_dispatch_t ctcp_table[] = {
+static const struct ctcp_dispatch ctcp_table[] = {
     { PROTOCOL_EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo },
     { PROTOCOL_EVENT_CTCP_PING,       ctcp_handle_ping },
     { PROTOCOL_EVENT_CTCP_TIME,       ctcp_handle_time },
@@ -63,7 +63,7 @@ static const ctcp_dispatch_t ctcp_table[] = {
     { PROTOCOL_EVENT_NONE,            NULL }
 };
 
-void ctcp_handle_event(network_t *network, protocol_t *protocol)
+void ctcp_handle_event(struct network *network, struct protocol *protocol)
 {
     for(int i = 0; ctcp_table[i].handler != NULL; ++i) {
         if (ctcp_table[i].event == protocol->event) {

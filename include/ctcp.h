@@ -12,12 +12,12 @@
 #include "protocol.h"
 #include "network.h"
 
-typedef struct {
-    protocol_event_t event;
-    void (*handler)(network_t *network, protocol_t *protocol);
-} ctcp_dispatch_t;
+struct ctcp_dispatch {
+    enum protocol_event event;
+    void (*handler)(struct network *network, struct protocol *protocol);
+};
 
 /* Handle all CTCP events based on protocol event type */
-void ctcp_handle_event(network_t *network, protocol_t *protocol);
+void ctcp_handle_event(struct network *network, struct protocol *protocol);
 
 #endif  // __KIRC_CTCP_H

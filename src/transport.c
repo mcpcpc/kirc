@@ -25,7 +25,7 @@ static int poll_wait_write(int fd, int timeout_ms)
     }
 }
 
-ssize_t transport_send(transport_t *transport,
+ssize_t transport_send(struct transport *transport,
         const char *buffer, size_t len)
 {
     if (transport == NULL)
@@ -43,7 +43,7 @@ ssize_t transport_send(transport_t *transport,
     return rc;
 }
 
-ssize_t transport_receive(transport_t *transport,
+ssize_t transport_receive(struct transport *transport,
         char *buffer, size_t len)
 {
     if (transport == NULL)
@@ -71,7 +71,7 @@ ssize_t transport_receive(transport_t *transport,
 }
 
 
-int transport_connect(transport_t *transport)
+int transport_connect(struct transport *transport)
 {
     struct addrinfo hints, *res = NULL, *p = NULL;
     memset(&hints, 0, sizeof(hints));
@@ -147,8 +147,8 @@ int transport_connect(transport_t *transport)
     return 0;
 }
 
-int transport_init(transport_t *transport,
-        kirc_context_t *ctx)
+int transport_init(struct transport *transport,
+        struct kirc_context *ctx)
 {
     memset(transport, 0, sizeof(*transport));
 
@@ -158,7 +158,7 @@ int transport_init(transport_t *transport,
     return 0;
 }
 
-int transport_free(transport_t *transport)
+int transport_free(struct transport *transport)
 {
     if (transport == NULL) {
         return -1;

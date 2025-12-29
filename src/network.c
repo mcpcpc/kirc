@@ -7,7 +7,7 @@
 
 #include "network.h"
 
-int network_send(network_t *network, const char *fmt, ...)
+int network_send(struct network *network, const char *fmt, ...)
 {
     if (network == NULL) {
         return -1;
@@ -36,7 +36,7 @@ int network_send(network_t *network, const char *fmt, ...)
     return 0;
 }
 
-int network_receive(network_t *network)
+int network_receive(struct network *network)
 {
     size_t buffer_n = sizeof(network->buffer) - 1;
     ssize_t nread = transport_receive(
@@ -62,12 +62,12 @@ int network_receive(network_t *network)
     return nread;
 }
 
-int network_connect(network_t *network)
+int network_connect(struct network *network)
 {
     return transport_connect(network->transport);
 }
 
-static void network_send_private_msg(network_t *network,
+static void network_send_private_msg(struct network *network,
         char *msg)
 {
     char msg_copy[MESSAGE_MAX_LEN];
@@ -104,7 +104,7 @@ static void network_send_private_msg(network_t *network,
         username, message);
 }
 
-static void network_send_ctcp_action(network_t *network,
+static void network_send_ctcp_action(struct network *network,
         char *msg)
 {
     if (network->ctx->target[0] != '\0') {
@@ -129,7 +129,7 @@ static void network_send_ctcp_action(network_t *network,
     }
 }
 
-static void network_send_ctcp_command(network_t *network,
+static void network_send_ctcp_command(struct network *network,
         char *msg)
 {
     char msg_copy[MESSAGE_MAX_LEN];
@@ -158,7 +158,7 @@ static void network_send_ctcp_command(network_t *network,
 }
 
 static void network_send_channel_msg(
-        network_t *network, char *msg)
+        struct network *network, char *msg)
 {
     if (network->ctx->target[0] != '\0') {
         /* Validate total message length: "PRIVMSG " + target + " :" + msg + "\r\n" */
@@ -181,7 +181,7 @@ static void network_send_channel_msg(
     }
 }
 
-int network_command_handler(network_t *network, char *msg)
+int network_command_handler(struct network *network, char *msg)
 {
     switch (msg[0]) {
     case '/':  /* system command message */
@@ -229,7 +229,7 @@ int network_command_handler(network_t *network, char *msg)
     return 0;
 }
 
-static int network_authenticate_plain(network_t *network)
+static int network_authenticate_plain(struct network *network)
 {
     if (network->ctx->auth[0] == '\0') {
         network_send(network, "AUTHENTICATE '*'\r\n");
@@ -251,7 +251,7 @@ static int network_authenticate_plain(network_t *network)
     return 0;
 }
 
-int network_send_credentials(network_t *network)
+int network_send_credentials(struct network *network)
 {
     if (network->ctx->mechanism != SASL_NONE) {
         network_send(network, "CAP REQ :sasl\r\n");
@@ -296,7 +296,7 @@ int network_send_credentials(network_t *network)
     return 0;
 }
 
-int network_authenticate(network_t *network)
+int network_authenticate(struct network *network)
 {
     switch (network->ctx->mechanism) {
     case SASL_PLAIN:
@@ -318,7 +318,7 @@ int network_authenticate(network_t *network)
     return 0;
 }
 
-int network_join_channels(network_t *network)
+int network_join_channels(struct network *network)
 {
     for (int i = 0; network->ctx->channels[i][0] != '\0'; ++i) {
         network_send(network, "JOIN %s\r\n",
@@ -328,8 +328,8 @@ int network_join_channels(network_t *network)
     return 0;
 }
 
-int network_init(network_t *network, 
-        transport_t *transport, kirc_context_t *ctx)
+int network_init(struct network *network, 
+        struct transport *transport, struct kirc_context *ctx)
 {
     memset(network, 0, sizeof(*network));
 
@@ -339,7 +339,7 @@ int network_init(network_t *network,
     return 0;
 }
 
-int network_free(network_t *network)
+int network_free(struct network *network)
 {
     if (transport_free(network->transport) < 0) {
         return -1;

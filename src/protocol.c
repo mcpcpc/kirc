@@ -16,12 +16,12 @@ static void protocol_get_time(char *out)
         KIRC_TIMESTAMP_FORMAT, info);
 }
 
-static void protocol_noop(protocol_t *protocol)
+static void protocol_noop(struct protocol *protocol)
 {
     (void)protocol;  /* no operation */
 }
 
-static void protocol_raw(protocol_t *protocol)
+static void protocol_raw(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -31,7 +31,7 @@ static void protocol_raw(protocol_t *protocol)
         hhmm, protocol->raw);
 }
 
-static void protocol_info(protocol_t *protocol)
+static void protocol_info(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -40,7 +40,7 @@ static void protocol_info(protocol_t *protocol)
         hhmm, protocol->message);
 }
 
-static void protocol_error(protocol_t *protocol)
+static void protocol_error(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -50,7 +50,7 @@ static void protocol_error(protocol_t *protocol)
         hhmm, protocol->message);
 }
 
-static void protocol_notice(protocol_t *protocol)
+static void protocol_notice(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -60,7 +60,7 @@ static void protocol_notice(protocol_t *protocol)
         hhmm, protocol->nickname, protocol->message);
 }
 
-static void protocol_privmsg_direct(protocol_t *protocol)
+static void protocol_privmsg_direct(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -70,7 +70,7 @@ static void protocol_privmsg_direct(protocol_t *protocol)
         hhmm, protocol->nickname, protocol->message);
 }
 
-static void protocol_privmsg_indirect(protocol_t *protocol)
+static void protocol_privmsg_indirect(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -82,7 +82,7 @@ static void protocol_privmsg_indirect(protocol_t *protocol)
 
 }
 
-static void protocol_privmsg(protocol_t *protocol)
+static void protocol_privmsg(struct protocol *protocol)
 {
     char *channel = protocol->channel;
     char *nickname = protocol->ctx->nickname;
@@ -94,7 +94,7 @@ static void protocol_privmsg(protocol_t *protocol)
     }
 }
 
-static void protocol_nick(protocol_t *protocol)
+static void protocol_nick(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -115,7 +115,7 @@ static void protocol_nick(protocol_t *protocol)
 
 }
 
-static void protocol_ctcp_action(protocol_t *protocol)
+static void protocol_ctcp_action(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -124,7 +124,7 @@ static void protocol_ctcp_action(protocol_t *protocol)
         hhmm, protocol->nickname, protocol->message);
 }
 
-static void protocol_ctcp_info(protocol_t *protocol)
+static void protocol_ctcp_info(struct protocol *protocol)
 {
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
@@ -174,7 +174,7 @@ static void protocol_ctcp_info(protocol_t *protocol)
     }
 }
 
-static int protocol_ctcp_parse(protocol_t *protocol)
+static int protocol_ctcp_parse(struct protocol *protocol)
 {
     if (((protocol->event == PROTOCOL_EVENT_PRIVMSG) ||
         (protocol->event == PROTOCOL_EVENT_NOTICE)) &&
@@ -251,7 +251,7 @@ static int protocol_ctcp_parse(protocol_t *protocol)
     return 0;
 }
 
-static const protocol_dispatch_t protocol_table[] = {
+static const struct protocol_dispatch protocol_table[] = {
     { PROTOCOL_EVENT_CTCP_ACTION,               protocol_ctcp_action },
     { PROTOCOL_EVENT_CTCP_CLIENTINFO,           protocol_ctcp_info },
     { PROTOCOL_EVENT_CTCP_DCC,                  protocol_ctcp_info },
@@ -433,8 +433,8 @@ static const protocol_dispatch_t protocol_table[] = {
     { PROTOCOL_EVENT_NONE,                      NULL } 
 };
 
-int protocol_init(protocol_t *protocol,
-        kirc_context_t *ctx)
+int protocol_init(struct protocol *protocol,
+        struct kirc_context *ctx)
 {
     memset(protocol, 0, sizeof(*protocol));
 
@@ -444,7 +444,7 @@ int protocol_init(protocol_t *protocol,
     return 0;
 }
 
-int protocol_parse(protocol_t *protocol, char *line)
+int protocol_parse(struct protocol *protocol, char *line)
 {
 
     char line_copy[MESSAGE_MAX_LEN];
@@ -530,7 +530,7 @@ int protocol_parse(protocol_t *protocol, char *line)
     return 0;
 }
 
-int protocol_handle(protocol_t *protocol)
+int protocol_handle(struct protocol *protocol)
 {
     for(int i = 0; protocol_table[i].handler != NULL; ++i) {
         if (protocol_table[i].event == protocol->event) {

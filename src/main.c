@@ -15,30 +15,30 @@
 #include "terminal.h"
 #include "transport.h"
 
-static int kirc_run(kirc_context_t *ctx)
+static int kirc_run(struct kirc_context *ctx)
 {
-    editor_t editor;
+    struct editor editor;
 
     if (editor_init(&editor, ctx) < 0) {
         fprintf(stderr, "editor_init failed\n");
         return -1;
     }
 
-    transport_t transport;
+    struct transport transport;
 
     if (transport_init(&transport, ctx) < 0) {
         fprintf(stderr, "transport_init failed\n");
         return -1;
     }
 
-    network_t network;
+    struct network network;
 
     if (network_init(&network, &transport, ctx) < 0) {
         fprintf(stderr, "network_init failed\n");
         return -1;
     }
 
-    dcc_t dcc;
+    struct dcc dcc;
 
     if (dcc_init(&dcc, ctx) < 0) {
         fprintf(stderr, "dcc_init failed\n");
@@ -63,7 +63,7 @@ static int kirc_run(kirc_context_t *ctx)
     size_t siz = sizeof(ctx->target);
     safecpy(ctx->target, ctx->channels[0], siz);
 
-    terminal_t terminal;
+    struct terminal terminal;
 
     if (terminal_init(&terminal, ctx) < 0) {
         fprintf(stderr, "terminal_init failed\n");
@@ -148,7 +148,7 @@ static int kirc_run(kirc_context_t *ctx)
 
                     *eol = '\0';
 
-                    protocol_t protocol;
+                    struct protocol protocol;
                     protocol_init(&protocol, ctx);
                     protocol_parse(&protocol, msg);
 
@@ -217,7 +217,7 @@ static int kirc_run(kirc_context_t *ctx)
 
 int main(int argc, char *argv[])
 {
-    kirc_context_t ctx;
+    struct kirc_context ctx;
 
     if (config_init(&ctx) < 0) {
         return EXIT_FAILURE;
