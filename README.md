@@ -66,20 +66,6 @@ socat:
          proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport>
     kirc -s 127.0.0.1 -p 6667 alice
 
-Key Bindings
-------------
-
-Control keys are mapped to familiar text-editing bindings:
-
-    CTRL+B               move cursor left
-    CTRL+F               move cursor right
-    CTRL+P               navigate command history (previous)
-    CTRL+N               navigate command history (next)
-    CTRL+E               move cursor to end of line
-    CTRL+A               move cursor to start of line
-    CTRL+U               delete entire line
-    CTRL+C               force quit kirc
-
 License
 -------
 
