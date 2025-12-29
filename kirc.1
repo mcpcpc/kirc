@@ -145,6 +145,9 @@ Connect to irc.example.org on port 6667 and join channels #foo and #bar
 .TP
 .B KIRC_SERVER=irc.libera.chat KIRC_PORT=6697 kirc alice
 Use environment variables to set server and port
+.TP
+.B kirc alice | tee -a kirc-$(date +%Y%m%d).log
+Connect and create a log file with current date as the title
 .SH DCC FILE TRANSFERS
 .B kirc
 supports Direct Client-to-Client file transfers, including XDCC file requests

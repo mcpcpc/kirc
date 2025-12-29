@@ -39,11 +39,6 @@ See `man kirc` for a more usage information.
 Examples
 --------
 
-Connect and create a log file:
-
-    kirc -s irc.example.org -p 6667 mynick \
-        | tee -a kirc-$(date +%Y%m%d).log
-
 Generate a BASE64 authentication token and connect
 using the SASL PLAIN mechanism:
 
