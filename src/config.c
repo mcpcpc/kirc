@@ -6,7 +6,6 @@
  */
 
 #include "config.h"
-#include "helper.h"
 
 int config_validate_port(const char *value)
 {
