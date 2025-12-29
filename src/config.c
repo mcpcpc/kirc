@@ -55,11 +55,20 @@ void config_parse_channels(kirc_context_t *ctx, char *value)
 void config_parse_mechanism(kirc_context_t *ctx, char *value)
 {
     char *mechanism = strtok(value, ":");
+
+    if (mechanism == NULL) {
+        return;
+    }
+
     char *token = strtok(NULL, ":");
 
     if (strcmp(mechanism, "EXTERNAL") == 0) {
         ctx->mechanism = SASL_EXTERNAL;
     } else if (strcmp(mechanism, "PLAIN") == 0) {
+        if (token == NULL) {
+            return;
+        }
+    
         ctx->mechanism = SASL_PLAIN;
         safecpy(ctx->auth, token, sizeof(ctx->auth));
     }
