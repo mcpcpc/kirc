@@ -1,155 +1,330 @@
-.TH KIRC 1 "December 2025" "kirc 1.0.0" "User Commands"
+.TH KIRC 1 "December 2025"
 .SH NAME
 kirc \- a tiny, dependency-light IRC client
 .SH SYNOPSIS
 .B kirc
-.RB [<options>]
+.RB [\-s " server"]
+.RB [\-p " port"]
+.RB [\-c " channel(s)"]
+.RB [\-r " realname"]
+.RB [\-u " username"]
+.RB [\-k " password"]
+.RB [\-a " auth"]
 .RB <nickname>
 .SH DESCRIPTION
 .B kirc
-is an extremely fast and simple IRC client designed with portability in mind,
-following the "Keep It Simple, Stupid" (KISS) philosophy. It provides a
-keyboard-driven interface for IRC communication.
+is an extremely fast and simple Internet Relay Chat (IRC) client designed with
+portability and minimalism in mind, following the "Keep It Simple, Stupid" (KISS)
+philosophy. It provides a keyboard-driven interface for real-time IRC communication
+and is optimized to run on systems with minimal dependencies, making it suitable for
+embedded systems, lightweight containers, and resource-constrained environments.
 .PP
-This client reads from STDIN and prints to STDOUT, so all traffic can be
-multiplexed and text parsed or modified using external commands. All highlighted
-text and color can be controlled with ANSI escape sequences.
+The primary design principle of
+.B kirc
+is to maintain a small codebase while providing essential IRC functionality. The
+client follows the Unix philosophy of doing one thing well: it reads from STDIN
+and prints to STDOUT, allowing all traffic to be easily multiplexed and processed
+through external commands and shell pipelines. This design enables powerful text
+filtering, logging, and integration with other Unix tools.
 .PP
-For best results and rendering, use a terminal emulator with 256 color support,
-such as xterm-256color.
+All highlighted text and color can be controlled with ANSI escape sequences,
+providing full control over output styling and appearance. The client is compatible
+with both traditional and modern terminal emulators.
+.PP
+For best results and optimal rendering with full color support, use a terminal
+emulator with 256 color support, such as xterm-256color, GNOME Terminal, Konsole,
+or iTerm2. Most modern terminal emulators will provide a pleasant experience with
+.B kirc
+with default settings.
 .SH OPTIONS
+The following options are available. These can also be set using environment
+variables (see ENVIRONMENT section), which will be overridden by any command-line
+arguments. The nickname argument is always required.
 .TP
 .BI \-s " server"
-Specifies IRC server hostname. 
+Specifies the IRC server hostname or IP address to connect to. The server name is
+passed directly to the network layer without validation, so ensure it is correct
+before connecting.
+.br
 Default: irc.libera.chat
 .TP
 .BI \-p " port"
-Specifies IRC server port.
+Specifies the TCP port number used to connect to the IRC server. Standard IRC
+ports are 6667 (plaintext) and 6697 (with TLS/SSL). Ensure your firewall permits
+outbound connections on the specified port.
+.br
 Default: 6667
 .TP
 .BI \-c " channel(s)"
-Specifies the channel(s) to JOIN (comma or pipe separated). Note that the first
-channel in the list will be used as the default messaging channel after startup.
+Specifies the channel(s) to JOIN upon successful connection. Multiple channels can
+be specified as a comma-separated or pipe-separated list without spaces
+(e.g., "#channel1,#channel2"). The first channel in the list will be set as the
+default target for messages sent without an explicit destination. Channel names
+must conform to IRC specifications (typically starting with # or &).
 .TP
 .BI \-r " realname"
-Specifies the user's real name. By default, the client uses the nickname during
-the initial connection
+Specifies the user's real name as sent during the IRC connection handshake. This
+value is visible in WHOIS queries and other user information lookups performed by
+other users. If not specified, the client defaults to using the nickname. This can
+be any string up to 63 characters.
 .TP
 .BI \-u " username"
-Specifies the USER connection username. By default, the client will assume the
-username to be the nickname during the initial connection
+Specifies the USER connection username, which becomes part of your user's hostmask
+(e.g., user@host). This is displayed in various IRC commands and messages. If not
+specified, the client defaults to using the nickname. This should typically be
+alphanumeric characters without spaces.
 .TP
 .BI \-k " password"
-Specifies the plain text PASS connection value associated with the respective
-username or nickname
+Specifies the plain text PASS connection value, typically used for authentication
+with the server or services. This is sent during the initial connection phase.
+Be cautious with this option as the password is visible in the command history and
+process list. For sensitive configurations, consider using the KIRC_PASSWORD
+environment variable instead.
 .TP
 .BI \-a " auth"
-Specifies SASL authentication mechanism and token value to be used. The argument
-value is comprised of a colon-delimited string, where the first token is equal
-to the mechanism (i.e. "PLAIN", "EXTERNAL", etc.) and the second string is the
-BASE64 encoded authentication token (e.g. "PLAIN:amlsbGVzAGppbGxlcwBzZXNhbWU=")
+Specifies SASL (Simple Authentication and Security Layer) authentication mechanism
+and token value to be used for connection authentication. The argument value is
+comprised of a colon-delimited string, where the first token is the authentication
+mechanism (e.g., "PLAIN", "EXTERNAL", "SCRAM-SHA-256", etc.) and the second string
+is the mechanism-specific authentication credential (typically BASE64 encoded).
+.br
+Example: "PLAIN:amlsbGVzAGppbGxlcwBzZXNhbWU=" (see EXAMPLES for token generation)
+.SH EXIT STATUS
+.TP
+.B 0
+Successful program execution and normal client termination.
+.TP
+.B 1
+Usage error, syntax error, connection failure, or other operational error. Check
+the terminal output for specific error messages to diagnose the issue.
 .SH ENVIRONMENT
-The following environment variables can be used to set defaults, which will be
-overridden by command-line options:
+The following environment variables can be used to set defaults for connection
+parameters. All environment variables will be overridden by any corresponding
+command-line options. This is useful for creating shell aliases or scripts that
+establish connections with specific parameters.
 .TP
 .B KIRC_SERVER
-Default IRC server hostname
+Default IRC server hostname or IP address. Equivalent to the
+.BI \-s
+option.
 .TP
 .B KIRC_PORT
-Default server port
+Default server port number. Equivalent to the
+.BI \-p
+option.
 .TP
 .B KIRC_CHANNELS
-Default channels to join (comma or pipe separated)
+Default channels to join upon connection (comma or pipe separated). Equivalent to
+the
+.BI \-c
+option.
 .TP
 .B KIRC_REALNAME
-Default real name
+Default real name to use in WHOIS and other user information. Equivalent to the
+.BI \-r
+option.
 .TP
 .B KIRC_USERNAME
-Default username
+Default username for the connection. Equivalent to the
+.BI \-u
+option.
 .TP
 .B KIRC_PASSWORD
-Default password
+Default password for connection authentication. Equivalent to the
+.BI \-k
+option. Be cautious storing sensitive information in environment variables.
 .TP
 .B KIRC_AUTH
-Default SASL authentication token
+Default SASL authentication token and mechanism. Equivalent to the
+.BI \-a
+option.
 .SH COMMANDS
+Once connected to an IRC server,
+.B kirc
+supports the following commands. Commands are entered in the input line and
+executed by pressing ENTER. Text entered without a command prefix is treated as
+a message to the current target.
 .TP
 .BI /<command>
-Send a raw IRC command to the server (e.g. /JOIN, /PART, /WHOIS, etc.)
+Send a raw IRC command to the server. This allows direct access to all IRC
+protocol commands. Examples include /JOIN, /PART, /WHOIS, /NICK, /KICK, /BAN,
+/TOPIC, /MODE, /INVITE, and many others. Refer to IRC protocol documentation
+(RFC 1459) for a complete list of supported commands. The client does not
+validate or pre-process raw commands, so ensure correct syntax before sending.
 .TP
 .BI /set " <target>"
-Set the default message channel or nickname to 
-.I <target>
+Set the default message channel or nickname to
+.I <target>.
+All subsequent messages entered without an explicit target will be sent to this
+channel or user. The current target is typically displayed in the status line or
+prompt area.
 .TP
 .BI <message>
-Send PRIVMSG to set target nickname or channel with 
+Send a PRIVMSG to the currently set target (channel or nickname) with
 .I <message>
-as the content
+as the message content. This is the primary way to communicate in IRC. Messages
+are displayed to all users in the target channel or privately to the target user.
 .TP
 .BI @<target> " <message>"
-Send
-.I <message>
-to a specified
+Send a PRIVMSG to a specified
 .I <target>
-nickname or channel
+(channel or nickname) with
+.I <message>
+as the content, without changing the default target. This allows sending one-off
+messages to other destinations while maintaining your primary conversation context.
 .TP
 .BI /me " <action>"
-Send CTCP
-.I <action>
-to set target nickname or channel
+Send a CTCP ACTION command to the currently set target. This displays your message
+as an action (e.g., "* alice does something") to all users in the target channel
+or to the target user. Commonly used for expressing actions or emotions.
 .TP
-.BI /ctcp " <target> <command>"
-send a raw CTCP
-.I <command>
-(e.g. "CLIENTINFO", "DCC", "PING", "TIME", and "VERSION") to
+.BI /ctcp " <target> <command> [<arguments>...]"
+Send a raw Client-to-Client Protocol (CTCP) command to the specified
 .I <target>
-nickname or channel
+nickname or channel. Common CTCP commands include "CLIENTINFO", "TIME", "VERSION",
+"PING", and "DCC". Arguments are separated by spaces. CTCP commands are typically
+used for client discovery and file transfers (see DCC FILE TRANSFERS section).
 .SH KEY BINDINGS
+.B kirc
+provides standard readline-style key bindings for line editing and command history
+navigation. The following key combinations are supported:
 .TP
 .B CTRL+C
-Force quit kirc
+Force quit
+.B kirc
+immediately, disconnecting from the server without sending a QUIT command. This
+is useful for emergency termination or when the normal exit mechanism is unresponsive.
 .TP
 .B CTRL+U
-Delete entire line
+Delete the entire current input line, clearing all typed text and returning to an
+empty prompt.
 .TP
-.B Arrow Left
-Move cursor left
+.B Arrow Left (or CTRL+B)
+Move cursor one character to the left.
 .TP
-.B Arrow Right
-Move cursor right
+.B Arrow Right (or CTRL+F)
+Move cursor one character to the right.
 .TP
-.B Arrow Up
-Navigate command history (previous)
+.B Arrow Up (or CTRL+P)
+Navigate backwards through command history, displaying the previous command entered.
+Pressing multiple times cycles through older commands.
 .TP
-.B Arrow Down
-Navigate command history (next)
+.B Arrow Down (or CTRL+N)
+Navigate forwards through command history, displaying the next (more recent) command
+entered. Pressing at the end of history returns to the empty prompt.
 .TP
-.B Home (or ESC[H)
-Move cursor to start of line
+.B Home (or CTRL+A)
+Move cursor to the beginning of the current input line.
 .TP
-.B End (or ESC[F)
-Move cursor to end of line
+.B End (or CTRL+E)
+Move cursor to the end of the current input line.
 .TP
 .B Delete
-Delete character at cursor
+Delete the character at the current cursor position.
 .TP
-.B Backspace
-Delete character before cursor
+.B Backspace (or CTRL+H)
+Delete the character immediately before the cursor position and move the cursor
+back one character.
 .SH EXAMPLES
+.SS Basic usage
 .TP
 .B kirc alice
-Connect with nickname 'alice' to the default server (irc.libera.chat:6667) and join #chat
+Connect with nickname 'alice' to the default Libera.Chat server (irc.libera.chat:6667).
+The client will use 'alice' as the username and real name if not otherwise specified.
+.SS Advanced connection parameters
 .TP
 .B kirc \-s irc.example.org \-p 6667 \-c "#foo,#bar" alice
-Connect to irc.example.org on port 6667 and join channels #foo and #bar
+Connect to a custom IRC server (irc.example.org) on port 6667 and automatically join
+the channels #foo and #bar upon connection. The #foo channel becomes the default
+message target.
+.SS Environment variables
 .TP
 .B KIRC_SERVER=irc.libera.chat KIRC_PORT=6697 kirc alice
-Use environment variables to set server and port
+Use environment variables to set the server and port for this session. These values
+can be permanently set in shell profile files for convenience.
+.SS Logging
+.TP
+.B kirc alice | tee -a kirc-$(date +%Y%m%d).log
+Connect and simultaneously save all output to a log file named with the current date
+(e.g., kirc-20251229.log). The
+.B tee
+command duplicates output while the
+.B \\-a
+flag appends to the file rather than overwriting it.
+.SS SASL authentication
+.TP
+.B kirc \-a \\[dq]PLAIN:$(printf \[aq]%s\0%s\0%s\[aq] \[aq]alice\[aq] \[aq]alice\[aq] \[aq]password\[aq] | base64)\\[dq] alice
+Generate a BASE64-encoded SASL PLAIN authentication token and connect using SASL
+authentication. The token format is "username\0username\0password" (with NULL bytes
+represented as \\0) encoded in BASE64. This example demonstrates proper token generation
+for SASL PLAIN mechanism.
+.SS TLS/SSL connections via socat
+.TP
+.B socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:irc.example.org:6697 & kirc \-s 127.0.0.1 alice
+Establish a TLS/SSL encrypted connection to irc.example.org by proxying through socat.
+Socat listens on local port 6667 and forwards all traffic through an encrypted channel
+to the remote server's port 6697. This approach is useful when
+.B kirc
+doesn't have native TLS support or when additional connection filtering is needed.
+.SS Proxy connections via socat
+.TP
+.B socat tcp-listen:6667,fork,reuseaddr,bind=127.0.0.1 proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport> & kirc \-s 127.0.0.1 \-p 6667 alice
+Connect to irc.example.org through an HTTP/HTTPS proxy server using socat as an
+intermediary. Replace <proxyurl> and <proxyport> with your actual proxy server
+details. This technique allows IRC access from networks with strict outbound
+connection policies.
+.SH DCC FILE TRANSFERS
+.SS Overview
+.B kirc
+supports Direct Client-to-Client (DCC) file transfers, including XDCC file requests
+commonly used on IRC file servers. DCC transfers occur directly between IRC clients
+without passing through the IRC server, making them independent of server bandwidth
+limitations.
+.SS Receiving files
+When another IRC user sends you a file via DCC SEND, 
+.B kirc
+automatically detects the incoming file transfer request and begins downloading the
+file to the current working directory. The client will display a status message:
+.PP
+.RS
+.nf
+dcc: receiving <filename> from <sender> (<size> bytes)
+.fi
+.RE
+.PP
+Transfer progress and completion messages will appear as the file downloads.
+The file is saved with its original filename. If a file with the same name exists,
+the behavior depends on the client configuration. Files are saved relative to the
+current working directory from which
+.B kirc
+was launched.
+.SS XDCC requests
+To request a file from an XDCC bot, use the standard XDCC request format:
+.PP
+.RS
+.nf
+/ctcp <botname> XDCC SEND #<packet_number>
+.fi
+.RE
+.PP
+The bot will initiate a DCC SEND transfer. 
+.B kirc
+automatically handles the incoming transfer and begins downloading the requested file.
+Multiple XDCC requests can be queued with a single bot, and the bot will process them
+sequentially.
+.SS Limitations
+.B kirc
+supports up to 16 simultaneous DCC transfers. Exceeding this limit will reject
+additional transfer requests. Files are always saved to the current working directory
+with their original filenames. Ensure adequate disk space is available before initiating
+large file transfers.
 .SH SEE ALSO
 .BR irc (1),
-.BR irssi (1),
-.BR weechat (1)
-.SH AUTHOR
-Michael Czigler <michaelczigler at icloud dot com>
+.BR socat (1)
+.SH STANDARDS
+.B kirc
+implements the Internet Relay Chat protocol as defined in RFC 1459, RFC 2222 (SASL),
+and IRCv3.1 specifications. The client supports CTCP (Client-to-Client Protocol)
+extensions for client-to-client communication and file transfers.
 .SH BUGS
-Please report bugs to https://github.com/mcpcpc/kirc/issues
+https://github.com/mcpcpc/kirc/issues

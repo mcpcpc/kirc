@@ -11,6 +11,7 @@
 #include "kirc.h"
 #include "terminal.h"
 #include "ansi.h"
+#include "utf8.h"
 
 typedef enum {
     EDITOR_EVENT_NONE = 0,

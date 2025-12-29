@@ -251,7 +251,7 @@ static int protocol_ctcp_parse(protocol_t *protocol)
     return 0;
 }
 
-static const protocol_dispatch_t dispatch_table[] = {
+static const protocol_dispatch_t protocol_table[] = {
     { PROTOCOL_EVENT_CTCP_ACTION,               protocol_ctcp_action },
     { PROTOCOL_EVENT_CTCP_CLIENTINFO,           protocol_ctcp_info },
     { PROTOCOL_EVENT_CTCP_DCC,                  protocol_ctcp_info },
@@ -532,9 +532,9 @@ int protocol_parse(protocol_t *protocol, char *line)
 
 int protocol_handle(protocol_t *protocol)
 {
-    for(int i = 0; dispatch_table[i].handler != NULL; ++i) {
-        if (dispatch_table[i].event == protocol->event) {
-            dispatch_table[i].handler(protocol);
+    for(int i = 0; protocol_table[i].handler != NULL; ++i) {
+        if (protocol_table[i].event == protocol->event) {
+            protocol_table[i].handler(protocol);
             return 0;
         }
     }

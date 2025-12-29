@@ -16,14 +16,14 @@ static void editor_backspace(editor_t *editor)
         return;  /* nothing to delete or out of range */
     }
 
-    /* find previous UTF-8 char boundary */
-    int prev = editor->cursor - 1;
-    while (prev > 0 && ((unsigned char)editor->scratch[prev] & 0xC0) == 0x80) {
-        prev--;
+    /* Get length of previous UTF-8 character */
+    int bytes = utf8_prev_char_len(editor->scratch, editor->cursor);
+    
+    if (bytes == 0) {
+        return;
     }
 
-    int bytes = editor->cursor - prev;
-    editor->cursor = prev;
+    editor->cursor -= bytes;
 
     memmove(editor->scratch + editor->cursor,
         editor->scratch + editor->cursor + bytes,
@@ -67,15 +67,16 @@ static void editor_delete(editor_t *editor)
         return;  /* at end of scratch string */
     }
 
-    /* find next UTF-8 char boundary */
-    int next = editor->cursor + 1;
-    while (next < len && ((unsigned char)editor->scratch[next] & 0xC0) == 0x80) {
-        next++;
+    /* Get length of next UTF-8 character using mbrtowc */
+    int bytes = utf8_next_char_len(editor->scratch, editor->cursor, len);
+    
+    if (bytes == 0) {
+        return;
     }
 
     memmove(editor->scratch + editor->cursor,
-        editor->scratch + next,
-        len - next + 1);
+        editor->scratch + editor->cursor + bytes,
+        len - (editor->cursor + bytes) + 1);
 }
 
 static void editor_history(editor_t *editor, int dir)
@@ -137,23 +138,14 @@ static void editor_move_right(editor_t *editor)
         return; /* at end */
     }
 
-    unsigned char c = (unsigned char)editor->scratch[editor->cursor];
-    int adv = 1;
-    if ((c & 0x80) == 0) {
-        adv = 1;
-    } else if ((c & 0xE0) == 0xC0) {
-        adv = 2;
-    } else if ((c & 0xF0) == 0xE0) {
-        adv = 3;
-    } else if ((c & 0xF8) == 0xF0) {
-        adv = 4;
-    }
-
-    if (editor->cursor + adv > len) {
-        /* truncated sequence, move to end */
-        editor->cursor = len;
-    } else {
+    /* Use mbrtowc to get proper character length */
+    int adv = utf8_next_char_len(editor->scratch, editor->cursor, len);
+    
+    if (adv > 0 && editor->cursor + adv <= len) {
         editor->cursor += adv;
+    } else {
+        /* Invalid sequence or truncated, move to end */
+        editor->cursor = len;
     }
 }
 
@@ -163,12 +155,12 @@ static void editor_move_left(editor_t *editor)
         return;
     }
 
-    int prev = editor->cursor - 1;
-    while (prev > 0 && ((unsigned char)editor->scratch[prev] & 0xC0) == 0x80) {
-        prev--;
+    /* Get length of previous UTF-8 character */
+    int bytes = utf8_prev_char_len(editor->scratch, editor->cursor);
+    
+    if (bytes > 0) {
+        editor->cursor -= bytes;
     }
-
-    editor->cursor = prev;
 }
 
 static void editor_move_home(editor_t *editor)
@@ -266,6 +258,11 @@ static void editor_insert_bytes(editor_t *editor, const char *buf, int n)
 
     if (len + n >= siz) {
         return;  /* scratch full */
+    }
+
+    /* Validate UTF-8 sequence before inserting */
+    if (!utf8_validate(buf, n)) {
+        return;  /* invalid UTF-8, reject */
     }
 
     memmove(editor->scratch + editor->cursor + n,
@@ -454,13 +451,12 @@ int editor_handle(editor_t *editor)
     int start = editor->cursor;
     int used = 0;
     while (start > 0) {
-        int prev = start - 1;
-        while (prev > 0 && ((unsigned char)editor->scratch[prev] & 0xC0) == 0x80) prev--;
-        int char_bytes = start - prev;
-        int cw = display_width_bytes(editor->scratch + prev, char_bytes);
+        int char_bytes = utf8_prev_char_len(editor->scratch, start);
+        if (char_bytes == 0) break;
+        int cw = display_width_bytes(editor->scratch + start - char_bytes, char_bytes);
         if (used + cw > avail) break;
         used += cw;
-        start = prev;
+        start -= char_bytes;
     }
 
     /* compute how many bytes we can print from start given avail */
@@ -468,13 +464,12 @@ int editor_handle(editor_t *editor)
     int p = start;
     int printed_width = 0;
     while (p < len) {
-        int next = p + 1;
-        while (next < len && ((unsigned char)editor->scratch[next] & 0xC0) == 0x80) next++;
-        int cb = next - p;
+        int cb = utf8_next_char_len(editor->scratch, p, len);
+        if (cb == 0) break;
         int cw = display_width_bytes(editor->scratch + p, cb);
         if (printed_width + cw > avail) break;
         printed_width += cw;
-        p = next;
+        p += cb;
     }
     bytes_to_print = p - start;
 
