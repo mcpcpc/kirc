@@ -58,12 +58,6 @@ static void ctcp_handle_version(network_t *network, protocol_t *protocol)
     }
 }
 
-/* Dispatch table for CTCP handlers */
-typedef struct {
-    protocol_event_t event;
-    ctcp_handler_fn handler;
-} ctcp_dispatch_entry_t;
-
 static const ctcp_dispatch_entry_t ctcp_dispatch_table[] = {
     { PROTOCOL_EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo },
     { PROTOCOL_EVENT_CTCP_PING, ctcp_handle_ping },
