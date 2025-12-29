@@ -118,10 +118,10 @@ static int kirc_run(struct kirc_context *ctx)
         if (fds[0].revents & POLLIN) {
             editor_process_key(&editor);
 
-            if (editor.event == EDITOR_EVENT_TERMINATE)
+            if (editor.state == EDITOR_STATE_TERMINATE)
                 break;
 
-            if (editor.event == EDITOR_EVENT_SEND) {
+            if (editor.state == EDITOR_STATE_SEND) {
                 char *msg = editor_last_entry(&editor);
                 network_command_handler(&network, msg);
             }

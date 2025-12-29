@@ -330,7 +330,7 @@ int editor_init(struct editor *editor, struct kirc_context *ctx)
     memset(editor, 0, sizeof(*editor));
     
     editor->ctx = ctx;
-    editor->event = EDITOR_EVENT_NONE;
+    editor->state = EDITOR_STATE_NONE;
     editor->position = -1;
 
     setlocale(LC_CTYPE, "");
@@ -346,7 +346,7 @@ int editor_process_key(struct editor *editor)
         return 1;
     }
     
-    editor->event = EDITOR_EVENT_NONE;
+    editor->state = EDITOR_STATE_NONE;
 
     switch(c) {
     case HT:  /* CTRL-I or TAB */
@@ -355,7 +355,7 @@ int editor_process_key(struct editor *editor)
 
     case ETX:  /* CTRL-C */
         editor_clear(editor);
-        editor->event = EDITOR_EVENT_TERMINATE;
+        editor->state = EDITOR_STATE_TERMINATE;
         break;
 
     case NAK:  /* CTRL-U */
@@ -369,7 +369,7 @@ int editor_process_key(struct editor *editor)
 
     case CR:  /* CTRL-M or ENTER */
         if (editor_enter(editor) > 0) {
-            editor->event = EDITOR_EVENT_SEND;
+            editor->state = EDITOR_STATE_SEND;
         }
         break;
 

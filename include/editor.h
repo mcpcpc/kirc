@@ -13,15 +13,15 @@
 #include "ansi.h"
 #include "utf8.h"
 
-enum editor_event {
-    EDITOR_EVENT_NONE = 0,
-    EDITOR_EVENT_SEND,
-    EDITOR_EVENT_TERMINATE
+enum editor_state {
+    EDITOR_STATE_NONE = 0,
+    EDITOR_STATE_SEND,
+    EDITOR_STATE_TERMINATE
 };
 
 struct editor {
     struct kirc_context *ctx;
-    enum editor_event event;
+    enum editor_state state;
     char scratch[MESSAGE_MAX_LEN];
     char history[KIRC_HISTORY_SIZE][MESSAGE_MAX_LEN];
     int head;
