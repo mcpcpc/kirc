@@ -31,13 +31,10 @@ building: `./kirc`.
 Usage
 -----
 
-At minimum, supply a nickname to connect. For full options,
-see the manpage.
+See `man kirc` for a more usage information.
 
     kirc [-s server] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-a auth] <nickname>
-
-See `man kirc` for more usage information.
 
 Examples
 --------
