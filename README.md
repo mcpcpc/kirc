@@ -30,23 +30,17 @@ building: `./kirc`.
 
 Usage
 -----
+
 At minimum, supply a nickname to connect. For full options,
 see the manpage.
 
     kirc [-s server] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-a auth] <nickname>
 
+See `man kirc` for more usage information.
+
 Examples
 --------
-
-Connect to the default server with nickname `alice`:
-
-    kirc alice
-
-Connect to a specific server and join channels:
-
-    kirc -s irc.example.org -p 6667 \
-        -c "#foo,#bar" alice
 
 Connect and create a log file:
 
@@ -72,16 +66,6 @@ socat:
          proxy:<proxyurl>:irc.example.org:6667,proxyport=<proxyport>
     kirc -s 127.0.0.1 -p 6667 alice
 
-Commands & Aliases
-------------------
-
-    @<target> <message>  send `PRIVMSG` to a target user or channel
-    /<command>           send a raw command to the IRC server
-    /set <target>        set a new default message target
-    /me <action>         send a CTCP ACTION to set target
-    /ctcp <nick> <cmd>   send a raw CTCP command (e.g. “CLIENTINFO”,
-                         “DCC”, “PING”, “TIME“, and “VERSION”)
-
 Key Bindings
 ------------
 
@@ -95,7 +79,6 @@ Control keys are mapped to familiar text-editing bindings:
     CTRL+A               move cursor to start of line
     CTRL+U               delete entire line
     CTRL+C               force quit kirc
-
 
 License
 -------
