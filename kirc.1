@@ -154,12 +154,20 @@ When another user sends you a file via DCC SEND, kirc will automatically detect 
 incoming file transfer request and begin downloading the file the current working
 directory. The file transfer will display:
 .PP
-.DL dcc: receiving <filename> from <sender> (<size> bytes)
+.RS
+.nf
+dcc: receiving <filename> from <sender> (<size> bytes)
+.fi
+.RE
 .PP
 Transfer progress and completion messages will appear as the file downloads. To request
 a file from an XDCC bot, use the standard XDCC request format:
 .PP
-.DL /ctcp <botname> XDCC SEND #<packet_number>
+.RS
+.nf
+/ctcp <botname> XDCC SEND #<packet_number>
+.fi
+.RE
 .PP
 The bot will initiate a DCC SEND transfer, which kirc will automatically handle. Note
 that kirc supports up to 16 simultaneous DCC transfers. Files are saved to the current
