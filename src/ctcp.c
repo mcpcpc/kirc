@@ -67,7 +67,7 @@ void ctcp_handle_event(network_t *network, protocol_t *protocol)
 {
     for(int i = 0; ctcp_table[i].handler != NULL; ++i) {
         if (ctcp_table[i].event == protocol->event) {
-            ctcp_table[i].handler(protocol);
+            ctcp_table[i].handler(network, protocol);
             return;
         }
     }
