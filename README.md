@@ -36,16 +36,6 @@ See `man kirc` for a more usage information.
     kirc [-s server] [-p port] [-c channels] [-r realname]
          [-u username] [-k password] [-a auth] <nickname>
 
-Examples
---------
-
-Generate a BASE64 authentication token and connect
-using the SASL PLAIN mechanism:
-
-    python -c "import base64;print(base64.encodebytes(b'alice\x00alice\x00password'))"
-    # output: b'YWxpY2UAYWxpY2UAcGFzc3dvcmQ=\n'
-    kirc -a PLAIN:YWxpY2UAYWxpY2UAcGFzc3dvcmQ= alice
-
 License
 -------
 
