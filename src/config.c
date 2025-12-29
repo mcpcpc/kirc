@@ -7,7 +7,7 @@
 
 #include "config.h"
 
-int config_validate_port(const char *value)
+static int config_validate_port(const char *value)
 {
     if ((value == NULL) || (*value == '\0')) {
         return -1;
@@ -40,7 +40,7 @@ int config_validate_port(const char *value)
     return 0;
 }
 
-void config_parse_channels(kirc_context_t *ctx, char *value)
+static void config_parse_channels(kirc_context_t *ctx, char *value)
 {
     char *tok = NULL;
     size_t idx = 0;
@@ -52,7 +52,7 @@ void config_parse_channels(kirc_context_t *ctx, char *value)
     }
 }
 
-void config_parse_mechanism(kirc_context_t *ctx, char *value)
+static void config_parse_mechanism(kirc_context_t *ctx, char *value)
 {
     char *mechanism = strtok(value, ":");
 
