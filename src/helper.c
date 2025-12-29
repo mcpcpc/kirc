@@ -52,4 +52,4 @@ char *find_message_end(const char *buffer, size_t len)
     }
 
     return NULL;
-
+}
