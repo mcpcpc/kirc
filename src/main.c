@@ -143,7 +143,7 @@ static int kirc_run(kirc_context_t *ctx)
                 size_t remaining = network.len;
 
                 for (;;) {
-                    char *eol = parser_find_message_end(msg, remaining);
+                    char *eol = find_message_end(msg, remaining);
                     if (!eol) break; /* no complete message found */
 
                     *eol = '\0';
