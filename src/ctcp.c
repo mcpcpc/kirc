@@ -7,9 +7,6 @@
 
 #include "ctcp.h"
 
-/* CTCP handler function type */
-typedef void (*ctcp_handler_fn)(network_t *network, protocol_t *protocol);
-
 static void ctcp_handle_clientinfo(network_t *network, protocol_t *protocol)
 {
     if (strcmp(protocol->command, "PRIVMSG") == 0) {
