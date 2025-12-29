@@ -46,7 +46,7 @@ char *find_message_end(const char *buffer, size_t len)
         } else if (buffer[i] == '\r' && buffer[i + 1] == '\n') {
             /* Message end found only if not inside CTCP sequence */
             if (!ctcp_active) {
-                return buffer + i;
+                return (char *)(buffer + i);
             }
         }
     }
