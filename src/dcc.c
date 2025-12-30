@@ -494,12 +494,19 @@ int dcc_cancel(struct dcc *dcc, int transfer_id)
     return 0;
 }
 
-void dcc_handle_event(struct dcc *dcc, struct event *event)
+void dcc_handle(struct dcc *dcc, struct network *network, struct event *event)
 {
-    if (event->type == EVENT_CTCP_DCC) {
-        if (strcmp(event->command, "PRIVMSG") == 0) {
-            dcc_request(dcc, event->nickname,
-                event->message);
-        }
+    (void)network;
+    
+    if (dcc == NULL || event == NULL) {
+        return;
+    }
+    
+    if (event->type != EVENT_CTCP_DCC) {
+        return;
+    }
+
+    if (strcmp(event->command, "PRIVMSG") == 0) {
+        dcc_request(dcc, event->nickname, event->message);
     }
 }

@@ -9,31 +9,41 @@
 
 void ctcp_handle_clientinfo(struct network *network, struct event *event)
 {
-    if (strcmp(event->command, "PRIVMSG") == 0) {
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
         network_send(network,
             "NOTICE %s :\001PING ACTION CLIENTINFO DCC PING TIME VERSION\001\r\n",
-            event->nickname);
+            nickname);
     }
 }
 
 void ctcp_handle_ping(struct network *network, struct event *event)
 {
-    if (strcmp(event->command, "PRIVMSG") == 0) {
-        if (event->message[0] != '\0') {
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    const char *message = event->message;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
+        if (message[0] != '\0') {
             network_send(network,
                 "NOTICE %s :\001PING %s\001\r\n",
-                event->nickname, event->message);
+                nickname, message);
         } else {
             network_send(network,
                 "NOTICE %s :\001PING\001\r\n",
-                event->nickname);
+                nickname);
         }
     }
 }
 
 void ctcp_handle_time(struct network *network, struct event *event)
 {
-    if (strcmp(event->command, "PRIVMSG") == 0) {
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
         char tbuf[128];
         time_t now;
         time(&now);
@@ -41,15 +51,18 @@ void ctcp_handle_time(struct network *network, struct event *event)
         strftime(tbuf, sizeof(tbuf), "%c", info);
         network_send(network,
             "NOTICE %s :\001TIME %s\001\r\n",
-            event->nickname, tbuf);
+            nickname, tbuf);
     }
 }
 
 void ctcp_handle_version(struct network *network, struct event *event)
 {
-    if (strcmp(event->command, "PRIVMSG") == 0) {
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
         network_send(network,
-            "NOTICE %s :\001VERSION kirc %s\001\r\n", event->nickname, 
+            "NOTICE %s :\001VERSION kirc %s\001\r\n", nickname, 
             KIRC_VERSION_MAJOR "." KIRC_VERSION_MINOR "." KIRC_VERSION_PATCH);
     }
 }

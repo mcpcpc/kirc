@@ -31,34 +31,35 @@
 #include <wctype.h>
 
 #ifndef NAME_MAX
-#define NAME_MAX               255
+#define NAME_MAX                 255
 #endif
 
 #ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX          255
+#define HOST_NAME_MAX            255
 #endif
 
-#define CHANNEL_MAX_LEN        200  /* per RFC1459 */
-#define MESSAGE_MAX_LEN        512  /* per RFC1459 */
-#define AUTH_CHUNK_SIZE        400  /* per IRCv3.1 */
+#define CHANNEL_MAX_LEN          200  /* per RFC1459 */
+#define MESSAGE_MAX_LEN          512  /* per RFC1459 */
+#define AUTH_CHUNK_SIZE          400  /* per IRCv3.1 */
 
-#define KIRC_VERSION_MAJOR     "1"
-#define KIRC_VERSION_MINOR     "1"
-#define KIRC_VERSION_PATCH     "0"
+#define KIRC_VERSION_MAJOR       "1"
+#define KIRC_VERSION_MINOR       "1"
+#define KIRC_VERSION_PATCH       "0"
 
-#define KIRC_CHANNEL_LIMIT     256
-#define KIRC_DCC_BUFFER_SIZE   8192
-#define KIRC_DCC_TRANSFERS_MAX 16
-#define KIRC_HISTORY_SIZE      64
-#define KIRC_PORT_RANGE_MAX    65535
-#define KIRC_TAB_WIDTH         4
-#define KIRC_TIMEOUT_MS        5000
-#define KIRC_TIMESTAMP_SIZE    6
-#define KIRC_TIMESTAMP_FORMAT  "%H:%M"
+#define KIRC_CHANNEL_LIMIT       256
+#define KIRC_DCC_BUFFER_SIZE     8192
+#define KIRC_DCC_TRANSFERS_MAX   16
+#define KIRC_HANDLER_MAX_ENTRIES 256
+#define KIRC_HISTORY_SIZE        64
+#define KIRC_PORT_RANGE_MAX      65535
+#define KIRC_TAB_WIDTH           4
+#define KIRC_TIMEOUT_MS          5000
+#define KIRC_TIMESTAMP_SIZE      6
+#define KIRC_TIMESTAMP_FORMAT    "%H:%M"
 
-#define KIRC_DEFAULT_COLUMNS   80
-#define KIRC_DEFAULT_PORT      "6667"
-#define KIRC_DEFAULT_SERVER    "irc.libera.chat"
+#define KIRC_DEFAULT_COLUMNS     80
+#define KIRC_DEFAULT_PORT        "6667"
+#define KIRC_DEFAULT_SERVER      "irc.libera.chat"
 
 enum sasl_mechanism {
     SASL_NONE = 0,

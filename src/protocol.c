@@ -112,8 +112,7 @@ static void protocol_privmsg_indirect(struct network *network, struct event *eve
 
     printf("\r" CLEAR_LINE DIM "%s" RESET
         " " BOLD "%s" RESET " [%s]: %s\r\n",
-        hhmm, event->nickname, event->channel,
-        event->message);
+        hhmm, event->nickname, event->channel, event->message);
 
 }
 
@@ -136,18 +135,21 @@ void protocol_nick(struct network *network, struct event *event)
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
+    struct kirc_context *ctx = event->ctx;
+    const char *nickname = event->nickname;
+    const char *message = event->message;
     
-    if (strcmp(event->nickname, event->ctx->nickname) == 0) {
-        size_t siz = sizeof(event->ctx->nickname) - 1;
-        strncpy(event->ctx->nickname, event->message, siz);
-        event->ctx->nickname[siz] = '\0';
+    if (ctx && strcmp(nickname, ctx->nickname) == 0) {
+        size_t siz = sizeof(ctx->nickname) - 1;
+        strncpy(ctx->nickname, message, siz);
+        ctx->nickname[siz] = '\0';
         printf("\r" CLEAR_LINE
             DIM "%s you are now known as %s" RESET "\r\n",
-            hhmm, event->message);
+            hhmm, message);
     } else {
         printf("\r" CLEAR_LINE
             DIM "%s %s is now known as %s" RESET "\r\n",
-            hhmm, event->nickname, event->message);
+            hhmm, nickname, message);
     }
 
 }
@@ -201,16 +203,16 @@ void protocol_ctcp_info(struct network *network, struct event *event)
     if (event->params[0] != '\0') {
         printf("\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s: %s\r\n",
-            hhmm, event->nickname, label,
+            hhmm, event->nickname, event->label,
             event->params);
     } else if (event->message[0] != '\0') {
         printf("\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s: %s\r\n",
-            hhmm, event->nickname, label,
+            hhmm, event->nickname, event->label,
             event->message);
     } else {
         printf("\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s\r\n",
-            hhmm, event->nickname, label);
+            hhmm, event->nickname, event->label);
     }
 }
