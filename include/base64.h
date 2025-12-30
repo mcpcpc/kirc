@@ -10,8 +10,6 @@
 
 #include "kirc.h"
 
-const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 /* Calculate the size of the encoded data based on input length */
 size_t base64_encoded_size(size_t len);
 

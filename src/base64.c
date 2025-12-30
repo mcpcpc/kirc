@@ -22,6 +22,7 @@ size_t base64_encoded_size(size_t len) {
 int base64_encode(char *out, const char *in, size_t in_len)
 {
     size_t i, j, v;
+    char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     if (in == NULL || in_len == 0 || out == NULL) {
         return -1;
