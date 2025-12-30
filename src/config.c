@@ -82,7 +82,7 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
     }
 
     if (count == 2) {
-        char *authzid = strtok(tokenx ":");
+        char *authzid = strtok(token, ":");
         char *authcid = strtok(NULL, ":");
         char *passwd = strtok(NULL, "");
     } else { 
