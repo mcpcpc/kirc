@@ -203,16 +203,14 @@ void protocol_ctcp_info(struct network *network, struct event *event)
     if (event->params[0] != '\0') {
         printf("\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s: %s\r\n",
-            hhmm, event->nickname, event->label,
-            event->params);
+            hhmm, event->nickname, label, event->params);
     } else if (event->message[0] != '\0') {
         printf("\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s: %s\r\n",
-            hhmm, event->nickname, event->label,
-            event->message);
+            hhmm, event->nickname, label, event->message);
     } else {
         printf("\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s\r\n",
-            hhmm, event->nickname, event->label);
+            hhmm, event->nickname, label);
     }
 }
