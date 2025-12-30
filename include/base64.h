@@ -16,6 +16,6 @@ const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy
 size_t base64_encoded_size(size_t len);
 
 /* Encode input data to base64 format */
-int base64_encode(char *out, const uint8_t *in, size_t in_len);
+int base64_encode(char *out, const char *in, size_t in_len);
 
 #endif // __KIRC_BASE64_H

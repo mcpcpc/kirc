@@ -19,7 +19,7 @@ size_t base64_encoded_size(size_t len) {
     return ret;
 }
 
-int base64_encode(char *out, const uint8_t *in, size_t in_len)
+int base64_encode(char *out, const char *in, size_t in_len)
 {
     size_t i, j, v;
 
