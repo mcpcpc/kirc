@@ -60,18 +60,22 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         return;
     }
 
-    char *token = strtok(NULL, ":");
-
     if (strcmp(mechanism, "EXTERNAL") == 0) {
         ctx->mechanism = SASL_EXTERNAL;
+        return;
     } else if (strcmp(mechanism, "PLAIN") == 0) {
-        if (token == NULL) {
-            return;
-        }
-    
         ctx->mechanism = SASL_PLAIN;
-        safecpy(ctx->auth, token, sizeof(ctx->auth));
+    } else {
+        return;  /* invalid mechanism */
     }
+
+    char *token = strtok(NULL, "");
+
+    if (token == NULL) {
+        return;  /* invalid token */
+    }
+
+    safecpy(ctx->auth, token, sizeof(ctx->auth));
 }
 
 static int config_apply_env(struct kirc_context *ctx, const char *env_name, 

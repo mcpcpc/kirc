@@ -10,6 +10,7 @@
 
 #include "kirc.h"
 #include "helper.h"
+#include "base64.h"
 
 int config_init(struct kirc_context *ctx);
 int config_parse_args(struct kirc_context *ctx, int argc, char *argv[]);
