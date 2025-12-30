@@ -19,7 +19,7 @@
 #include "transport.h"
 
 static void kirc_register_handlers(struct handler *handler) {
-    handler_set_default(handler, protocol_raw);
+    handler_default(handler, protocol_raw);
     handler_register(handler, EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo);
     handler_register(handler, EVENT_CTCP_PING, ctcp_handle_ping);
     handler_register(handler, EVENT_CTCP_TIME, ctcp_handle_time);
@@ -359,7 +359,6 @@ static int kirc_run(struct kirc_context *ctx)
                     event_init(&event, ctx);
                     event_parse(&event, msg);
 
-                    /* Dispatch event to registered handlers */
                     handler_dispatch(&handler, &network, &event, &output);
                     dcc_handle(&dcc, &network, &event);
 
@@ -377,7 +376,6 @@ static int kirc_run(struct kirc_context *ctx)
                     network.len = 0;
                 }
 
-                /* Flush accumulated output */
                 output_flush(&output);
                 editor_handle(&editor);
             }

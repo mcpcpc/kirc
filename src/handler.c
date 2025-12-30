@@ -7,7 +7,7 @@
 
 #include "handler.h"
 
-void handler_set_default(struct handler *handler,
+void handler_default(struct handler *handler,
         event_handler_fn handler_fn)
 {
     handler->default_handler = handler_fn;

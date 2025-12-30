@@ -21,7 +21,7 @@ struct handler {
     event_handler_fn default_handler;
 };
 
-void handler_set_default(struct handler *handler, event_handler_fn handler_fn);
+void handler_default(struct handler *handler, event_handler_fn handler_fn);
 void handler_register(struct handler *handler, enum event_type type, event_handler_fn handler_fn);
 void handler_dispatch(struct handler *handler, struct network *network, struct event *event, struct output *output);
 
