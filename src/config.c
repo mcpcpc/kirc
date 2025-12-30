@@ -77,7 +77,7 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
 
     int count = 0;
     
-    for (int i = 0; token[i] != NULL; ++i) {
+    for (int i = 0; token[i] != '\0'; ++i) {
         if (token[i] == ':') count++;
     }
 
