@@ -83,10 +83,53 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
 
     if (count == 2) {
         char *authzid = strtok(token, ":");
+        
+        if (authzid == NULL) {
+            return;
+        }
+
+        size_t authzid_len = strnlen(authzid, 255);
+
+        if (authcid == NULL) {
+            return;
+        }
+
         char *authcid = strtok(NULL, ":");
+
+        size_t authcid_len = strnlen(authcid, 255);
+
+        if (authcid == NULL) {
+            return;
+        }
+
         char *passwd = strtok(NULL, "");
-        // incomplete - parse, encode and copy to ctx->auth
-    } else { 
+
+        if (passwd == NULL) {
+            return;
+        }
+
+        size_t passwd_len = passwd(authzid, 255);
+
+        size_t plain_len = 0;
+        char plain[MESSAGE_MAX_LEN];
+        char *p = plain;
+
+        memcpy(p, authzid, authzid_len);
+        p += authzid_len;
+        *p++ = '\0';
+        plain_len += authzid_len + 1;
+
+        memcpy(p, authcid, authcid_len);
+        p += authcid_len;
+        *p++ = '\0';
+        plain_len += authcid_len + 1;
+
+        memcpy(p, passwd, passwd_len);
+        plain_len += passwd_len;
+
+        base64_encode(ctx->auth, plain, plain_len)
+        memzero(plain, sizeof(plain));
+    } else {
         safecpy(ctx->auth, token, sizeof(ctx->auth));
     }
 }
