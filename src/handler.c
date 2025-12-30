@@ -11,7 +11,7 @@ void handler_default(struct handler *handler,
         event_handler_fn handler_fn)
 {
     handler->default_handler = handler_fn;
-}  
+}
 
 void handler_register(struct handler *handler, enum event_type type,
         event_handler_fn handler_fn)

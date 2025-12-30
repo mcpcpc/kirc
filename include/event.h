@@ -191,7 +191,7 @@ enum event_type {
     EVENT_906_ERR_SASLABORTED,
     EVENT_907_ERR_SASLALREADY,
     EVENT_908_RPL_SASLMECHS
-} ;
+};
 
 struct event_dispatch_table {
     const char *command;

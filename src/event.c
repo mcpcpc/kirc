@@ -181,6 +181,7 @@ static const struct event_dispatch_table event_table[] = {
     { "908",     EVENT_908_RPL_SASLMECHS },
     { NULL,      EVENT_NONE }
 };
+
 int event_init(struct event *event, struct kirc_context *ctx)
 {
     memset(event, 0, sizeof(*event));

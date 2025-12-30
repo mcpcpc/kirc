@@ -30,12 +30,7 @@ void protocol_ping(struct network *network, struct event *event, struct output *
 }
 
 static void network_authenticate_plain(struct network *network)
-{
-    if (network->ctx->auth[0] == '\0') {
-        network_send(network, "AUTHENTICATE '*'\r\n");
-        return;
-    }
-    
+{   
     int len = strlen(network->ctx->auth);
 
     for (int offset = 0; offset < len; offset += AUTH_CHUNK_SIZE) {
@@ -54,6 +49,11 @@ void protocol_authenticate(struct network *network, struct event *event, struct 
     (void)event;
     (void)output;
 
+    if (network->ctx->auth[0] == '\0') {
+        network_send(network, "AUTHENTICATE '*'\r\n");
+        return;
+    }
+
     switch (network->ctx->mechanism) {
     case SASL_PLAIN:
         network_authenticate_plain(network);
@@ -68,7 +68,9 @@ void protocol_authenticate(struct network *network, struct event *event, struct 
         break;
     }
     
-    network_send(network, "CAP END\r\n");
+    if (network->ctx->mechanism != SASL_NONE) {
+        network_send(network, "CAP END\r\n");
+    }
 }
 
 void protocol_welcome(struct network *network, struct event *event, struct output *output)
@@ -174,20 +176,18 @@ void protocol_nick(struct network *network, struct event *event, struct output *
     protocol_get_time(hhmm);
 
     struct kirc_context *ctx = event->ctx;
-    const char *nickname = event->nickname;
-    const char *message = event->message;
     
-    if (ctx && strcmp(nickname, ctx->nickname) == 0) {
+    if (strcmp(event->nickname, ctx->nickname) == 0) {
         size_t siz = sizeof(ctx->nickname) - 1;
-        strncpy(ctx->nickname, message, siz);
+        strncpy(ctx->nickname, event->message, siz);
         ctx->nickname[siz] = '\0';
         output_append(output, "\r" CLEAR_LINE
             DIM "%s you are now known as %s" RESET "\r\n",
-            hhmm, message);
+            hhmm, event->message);
     } else {
         output_append(output, "\r" CLEAR_LINE
             DIM "%s %s is now known as %s" RESET "\r\n",
-            hhmm, nickname, message);
+            hhmm, event->nickname, event->message);
     }
 
 }

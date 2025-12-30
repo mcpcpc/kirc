@@ -38,7 +38,6 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_EXT_CAP, protocol_info);
     handler_register(handler, EVENT_MODE, protocol_info);
     handler_register(handler, EVENT_TOPIC, protocol_info);
-    handler_register(handler, EVENT_TOPIC, protocol_info);
     handler_register(handler, EVENT_001_RPL_WELCOME, protocol_welcome);
     handler_register(handler, EVENT_002_RPL_YOURHOST, protocol_info);
     handler_register(handler, EVENT_003_RPL_CREATED, protocol_info);
