@@ -18,10 +18,12 @@ struct output {
 };
 
 /* Initialize output buffer */
-int output_init(struct output *output, struct kirc_context *ctx);
+int output_init(struct output *output,
+        struct kirc_context *ctx);
 
 /* Append formatted output to buffer */
-int output_append(struct output *output, const char *fmt, ...);
+int output_append(struct output *output,
+        const char *fmt, ...);
 
 /* Flush buffer to stdout and reset */
 void output_flush(struct output *output);

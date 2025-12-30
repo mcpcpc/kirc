@@ -7,7 +7,8 @@
 
 #include "output.h"
 
-int output_init(struct output *output, struct kirc_context *ctx)
+int output_init(struct output *output,
+        struct kirc_context *ctx)
 {
     if (output == NULL || ctx == NULL) {
         return -1;
@@ -22,7 +23,8 @@ int output_init(struct output *output, struct kirc_context *ctx)
     return 0;
 }
 
-int output_append(struct output *output, const char *fmt, ...)
+int output_append(struct output *output,
+        const char *fmt, ...)
 {
     if (output == NULL || fmt == NULL) {
         return -1;
@@ -39,7 +41,7 @@ int output_append(struct output *output, const char *fmt, ...)
     
     int remaining = KIRC_OUTPUT_BUFFER_SIZE - output->len;
     int written = vsnprintf(output->buffer + output->len,
-                            remaining, fmt, ap);
+        remaining, fmt, ap);
     
     va_end(ap);
     
@@ -52,7 +54,8 @@ int output_append(struct output *output, const char *fmt, ...)
         output_flush(output);
         
         va_start(ap, fmt);
-        written = vsnprintf(output->buffer, KIRC_OUTPUT_BUFFER_SIZE, fmt, ap);
+        written = vsnprintf(output->buffer,
+            KIRC_OUTPUT_BUFFER_SIZE, fmt, ap);
         va_end(ap);
         
         if (written < 0 || written >= KIRC_OUTPUT_BUFFER_SIZE) {
@@ -74,9 +77,10 @@ void output_flush(struct output *output)
     }
     
     /* Write entire buffer in one system call */
-    ssize_t written = write(STDOUT_FILENO, output->buffer, output->len);
+    ssize_t written = write(STDOUT_FILENO,
+        output->buffer, output->len);
     
-    (void)written;  /* Ignore errors - output is best-effort */
+    (void)written;  /* Ignore errors */
     
     output->len = 0;
     output->buffer[0] = '\0';
