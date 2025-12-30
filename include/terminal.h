@@ -18,7 +18,6 @@ struct terminal {
 };
 
 int terminal_columns(int tty_fd);
-
 int terminal_init(struct terminal *terminal,
         struct kirc_context *ctx);
 int terminal_enable_raw(struct terminal *terminal);
