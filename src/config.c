@@ -92,7 +92,7 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         size_t message_len = strlen(message);
         size_t encoded_n = base64_encoded_size(message_len);
         char encoded[encoded_n + 1];
-        char encoded[encoded_n] = '\0';
+        encoded[encoded_n] = '\0';
         base64_encode(encoded, message, message_len);
         safecpy(ctx->auth, encoded, sizeof(ctx->auth));
     } else { 
