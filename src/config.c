@@ -82,6 +82,10 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
     }
 
     if (count == 2) {
+        size_t plain_len = 0;
+        char plain[MESSAGE_MAX_LEN];
+        char *p = plain;
+
         char *authzid = strtok(token, ":");
         
         if (authzid == NULL) {
@@ -89,18 +93,22 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         }
 
         size_t authzid_len = strnlen(authzid, 255);
-
-        if (authcid == NULL) {
-            return;
-        }
+        memcpy(p, authzid, authzid_len);
+        p += authzid_len;
+        *p++ = '\0';
+        plain_len += authzid_len + 1;
 
         char *authcid = strtok(NULL, ":");
 
-        size_t authcid_len = strnlen(authcid, 255);
-
         if (authcid == NULL) {
             return;
         }
+
+        size_t authcid_len = strnlen(authcid, 255);
+        memcpy(p, authcid, authcid_len);
+        p += authcid_len;
+        *p++ = '\0';
+        plain_len += authcid_len + 1;
 
         char *passwd = strtok(NULL, "");
 
@@ -109,21 +117,6 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         }
 
         size_t passwd_len = strnlen(passwd, 255);
-
-        size_t plain_len = 0;
-        char plain[MESSAGE_MAX_LEN];
-        char *p = plain;
-
-        memcpy(p, authzid, authzid_len);
-        p += authzid_len;
-        *p++ = '\0';
-        plain_len += authzid_len + 1;
-
-        memcpy(p, authcid, authcid_len);
-        p += authcid_len;
-        *p++ = '\0';
-        plain_len += authcid_len + 1;
-
         memcpy(p, passwd, passwd_len);
         plain_len += passwd_len;
 
