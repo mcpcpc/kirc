@@ -108,7 +108,7 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
             return;
         }
 
-        size_t passwd_len = passwd(authzid, 255);
+        size_t passwd_len = strnlen(passwd, 255);
 
         size_t plain_len = 0;
         char plain[MESSAGE_MAX_LEN];
@@ -127,7 +127,7 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         memcpy(p, passwd, passwd_len);
         plain_len += passwd_len;
 
-        base64_encode(ctx->auth, plain, plain_len)
+        base64_encode(ctx->auth, plain, plain_len);
         memzero(plain, sizeof(plain));
     } else {
         safecpy(ctx->auth, token, sizeof(ctx->auth));
