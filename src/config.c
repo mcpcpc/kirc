@@ -86,12 +86,14 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         char *authcid = strtok(NULL, ":");
         char *passwd = strtok(NULL, "");
         size_t message_n = 255 + 1 + 255 + 1 + 255 + 1;
-        size_t encoded_n = base64_encoded_size(message_n);
-        char message[message_n] = {0};
-        char encoded[encoded_n] = {0};
+        char message[message_n];
         snprintf(message, message_n, "%s\0%s\0%s", 
             authzid, authcid, passwd);
-        base64_encode(encoded, message, message_n);
+        size_t message_len = strlen(message);
+        size_t encoded_n = base64_encoded_size(message_len);
+        char encoded[encoded_n + 1];
+        char encoded[encoded_n] = '\0';
+        base64_encode(encoded, message, message_len);
         safecpy(ctx->auth, encoded, sizeof(ctx->auth));
     } else { 
         safecpy(ctx->auth, token, sizeof(ctx->auth));
