@@ -32,7 +32,7 @@ int base64_encode(char *out, const uint8_t *in, size_t in_len)
         v = (i + 1) < in_len ? v << 8 | in[i + 1] : v << 8;
         v = (i + 2) < in_len ? v << 8 | in[i + 2] : v << 8;
 
-        out[j]   = base64_table[(v >> 18) & 0x3F];
+        out[j] = base64_table[(v >> 18) & 0x3F];
         out[j + 1] = base64_table[(v >> 12) & 0x3F];
 
         if ((i + 1) < in_len) {
