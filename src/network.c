@@ -229,28 +229,6 @@ int network_command_handler(struct network *network, char *msg)
     return 0;
 }
 
-static int network_authenticate_plain(struct network *network)
-{
-    if (network->ctx->auth[0] == '\0') {
-        network_send(network, "AUTHENTICATE '*'\r\n");
-        return -1;
-    }
-    
-    int len = strlen(network->ctx->auth);
-
-    for (int offset = 0; offset < len; offset += AUTH_CHUNK_SIZE) {
-        char chunk[AUTH_CHUNK_SIZE + 1];
-        safecpy(chunk, network->ctx->auth + offset, sizeof(chunk));
-        network_send(network, "AUTHENTICATE %s\r\n", chunk);
-    }
-    
-    if ((len > 0) && (len % AUTH_CHUNK_SIZE == 0)) {
-        network_send(network, "AUTHENTICATE +\r\n");
-    }
-
-    return 0;
-}
-
 int network_send_credentials(struct network *network)
 {
     if (network->ctx->mechanism != SASL_NONE) {
@@ -291,38 +269,6 @@ int network_send_credentials(struct network *network)
     if (network->ctx->password[0] != '\0') {
         network_send(network, "PASS %s\r\n",
             network->ctx->password);
-    }
-
-    return 0;
-}
-
-int network_authenticate(struct network *network)
-{
-    switch (network->ctx->mechanism) {
-    case SASL_PLAIN:
-        network_authenticate_plain(network);
-        break;
-    
-    case SASL_EXTERNAL:
-        network_send(network, "AUTHENTICATE +\r\n");
-        break;
-    
-    default:
-        network_send(network, "AUTHENTICATE '*'\r\n");
-        return -1;
-        break;
-    }
-    
-    network_send(network, "CAP END\r\n");
-
-    return 0;
-}
-
-int network_join_channels(struct network *network)
-{
-    for (int i = 0; network->ctx->channels[i][0] != '\0'; ++i) {
-        network_send(network, "JOIN %s\r\n",
-            network->ctx->channels[i]);
     }
 
     return 0;

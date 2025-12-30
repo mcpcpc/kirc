@@ -27,11 +27,45 @@ void protocol_ping(struct network *network, struct event *event)
     network_send(network, "PONG :%s\r\n", event->message);
 }
 
+static void network_authenticate_plain(struct network *network)
+{
+    if (network->ctx->auth[0] == '\0') {
+        network_send(network, "AUTHENTICATE '*'\r\n");
+        return;
+    }
+    
+    int len = strlen(network->ctx->auth);
+
+    for (int offset = 0; offset < len; offset += AUTH_CHUNK_SIZE) {
+        char chunk[AUTH_CHUNK_SIZE + 1];
+        safecpy(chunk, network->ctx->auth + offset, sizeof(chunk));
+        network_send(network, "AUTHENTICATE %s\r\n", chunk);
+    }
+    
+    if ((len > 0) && (len % AUTH_CHUNK_SIZE == 0)) {
+        network_send(network, "AUTHENTICATE +\r\n");
+    }
+}
+
 void protocol_authenticate(struct network *network, struct event *event)
 {
     (void)event;
 
-    network_authenticate(network);
+    switch (network->ctx->mechanism) {
+    case SASL_PLAIN:
+        network_authenticate_plain(network);
+        break;
+    
+    case SASL_EXTERNAL:
+        network_send(network, "AUTHENTICATE +\r\n");
+        break;
+    
+    default:
+        network_send(network, "AUTHENTICATE '*'\r\n");
+        break;
+    }
+    
+    network_send(network, "CAP END\r\n");
 }
 
 void protocol_welcome(struct network *network, struct event *event)
