@@ -11,6 +11,7 @@
 #include "kirc.h"
 #include "ansi.h"
 #include "helper.h"
+#include "event.h"
 
 enum dcc_type {
     DCC_TYPE_SEND = 0,
@@ -49,5 +50,8 @@ int dcc_request(struct dcc *dcc, const char *sender,
 int dcc_send(struct dcc *dcc, int transfer_id);
 int dcc_process(struct dcc *dcc);
 int dcc_cancel(struct dcc *dcc, int transfer_id);
+
+/* Handle all DCC events based on event type */
+void dcc_handle_event(struct dcc *dcc, struct event *event);
 
 #endif  // __KIRC_DCC_H

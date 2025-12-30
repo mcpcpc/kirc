@@ -493,3 +493,13 @@ int dcc_cancel(struct dcc *dcc, int transfer_id)
 
     return 0;
 }
+
+void dcc_handle_event(struct dcc *dcc, struct event *event)
+{
+    if (event->type == EVENT_CTCP_DCC) {
+        if (strcmp(event->command, "PRIVMSG") == 0) {
+            dcc_request(dcc, event->nickname,
+                event->message);
+        }
+    }
+}

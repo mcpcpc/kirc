@@ -6,12 +6,12 @@
  */
 
 #include "config.h"
-#include "ctcp.h"
 #include "dcc.h"
 #include "editor.h"
+#include "event.h"
+#include "handler.h"
 #include "helper.h"
 #include "network.h"
-#include "protocol.h"
 #include "terminal.h"
 #include "transport.h"
 
@@ -148,43 +148,28 @@ static int kirc_run(struct kirc_context *ctx)
 
                     *eol = '\0';
 
-                    struct protocol protocol;
-                    protocol_init(&protocol, ctx);
-                    protocol_parse(&protocol, msg);
+                    struct event event;
+                    event_init(&event, ctx);
+                    event_parse(&event, msg);
 
-                    switch(protocol.event) {
-                    case PROTOCOL_EVENT_CTCP_CLIENTINFO:
-                    case PROTOCOL_EVENT_CTCP_PING:
-                    case PROTOCOL_EVENT_CTCP_TIME:
-                    case PROTOCOL_EVENT_CTCP_VERSION:
-                        ctcp_handle_event(&network, &protocol);
-                        break;
-
-                    case PROTOCOL_EVENT_CTCP_DCC:
-                        if (strcmp(protocol.command, "PRIVMSG") == 0) {
-                            dcc_request(&dcc, protocol.nickname,
-                                protocol.message);
+                    switch(event.type) {
+                    case EVENT_CTCP_DCC:
+                        if (strcmp(event.command, "PRIVMSG") == 0) {
+                            dcc_request(&dcc, event.nickname,
+                                event.message);
                         }
                         break;
 
-                    case PROTOCOL_EVENT_PING:
-                        network_send(&network, "PONG :%s\r\n",
-                            protocol.message);
-                        break;
-
-                    case PROTOCOL_EVENT_EXT_AUTHENTICATE:
+                    case EVENT_EXT_AUTHENTICATE:
                         network_authenticate(&network);
-                        break;
-
-                    case PROTOCOL_EVENT_001_RPL_WELCOME:
-                        network_join_channels(&network);
                         break;
 
                     default:
                         break; 
                     }
 
-                    protocol_handle(&protocol);
+                    handler_dispatch(&network, &event);
+                    dcc_handle_event(&dcc, &event);
 
                     msg = eol + 2;
                     remaining = network.buffer + network.len - msg;
