@@ -10,7 +10,6 @@
 
 #include "kirc.h"
 #include "helper.h"
-#include "network.h"
 
 enum event_type {
     EVENT_NONE = 0,

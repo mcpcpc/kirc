@@ -12,7 +12,6 @@
 #include "event.h"
 #include "network.h"
 
-/* CTCP handler functions */
 void ctcp_handle_clientinfo(struct network *network, struct event *event);
 void ctcp_handle_ping(struct network *network, struct event *event);
 void ctcp_handle_time(struct network *network, struct event *event);

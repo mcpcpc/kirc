@@ -14,7 +14,6 @@
 #include "helper.h"
 #include "network.h"
 
-/* Protocol handler functions */
 void protocol_noop(struct network *network, struct event *event);
 void protocol_ping(struct network *network, struct event *event);
 void protocol_authenticate(struct network *network, struct event *event);
