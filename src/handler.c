@@ -36,7 +36,7 @@ int handler_init(struct handler *handler, struct kirc_context *ctx)
 }
 
 void handler_dispatch(struct handler *handler, struct network *network,
-        struct event *event)
+        struct event *event, struct output *output)
 {
     if (handler == NULL || network == NULL || event == NULL) {
         return;
@@ -44,11 +44,11 @@ void handler_dispatch(struct handler *handler, struct network *network,
     
     for (int i = 0; i < handler->count; ++i) {
         if (handler->entries[i].type == event->type) {
-            handler->entries[i].handler(network, event);
+            handler->entries[i].handler(network, event, output);
             return;
         }
     }
 
     /* If no handler found, display raw message */
-    handler->default_handler(network, event);
+    handler->default_handler(network, event, output);
 }

@@ -13,6 +13,7 @@
 #include "handler.h"
 #include "helper.h"
 #include "network.h"
+#include "output.h"
 #include "protocol.h"
 #include "terminal.h"
 #include "transport.h"
@@ -268,6 +269,15 @@ static int kirc_run(struct kirc_context *ctx)
         return -1;
     }
 
+    struct output output;
+
+    if (output_init(&output, ctx) < 0) {
+        fprintf(stderr, "output_init failed\n");
+        dcc_free(&dcc);
+        network_free(&network);
+        return -1;
+    }
+
     if (terminal_enable_raw(&terminal) < 0) {
         fprintf(stderr, "terminal_enable_raw failed\n");
         terminal_disable_raw(&terminal);
@@ -319,7 +329,8 @@ static int kirc_run(struct kirc_context *ctx)
 
             if (editor.state == EDITOR_STATE_SEND) {
                 char *msg = editor_last_entry(&editor);
-                network_command_handler(&network, msg);
+                network_command_handler(&network, msg, &output);
+                output_flush(&output);
             }
 
             editor_handle(&editor);
@@ -349,7 +360,7 @@ static int kirc_run(struct kirc_context *ctx)
                     event_parse(&event, msg);
 
                     /* Dispatch event to registered handlers */
-                    handler_dispatch(&handler, &network, &event);
+                    handler_dispatch(&handler, &network, &event, &output);
                     dcc_handle(&dcc, &network, &event);
 
                     msg = eol + 2;
@@ -366,6 +377,8 @@ static int kirc_run(struct kirc_context *ctx)
                     network.len = 0;
                 }
 
+                /* Flush accumulated output */
+                output_flush(&output);
                 editor_handle(&editor);
             }
             

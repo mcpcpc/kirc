@@ -11,10 +11,11 @@
 #include "kirc.h"
 #include "event.h"
 #include "network.h"
+#include "output.h"
 
-void ctcp_handle_clientinfo(struct network *network, struct event *event);
-void ctcp_handle_ping(struct network *network, struct event *event);
-void ctcp_handle_time(struct network *network, struct event *event);
-void ctcp_handle_version(struct network *network, struct event *event);
+void ctcp_handle_clientinfo(struct network *network, struct event *event, struct output *output);
+void ctcp_handle_ping(struct network *network, struct event *event, struct output *output);
+void ctcp_handle_time(struct network *network, struct event *event, struct output *output);
+void ctcp_handle_version(struct network *network, struct event *event, struct output *output);
 
 #endif  // __KIRC_CTCP_H

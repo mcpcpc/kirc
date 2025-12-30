@@ -16,14 +16,16 @@ static void protocol_get_time(char *out)
         KIRC_TIMESTAMP_FORMAT, info);
 }
 
-void protocol_noop(struct network *network, struct event *event)
+void protocol_noop(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
     (void)event;
+    (void)output;
 }
 
-void protocol_ping(struct network *network, struct event *event)
+void protocol_ping(struct network *network, struct event *event, struct output *output)
 {
+    (void)output;
     network_send(network, "PONG :%s\r\n", event->message);
 }
 
@@ -47,9 +49,10 @@ static void network_authenticate_plain(struct network *network)
     }
 }
 
-void protocol_authenticate(struct network *network, struct event *event)
+void protocol_authenticate(struct network *network, struct event *event, struct output *output)
 {
     (void)event;
+    (void)output;
 
     switch (network->ctx->mechanism) {
     case SASL_PLAIN:
@@ -68,9 +71,10 @@ void protocol_authenticate(struct network *network, struct event *event)
     network_send(network, "CAP END\r\n");
 }
 
-void protocol_welcome(struct network *network, struct event *event)
+void protocol_welcome(struct network *network, struct event *event, struct output *output)
 {
     (void)event;
+    (void)output;
 
     for (int i = 0; network->ctx->channels[i][0] != '\0'; ++i) {
         network_send(network, "JOIN %s\r\n",
@@ -78,91 +82,91 @@ void protocol_welcome(struct network *network, struct event *event)
     }
 }
 
-void protocol_raw(struct network *network, struct event *event)
+void protocol_raw(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s" RESET
+    output_append(output, "\r" CLEAR_LINE DIM "%s" RESET
         " " REVERSE "%s" RESET "\r\n",
         hhmm, event->raw);
 }
 
-void protocol_info(struct network *network, struct event *event)
+void protocol_info(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s %s" RESET "\r\n",
+    output_append(output, "\r" CLEAR_LINE DIM "%s %s" RESET "\r\n",
         hhmm, event->message);
 }
 
-void protocol_error(struct network *network, struct event *event)
+void protocol_error(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s" RESET
+    output_append(output, "\r" CLEAR_LINE DIM "%s" RESET
         " " BOLD_RED "%s" RESET "\r\n",
         hhmm, event->message);
 }
 
-void protocol_notice(struct network *network, struct event *event)
+void protocol_notice(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s" RESET
+    output_append(output, "\r" CLEAR_LINE DIM "%s" RESET
         " " BOLD_BLUE "%s" RESET " %s\r\n",
         hhmm, event->nickname, event->message);
 }
 
-static void protocol_privmsg_direct(struct network *network, struct event *event)
+static void protocol_privmsg_direct(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s" RESET
+    output_append(output, "\r" CLEAR_LINE DIM "%s" RESET
         " " BOLD_BLUE "%s" RESET " " BLUE "%s" RESET "\r\n",
         hhmm, event->nickname, event->message);
 }
 
-static void protocol_privmsg_indirect(struct network *network, struct event *event)
+static void protocol_privmsg_indirect(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s" RESET
+    output_append(output, "\r" CLEAR_LINE DIM "%s" RESET
         " " BOLD "%s" RESET " [%s]: %s\r\n",
         hhmm, event->nickname, event->channel, event->message);
 
 }
 
-void protocol_privmsg(struct network *network, struct event *event)
+void protocol_privmsg(struct network *network, struct event *event, struct output *output)
 {
     char *channel = event->channel;
     char *nickname = event->ctx->nickname;
 
     if (strcmp(channel, nickname) == 0) {
-        protocol_privmsg_direct(network, event);
+        protocol_privmsg_direct(network, event, output);
     } else {
-        protocol_privmsg_indirect(network, event);
+        protocol_privmsg_indirect(network, event, output);
     }
 }
 
-void protocol_nick(struct network *network, struct event *event)
+void protocol_nick(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
@@ -177,29 +181,29 @@ void protocol_nick(struct network *network, struct event *event)
         size_t siz = sizeof(ctx->nickname) - 1;
         strncpy(ctx->nickname, message, siz);
         ctx->nickname[siz] = '\0';
-        printf("\r" CLEAR_LINE
+        output_append(output, "\r" CLEAR_LINE
             DIM "%s you are now known as %s" RESET "\r\n",
             hhmm, message);
     } else {
-        printf("\r" CLEAR_LINE
+        output_append(output, "\r" CLEAR_LINE
             DIM "%s %s is now known as %s" RESET "\r\n",
             hhmm, nickname, message);
     }
 
 }
 
-void protocol_ctcp_action(struct network *network, struct event *event)
+void protocol_ctcp_action(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
     char hhmm[KIRC_TIMESTAMP_SIZE];
     protocol_get_time(hhmm);
 
-    printf("\r" CLEAR_LINE DIM "%s \u2022 %s %s" RESET "\r\n",
+    output_append(output, "\r" CLEAR_LINE DIM "%s \u2022 %s %s" RESET "\r\n",
         hhmm, event->nickname, event->message);
 }
 
-void protocol_ctcp_info(struct network *network, struct event *event)
+void protocol_ctcp_info(struct network *network, struct event *event, struct output *output)
 {
     (void)network;
 
@@ -235,15 +239,15 @@ void protocol_ctcp_info(struct network *network, struct event *event)
     }
 
     if (event->params[0] != '\0') {
-        printf("\r" CLEAR_LINE DIM "%s " RESET
+        output_append(output, "\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s: %s\r\n",
             hhmm, event->nickname, label, event->params);
     } else if (event->message[0] != '\0') {
-        printf("\r" CLEAR_LINE DIM "%s " RESET
+        output_append(output, "\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s: %s\r\n",
             hhmm, event->nickname, label, event->message);
     } else {
-        printf("\r" CLEAR_LINE DIM "%s " RESET
+        output_append(output, "\r" CLEAR_LINE DIM "%s " RESET
             BOLD_BLUE "%s" RESET " %s\r\n",
             hhmm, event->nickname, label);
     }

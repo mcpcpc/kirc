@@ -7,8 +7,9 @@
 
 #include "ctcp.h"
 
-void ctcp_handle_clientinfo(struct network *network, struct event *event)
+void ctcp_handle_clientinfo(struct network *network, struct event *event, struct output *output)
 {
+    (void)output;
     const char *command = event->command;
     const char *nickname = event->nickname;
     
@@ -19,8 +20,9 @@ void ctcp_handle_clientinfo(struct network *network, struct event *event)
     }
 }
 
-void ctcp_handle_ping(struct network *network, struct event *event)
+void ctcp_handle_ping(struct network *network, struct event *event, struct output *output)
 {
+    (void)output;
     const char *command = event->command;
     const char *nickname = event->nickname;
     const char *message = event->message;
@@ -38,8 +40,9 @@ void ctcp_handle_ping(struct network *network, struct event *event)
     }
 }
 
-void ctcp_handle_time(struct network *network, struct event *event)
+void ctcp_handle_time(struct network *network, struct event *event, struct output *output)
 {
+    (void)output;
     const char *command = event->command;
     const char *nickname = event->nickname;
     
@@ -55,8 +58,9 @@ void ctcp_handle_time(struct network *network, struct event *event)
     }
 }
 
-void ctcp_handle_version(struct network *network, struct event *event)
+void ctcp_handle_version(struct network *network, struct event *event, struct output *output)
 {
+    (void)output;
     const char *command = event->command;
     const char *nickname = event->nickname;
     
