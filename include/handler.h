@@ -15,16 +15,10 @@
 
 typedef void (*event_handler_fn)(struct network *network, struct event *event, struct output *output);
 
-struct handler_entry {
-    enum event_type type;
-    event_handler_fn handler;
-};
-
 struct handler {
     struct kirc_context *ctx;
-    struct handler_entry entries[KIRC_HANDLER_MAX_ENTRIES];
+    event_handler_fn handlers[KIRC_EVENT_TYPE_MAX];
     event_handler_fn default_handler;
-    int count;
 };
 
 void handler_set_default(struct handler *handler, event_handler_fn handler_fn);

@@ -16,13 +16,11 @@ void handler_set_default(struct handler *handler,
 void handler_register(struct handler *handler, enum event_type type,
         event_handler_fn handler_fn)
 {
-    if (handler->count >= KIRC_HANDLER_MAX_ENTRIES) {
+    if (type < 0 || type >= KIRC_EVENT_TYPE_MAX) {
         return;
     }
     
-    handler->entries[handler->count].type = type;
-    handler->entries[handler->count].handler = handler_fn;
-    handler->count++;
+    handler->handlers[type] = handler_fn;
 }
 
 int handler_init(struct handler *handler, struct kirc_context *ctx)
@@ -30,7 +28,6 @@ int handler_init(struct handler *handler, struct kirc_context *ctx)
     memset(handler, 0, sizeof(*handler));
 
     handler->ctx = ctx;
-    handler->count = 0;
 
     return 0;
 }
@@ -42,13 +39,17 @@ void handler_dispatch(struct handler *handler, struct network *network,
         return;
     }
     
-    for (int i = 0; i < handler->count; ++i) {
-        if (handler->entries[i].type == event->type) {
-            handler->entries[i].handler(network, event, output);
+    /* O(1) direct array lookup instead of O(n) linear search */
+    if (event->type >= 0 && event->type < KIRC_EVENT_TYPE_MAX) {
+        event_handler_fn fn = handler->handlers[event->type];
+        if (fn != NULL) {
+            fn(network, event, output);
             return;
         }
     }
 
     /* If no handler found, display raw message */
-    handler->default_handler(network, event, output);
+    if (handler->default_handler != NULL) {
+        handler->default_handler(network, event, output);
+    }
 }
