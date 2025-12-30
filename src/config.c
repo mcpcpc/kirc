@@ -75,7 +75,19 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         return;  /* invalid token */
     }
 
-    safecpy(ctx->auth, token, sizeof(ctx->auth));
+    int count = 0;
+    
+    for (int i = 0; token[i] != NULL; ++i) {
+        if (token[i] == ':') count++;
+    }
+
+    if (count == 2) {
+        char *authzid = strtok(tokenx ":");
+        char *authcid = strtok(NULL, ":");
+        char *passwd = strtok(NULL, "");
+    } else { 
+        safecpy(ctx->auth, token, sizeof(ctx->auth));
+    }
 }
 
 static int config_apply_env(struct kirc_context *ctx, const char *env_name, 
