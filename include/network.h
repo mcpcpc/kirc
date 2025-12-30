@@ -12,24 +12,23 @@
 #include "transport.h"
 #include "ansi.h"
 #include "helper.h"
+#include "output.h"
 
-typedef struct {
-    kirc_context_t *ctx;
-    transport_t *transport;
+struct network {
+    struct kirc_context *ctx;
+    struct transport *transport;
     char buffer[MESSAGE_MAX_LEN];
     int len;
-} network_t;
+};
 
-int network_send(network_t *network, const char *fmt, ...);
-int network_receive(network_t *network);
-int network_connect(network_t *network);
-int network_command_handler(network_t *network, char *msg);
-int network_send_credentials(network_t *network);
-int network_authenticate(network_t *network);
-int network_join_channels(network_t *network);
+int network_send(struct network *network, const char *fmt, ...);
+int network_receive(struct network *network);
+int network_connect(struct network *network);
+int network_command_handler(struct network *network, char *msg, struct output *output);
+int network_send_credentials(struct network *network);
 
-int network_init(network_t *network,
-        transport_t *transport, kirc_context_t *ctx);
-int network_free(network_t *network);
+int network_init(struct network *network,
+        struct transport *transport, struct kirc_context *ctx);
+int network_free(struct network *network);
 
 #endif  // __KIRC_NETWORK_H

@@ -11,13 +11,8 @@
 #include "kirc.h"
 #include "helper.h"
 
-/* Initialize context with defaults and environment variables */
-int config_init(kirc_context_t *ctx);
-
-/* Parse command-line arguments */
-int config_parse_args(kirc_context_t *ctx, int argc, char *argv[]);
-
-/* Free sensitive data securely */
-int config_free(kirc_context_t *ctx);
+int config_init(struct kirc_context *ctx);
+int config_parse_args(struct kirc_context *ctx, int argc, char *argv[]);
+int config_free(struct kirc_context *ctx);
 
 #endif  // __KIRC_CONFIG_H

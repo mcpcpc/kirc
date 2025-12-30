@@ -9,15 +9,13 @@
 #define __KIRC_CTCP_H
 
 #include "kirc.h"
-#include "protocol.h"
+#include "event.h"
 #include "network.h"
+#include "output.h"
 
-typedef struct {
-    protocol_event_t event;
-    void (*handler)(network_t *network, protocol_t *protocol);
-} ctcp_dispatch_t;
-
-/* Handle all CTCP events based on protocol event type */
-void ctcp_handle_event(network_t *network, protocol_t *protocol);
+void ctcp_handle_clientinfo(struct network *network, struct event *event, struct output *output);
+void ctcp_handle_ping(struct network *network, struct event *event, struct output *output);
+void ctcp_handle_time(struct network *network, struct event *event, struct output *output);
+void ctcp_handle_version(struct network *network, struct event *event, struct output *output);
 
 #endif  // __KIRC_CTCP_H

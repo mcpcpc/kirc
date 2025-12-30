@@ -36,7 +36,7 @@ static int sanitize_filename(char *filename)
     return 0;
 }
 
-int dcc_init(dcc_t *dcc, kirc_context_t *ctx)
+int dcc_init(struct dcc *dcc, struct kirc_context *ctx)
 {
     if ((dcc == NULL) || (ctx == NULL)) {
         return -1;
@@ -57,7 +57,7 @@ int dcc_init(dcc_t *dcc, kirc_context_t *ctx)
     return 0;
 }
 
-int dcc_free(dcc_t *dcc)
+int dcc_free(struct dcc *dcc)
 {
     if (dcc == NULL) {
         return -1;
@@ -80,14 +80,14 @@ int dcc_free(dcc_t *dcc)
     return 0;
 }
 
-int dcc_send(dcc_t *dcc, int transfer_id)
+int dcc_send(struct dcc *dcc, int transfer_id)
 {
     if ((dcc == NULL) || (transfer_id < 0) ||
         (transfer_id >= KIRC_DCC_TRANSFERS_MAX)) {
         return -1;
     }
 
-    dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
+    struct dcc_transfer *transfer = &dcc->transfer[transfer_id];
 
     if (transfer->type != DCC_TYPE_SEND) {
         printf("\r" CLEAR_LINE DIM "error: %d is not a SEND transfer"
@@ -144,7 +144,7 @@ int dcc_send(dcc_t *dcc, int transfer_id)
     return nsent;
 }
 
-int dcc_process(dcc_t *dcc)
+int dcc_process(struct dcc *dcc)
 {
     if (dcc == NULL) {
         return -1;
@@ -177,7 +177,7 @@ int dcc_process(dcc_t *dcc)
             continue;
         }
 
-        dcc_transfer_t *transfer = &dcc->transfer[i];
+        struct dcc_transfer *transfer = &dcc->transfer[i];
 
         if (transfer->state == DCC_STATE_CONNECTING) {
             if (dcc->sock_fd[i].revents & POLLOUT) {
@@ -280,7 +280,7 @@ int dcc_process(dcc_t *dcc)
     return 0;
 }
 
-int dcc_request(dcc_t *dcc, const char *sender, const char *params)
+int dcc_request(struct dcc *dcc, const char *sender, const char *params)
 {
     if ((dcc == NULL) || (sender == NULL) || (params == NULL)) {
         return -1;
@@ -383,7 +383,7 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     }
 
     /* initialize transfer */
-    dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
+    struct dcc_transfer *transfer = &dcc->transfer[transfer_id];
     transfer->type = DCC_TYPE_RECEIVE;
     transfer->state = DCC_STATE_CONNECTING;
     transfer->filesize = strtoull(filesize, NULL, 10);
@@ -462,14 +462,14 @@ int dcc_request(dcc_t *dcc, const char *sender, const char *params)
     return transfer_id;
 }
 
-int dcc_cancel(dcc_t *dcc, int transfer_id)
+int dcc_cancel(struct dcc *dcc, int transfer_id)
 {
     if ((dcc == NULL) || (transfer_id < 0) ||
         (transfer_id >= KIRC_DCC_TRANSFERS_MAX)) {
         return -1;
     }
 
-    dcc_transfer_t *transfer = &dcc->transfer[transfer_id];
+    struct dcc_transfer *transfer = &dcc->transfer[transfer_id];
 
     if (transfer->state == DCC_STATE_IDLE) {
         return 0;
@@ -492,4 +492,21 @@ int dcc_cancel(dcc_t *dcc, int transfer_id)
     dcc->transfer_count--;
 
     return 0;
+}
+
+void dcc_handle(struct dcc *dcc, struct network *network, struct event *event)
+{
+    (void)network;
+    
+    if (dcc == NULL || event == NULL) {
+        return;
+    }
+    
+    if (event->type != EVENT_CTCP_DCC) {
+        return;
+    }
+
+    if (strcmp(event->command, "PRIVMSG") == 0) {
+        dcc_request(dcc, event->nickname, event->message);
+    }
 }

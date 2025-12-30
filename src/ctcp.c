@@ -7,33 +7,46 @@
 
 #include "ctcp.h"
 
-static void ctcp_handle_clientinfo(network_t *network, protocol_t *protocol)
+void ctcp_handle_clientinfo(struct network *network, struct event *event, struct output *output)
 {
-    if (strcmp(protocol->command, "PRIVMSG") == 0) {
+    (void)output;
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
         network_send(network,
             "NOTICE %s :\001PING ACTION CLIENTINFO DCC PING TIME VERSION\001\r\n",
-            protocol->nickname);
+            nickname);
     }
 }
 
-static void ctcp_handle_ping(network_t *network, protocol_t *protocol)
+void ctcp_handle_ping(struct network *network, struct event *event, struct output *output)
 {
-    if (strcmp(protocol->command, "PRIVMSG") == 0) {
-        if (protocol->message[0] != '\0') {
+    (void)output;
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    const char *message = event->message;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
+        if (message[0] != '\0') {
             network_send(network,
                 "NOTICE %s :\001PING %s\001\r\n",
-                protocol->nickname, protocol->message);
+                nickname, message);
         } else {
             network_send(network,
                 "NOTICE %s :\001PING\001\r\n",
-                protocol->nickname);
+                nickname);
         }
     }
 }
 
-static void ctcp_handle_time(network_t *network, protocol_t *protocol)
+void ctcp_handle_time(struct network *network, struct event *event, struct output *output)
 {
-    if (strcmp(protocol->command, "PRIVMSG") == 0) {
+    (void)output;
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
         char tbuf[128];
         time_t now;
         time(&now);
@@ -41,34 +54,19 @@ static void ctcp_handle_time(network_t *network, protocol_t *protocol)
         strftime(tbuf, sizeof(tbuf), "%c", info);
         network_send(network,
             "NOTICE %s :\001TIME %s\001\r\n",
-            protocol->nickname, tbuf);
+            nickname, tbuf);
     }
 }
 
-static void ctcp_handle_version(network_t *network, protocol_t *protocol)
+void ctcp_handle_version(struct network *network, struct event *event, struct output *output)
 {
-    if (strcmp(protocol->command, "PRIVMSG") == 0) {
+    (void)output;
+    const char *command = event->command;
+    const char *nickname = event->nickname;
+    
+    if (strcmp(command, "PRIVMSG") == 0) {
         network_send(network,
-            "NOTICE %s :\001VERSION kirc %s\001\r\n",
-            protocol->nickname, 
+            "NOTICE %s :\001VERSION kirc %s\001\r\n", nickname, 
             KIRC_VERSION_MAJOR "." KIRC_VERSION_MINOR "." KIRC_VERSION_PATCH);
-    }
-}
-
-static const ctcp_dispatch_t ctcp_table[] = {
-    { PROTOCOL_EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo },
-    { PROTOCOL_EVENT_CTCP_PING,       ctcp_handle_ping },
-    { PROTOCOL_EVENT_CTCP_TIME,       ctcp_handle_time },
-    { PROTOCOL_EVENT_CTCP_VERSION,    ctcp_handle_version },
-    { PROTOCOL_EVENT_NONE,            NULL }
-};
-
-void ctcp_handle_event(network_t *network, protocol_t *protocol)
-{
-    for(int i = 0; ctcp_table[i].handler != NULL; ++i) {
-        if (ctcp_table[i].event == protocol->event) {
-            ctcp_table[i].handler(network, protocol);
-            return;
-        }
     }
 }

@@ -7,7 +7,7 @@
 
 #include "editor.h"
 
-static void editor_backspace(editor_t *editor)
+static void editor_backspace(struct editor *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
@@ -30,13 +30,13 @@ static void editor_backspace(editor_t *editor)
         len - (editor->cursor + bytes) + 1);
 }
 
-static void editor_delete_line(editor_t *editor)
+static void editor_delete_line(struct editor *editor)
 {
     editor->scratch[0] = '\0';
     editor->cursor = 0;
 }
 
-static int editor_enter(editor_t *editor)
+static int editor_enter(struct editor *editor)
 {
     if (editor->scratch[0] == '\0') {
         return 0;  /* nothing to send */
@@ -58,7 +58,7 @@ static int editor_enter(editor_t *editor)
     return 1;
 }
 
-static void editor_delete(editor_t *editor)
+static void editor_delete(struct editor *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
@@ -79,7 +79,7 @@ static void editor_delete(editor_t *editor)
         len - (editor->cursor + bytes) + 1);
 }
 
-static void editor_history(editor_t *editor, int dir)
+static void editor_history(struct editor *editor, int dir)
 {
     int siz = KIRC_HISTORY_SIZE;
 
@@ -129,7 +129,7 @@ static void editor_history(editor_t *editor, int dir)
     }
 }
 
-static void editor_move_right(editor_t *editor)
+static void editor_move_right(struct editor *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
@@ -149,7 +149,7 @@ static void editor_move_right(editor_t *editor)
     }
 }
 
-static void editor_move_left(editor_t *editor)
+static void editor_move_left(struct editor *editor)
 {
     if (editor->cursor <= 0) {
         return;
@@ -163,19 +163,19 @@ static void editor_move_left(editor_t *editor)
     }
 }
 
-static void editor_move_home(editor_t *editor)
+static void editor_move_home(struct editor *editor)
 {
     editor->cursor = 0;
 }
 
-static void editor_move_end(editor_t *editor)
+static void editor_move_end(struct editor *editor)
 {
     size_t siz = sizeof(editor->scratch) - 1;
 
     editor->cursor = strnlen(editor->scratch, siz);
 }
 
-static void editor_escape(editor_t *editor)
+static void editor_escape(struct editor *editor)
 {
     char seq[3];
 
@@ -226,7 +226,7 @@ static void editor_escape(editor_t *editor)
     }
 }
 
-static void editor_insert(editor_t *editor, char c)
+static void editor_insert(struct editor *editor, char c)
 {
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
@@ -247,7 +247,7 @@ static void editor_insert(editor_t *editor, char c)
     editor->cursor++;
 }
 
-static void editor_insert_bytes(editor_t *editor, const char *buf, int n)
+static void editor_insert_bytes(struct editor *editor, const char *buf, int n)
 {
     int siz = sizeof(editor->scratch) - 1;
     int len = strnlen(editor->scratch, siz);
@@ -273,7 +273,7 @@ static void editor_insert_bytes(editor_t *editor, const char *buf, int n)
     editor->cursor += n;
 }
 
-static void editor_clear(editor_t *editor)
+static void editor_clear(struct editor *editor)
 {
     printf("\r" CLEAR_LINE);
 }
@@ -308,7 +308,7 @@ static int display_width_bytes(const char *s, int bytes)
     return wsum;
 }
 
-static void editor_tab(editor_t *editor)
+static void editor_tab(struct editor *editor)
 {
     int width = KIRC_TAB_WIDTH;
 
@@ -317,7 +317,7 @@ static void editor_tab(editor_t *editor)
     } 
 }
 
-char *editor_last_entry(editor_t *editor)
+char *editor_last_entry(struct editor *editor)
 {
     int head = editor->head;
     int last = (head - 1 + KIRC_HISTORY_SIZE) % KIRC_HISTORY_SIZE;
@@ -325,12 +325,12 @@ char *editor_last_entry(editor_t *editor)
     return editor->history[last];
 }
 
-int editor_init(editor_t *editor, kirc_context_t *ctx)
+int editor_init(struct editor *editor, struct kirc_context *ctx)
 {
     memset(editor, 0, sizeof(*editor));
     
     editor->ctx = ctx;
-    editor->event = EDITOR_EVENT_NONE;
+    editor->state = EDITOR_STATE_NONE;
     editor->position = -1;
 
     setlocale(LC_CTYPE, "");
@@ -338,7 +338,7 @@ int editor_init(editor_t *editor, kirc_context_t *ctx)
     return 0;
 }
 
-int editor_process_key(editor_t *editor)
+int editor_process_key(struct editor *editor)
 {
     char c;
     
@@ -346,7 +346,7 @@ int editor_process_key(editor_t *editor)
         return 1;
     }
     
-    editor->event = EDITOR_EVENT_NONE;
+    editor->state = EDITOR_STATE_NONE;
 
     switch(c) {
     case HT:  /* CTRL-I or TAB */
@@ -355,7 +355,7 @@ int editor_process_key(editor_t *editor)
 
     case ETX:  /* CTRL-C */
         editor_clear(editor);
-        editor->event = EDITOR_EVENT_TERMINATE;
+        editor->state = EDITOR_STATE_TERMINATE;
         break;
 
     case NAK:  /* CTRL-U */
@@ -369,7 +369,7 @@ int editor_process_key(editor_t *editor)
 
     case CR:  /* CTRL-M or ENTER */
         if (editor_enter(editor) > 0) {
-            editor->event = EDITOR_EVENT_SEND;
+            editor->state = EDITOR_STATE_SEND;
         }
         break;
 
@@ -436,7 +436,7 @@ int editor_process_key(editor_t *editor)
     return 0;
 }
 
-int editor_handle(editor_t *editor)
+int editor_handle(struct editor *editor)
 {
     int cols = terminal_columns(STDIN_FILENO);
     int size = strlen(editor->ctx->target) + 1;
