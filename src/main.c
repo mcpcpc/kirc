@@ -20,12 +20,13 @@
 
 static void kirc_register_handlers(struct handler *handler) {
     handler_default(handler, protocol_raw);
-    handler_register(handler, EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo);
+    handler_register(handler, EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo); 
     handler_register(handler, EVENT_CTCP_PING, ctcp_handle_ping);
     handler_register(handler, EVENT_CTCP_TIME, ctcp_handle_time);
     handler_register(handler, EVENT_CTCP_VERSION, ctcp_handle_version);
     handler_register(handler, EVENT_CTCP_ACTION, protocol_ctcp_action);
     handler_register(handler, EVENT_CTCP_DCC, protocol_ctcp_info);
+    handler_register(handler, EVENT_ERROR, protocol_error);
     handler_register(handler, EVENT_EXT_AUTHENTICATE, protocol_authenticate);
     handler_register(handler, EVENT_JOIN, protocol_noop);
     handler_register(handler, EVENT_PART, protocol_noop);
@@ -139,7 +140,6 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_901_RPL_LOGGEDOUT, protocol_info);
     handler_register(handler, EVENT_903_RPL_SASLSUCCESS, protocol_info);
     handler_register(handler, EVENT_908_RPL_SASLMECHS, protocol_info);
-    handler_register(handler, EVENT_ERROR, protocol_error);
     handler_register(handler, EVENT_400_ERR_UNKNOWNERROR, protocol_error);
     handler_register(handler, EVENT_401_ERR_NOSUCHNICK, protocol_error);
     handler_register(handler, EVENT_402_ERR_NOSUCHSERVER, protocol_error);
