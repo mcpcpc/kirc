@@ -87,8 +87,10 @@ and token value to be used for connection authentication. The argument value is
 comprised of a colon-delimited string, where the first token is the authentication
 mechanism (e.g., "PLAIN", "EXTERNAL", "SCRAM-SHA-256", etc.) and the second string
 is the mechanism-specific authentication credential (typically BASE64 encoded).
+For the PLAIN mechanism, you can provide either a pre-encoded BASE64 token or three
+colon-separated values (authzid:authcid:passwd) which will be automatically encoded.
 .br
-Example: "PLAIN:amlsbGVzAGppbGxlcwBzZXNhbWU=" (see EXAMPLES for token generation)
+Example: "PLAIN:amlsbGVzAGppbGxlcwBzZXNhbWU=" or "PLAIN:alice:alice:password"
 .SH EXIT STATUS
 .TP
 .B 0
@@ -253,11 +255,16 @@ command duplicates output while the
 flag appends to the file rather than overwriting it.
 .SS SASL authentication
 .TP
+.B kirc \-a "PLAIN:alice:alice:password" alice
+Connect using SASL PLAIN authentication with automatic token encoding. The client
+will automatically encode the authzid:authcid:passwd values into the proper BASE64
+format required by the SASL PLAIN mechanism.
+.TP
 .B kirc \-a \\[dq]PLAIN:$(printf \[aq]%s\0%s\0%s\[aq] \[aq]alice\[aq] \[aq]alice\[aq] \[aq]password\[aq] | base64)\\[dq] alice
-Generate a BASE64-encoded SASL PLAIN authentication token and connect using SASL
-authentication. The token format is "username\0username\0password" (with NULL bytes
-represented as \\0) encoded in BASE64. This example demonstrates proper token generation
-for SASL PLAIN mechanism.
+Alternatively, generate a BASE64-encoded SASL PLAIN authentication token manually
+and connect using SASL authentication. The token format is "username\0username\0password"
+(with NULL bytes represented as \\0) encoded in BASE64. This demonstrates manual token
+generation for the SASL PLAIN mechanism.
 .SS TLS/SSL connections via socat
 .TP
 .B socat tcp-listen:6667,reuseaddr,fork,bind=127.0.0.1 ssl:irc.example.org:6697 & kirc \-s 127.0.0.1 alice

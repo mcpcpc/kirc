@@ -60,16 +60,69 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
         return;
     }
 
-    char *token = strtok(NULL, ":");
-
     if (strcmp(mechanism, "EXTERNAL") == 0) {
         ctx->mechanism = SASL_EXTERNAL;
+        return;
     } else if (strcmp(mechanism, "PLAIN") == 0) {
-        if (token == NULL) {
+        ctx->mechanism = SASL_PLAIN;
+    } else {
+        return;  /* invalid mechanism */
+    }
+
+    char *token = strtok(NULL, "");
+
+    if (token == NULL) {
+        return;  /* invalid token */
+    }
+
+    int count = 0;
+    
+    for (int i = 0; token[i] != '\0'; ++i) {
+        if (token[i] == ':') count++;
+    }
+
+    if (count == 2) {
+        size_t plain_len = 0;
+        char plain[MESSAGE_MAX_LEN];
+        char *p = plain;
+
+        char *authzid = strtok(token, ":");
+        
+        if (authzid == NULL) {
             return;
         }
-    
-        ctx->mechanism = SASL_PLAIN;
+
+        size_t authzid_len = strnlen(authzid, 255);
+        memcpy(p, authzid, authzid_len);
+        p += authzid_len;
+        *p++ = '\0';
+        plain_len += authzid_len + 1;
+
+        char *authcid = strtok(NULL, ":");
+
+        if (authcid == NULL) {
+            return;
+        }
+
+        size_t authcid_len = strnlen(authcid, 255);
+        memcpy(p, authcid, authcid_len);
+        p += authcid_len;
+        *p++ = '\0';
+        plain_len += authcid_len + 1;
+
+        char *passwd = strtok(NULL, "");
+
+        if (passwd == NULL) {
+            return;
+        }
+
+        size_t passwd_len = strnlen(passwd, 255);
+        memcpy(p, passwd, passwd_len);
+        plain_len += passwd_len;
+
+        base64_encode(ctx->auth, plain, plain_len);
+        memzero(plain, sizeof(plain));
+    } else {
         safecpy(ctx->auth, token, sizeof(ctx->auth));
     }
 }
