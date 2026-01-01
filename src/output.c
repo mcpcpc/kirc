@@ -7,6 +7,16 @@
 
 #include "output.h"
 
+/**
+ * output_init() - Initialize output buffer
+ * @output: Output structure to initialize
+ * @ctx: IRC context structure
+ *
+ * Initializes the output buffer system, preparing it for buffered writes
+ * to stdout. Associates the output with an IRC context.
+ *
+ * Return: 0 on success, -1 if output or ctx is NULL
+ */
 int output_init(struct output *output,
         struct kirc_context *ctx)
 {
@@ -23,6 +33,19 @@ int output_init(struct output *output,
     return 0;
 }
 
+/**
+ * output_append() - Append formatted text to output buffer
+ * @output: Output buffer structure
+ * @fmt: printf-style format string
+ * @...: Variable arguments for format string
+ *
+ * Appends formatted text to the output buffer. Automatically flushes if
+ * buffer becomes nearly full (within 256 bytes of capacity). If text
+ * doesn't fit, flushes buffer and retries. Handles truncation for
+ * extremely long messages.
+ *
+ * Return: 0 on success, -1 on error
+ */
 int output_append(struct output *output,
         const char *fmt, ...)
 {
@@ -70,6 +93,14 @@ int output_append(struct output *output,
     return 0;
 }
 
+/**
+ * output_flush() - Write buffered output to stdout
+ * @output: Output buffer structure
+ *
+ * Writes the entire buffered content to stdout in a single system call
+ * and resets the buffer. Improves performance by reducing write() calls.
+ * Ignores write errors.
+ */
 void output_flush(struct output *output)
 {
     if (output == NULL || output->len == 0) {
@@ -86,6 +117,13 @@ void output_flush(struct output *output)
     output->buffer[0] = '\0';
 }
 
+/**
+ * output_clear() - Clear output buffer without writing
+ * @output: Output buffer structure
+ *
+ * Discards all buffered content without writing it to stdout. Resets
+ * the buffer to empty state.
+ */
 void output_clear(struct output *output)
 {
     if (output == NULL) {
@@ -96,6 +134,15 @@ void output_clear(struct output *output)
     output->buffer[0] = '\0';
 }
 
+/**
+ * output_pending() - Check if output buffer has data
+ * @output: Output buffer structure
+ *
+ * Returns the number of bytes currently buffered but not yet written
+ * to stdout.
+ *
+ * Return: Number of buffered bytes, or 0 if output is NULL
+ */
 int output_pending(struct output *output)
 {
     if (output == NULL) {

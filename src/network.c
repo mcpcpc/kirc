@@ -7,6 +7,17 @@
 
 #include "network.h"
 
+/**
+ * network_send() - Send formatted message to IRC server
+ * @network: Network connection structure
+ * @fmt: printf-style format string
+ * @...: Variable arguments for format string
+ *
+ * Constructs and sends a formatted message to the IRC server through the
+ * transport layer. Messages are limited to MESSAGE_MAX_LEN bytes.
+ *
+ * Return: 0 on success, -1 if network is NULL or send fails
+ */
 int network_send(struct network *network, const char *fmt, ...)
 {
     if (network == NULL) {
@@ -36,6 +47,16 @@ int network_send(struct network *network, const char *fmt, ...)
     return 0;
 }
 
+/**
+ * network_receive() - Receive data from IRC server
+ * @network: Network connection structure
+ *
+ * Reads available data from the server into the network buffer. Handles
+ * non-blocking I/O and partial reads. Updates the buffer length with
+ * newly received data. Returns immediately if no data is available.
+ *
+ * Return: Number of bytes received, 0 if would block, -1 on error or disconnect
+ */
 int network_receive(struct network *network)
 {
     size_t buffer_n = sizeof(network->buffer) - 1;
@@ -62,11 +83,30 @@ int network_receive(struct network *network)
     return nread;
 }
 
+/**
+ * network_connect() - Establish connection to IRC server
+ * @network: Network connection structure
+ *
+ * Initiates connection to the IRC server using the transport layer.
+ * Connection details (server, port) are taken from the context.
+ *
+ * Return: 0 on success, -1 on connection failure
+ */
 int network_connect(struct network *network)
 {
     return transport_connect(network->transport);
 }
 
+/**
+ * network_send_private_msg() - Send private message to user
+ * @network: Network connection structure
+ * @msg: Message string in format "username message text"
+ * @output: Output buffer for display feedback
+ *
+ * Parses and sends a private message (PRIVMSG) to a specific user.
+ * Expected format: "username message text". Validates message length
+ * and displays sent message to user.
+ */
 static void network_send_private_msg(struct network *network,
         char *msg, struct output *output)
 {
@@ -104,6 +144,15 @@ static void network_send_private_msg(struct network *network,
         username, message);
 }
 
+/**
+ * network_send_ctcp_action() - Send CTCP ACTION to current target
+ * @network: Network connection structure
+ * @msg: Action text to send
+ * @output: Output buffer for display feedback
+ *
+ * Sends a CTCP ACTION message (/me command) to the current target channel
+ * or user. Validates message length and requires a target to be set.
+ */
 static void network_send_ctcp_action(struct network *network,
         char *msg, struct output *output)
 {
@@ -129,6 +178,15 @@ static void network_send_ctcp_action(struct network *network,
     }
 }
 
+/**
+ * network_send_ctcp_command() - Send CTCP command to target
+ * @network: Network connection structure
+ * @msg: Message in format "target command [args]"
+ * @output: Output buffer for display feedback
+ *
+ * Parses and sends a CTCP command to a specified target. Expected format:
+ * "target command [args]". Validates input and provides usage feedback.
+ */
 static void network_send_ctcp_command(struct network *network,
         char *msg, struct output *output)
 {
@@ -157,6 +215,15 @@ static void network_send_ctcp_command(struct network *network,
         target, command);
 }
 
+/**
+ * network_send_channel_msg() - Send message to current target channel
+ * @network: Network connection structure
+ * @msg: Message text to send
+ * @output: Output buffer for display feedback
+ *
+ * Sends a channel message to the currently set target. Validates message
+ * length and requires a target to be set. Displays sent message locally.
+ */
 static void network_send_channel_msg(
         struct network *network, char *msg, struct output *output)
 {
@@ -181,6 +248,20 @@ static void network_send_channel_msg(
     }
 }
 
+/**
+ * network_command_handler() - Process user input commands
+ * @network: Network connection structure
+ * @msg: User input message to process
+ * @output: Output buffer for display feedback
+ *
+ * Routes user input to appropriate handlers based on prefix:
+ *   / - IRC commands (/set, /me, /ctcp, or raw IRC commands)
+ *   @ - Private messages to users
+ *   (default) - Channel messages to current target
+ * Parses commands and delegates to specialized send functions.
+ *
+ * Return: 0 on success
+ */
 int network_command_handler(struct network *network, char *msg, struct output *output)
 {
     switch (msg[0]) {
@@ -229,6 +310,17 @@ int network_command_handler(struct network *network, char *msg, struct output *o
     return 0;
 }
 
+/**
+ * network_send_credentials() - Send authentication credentials to server
+ * @network: Network connection structure
+ *
+ * Sends initial authentication sequence to IRC server including SASL
+ * capability negotiation (if configured), NICK, USER commands, and
+ * optionally PASS (server password). Initiates SASL authentication
+ * for EXTERNAL or PLAIN mechanisms.
+ *
+ * Return: 0 on success, -1 if SASL mechanism is unrecognized
+ */
 int network_send_credentials(struct network *network)
 {
     if (network->ctx->mechanism != SASL_NONE) {
@@ -274,6 +366,17 @@ int network_send_credentials(struct network *network)
     return 0;
 }
 
+/**
+ * network_init() - Initialize network connection structure
+ * @network: Network structure to initialize
+ * @transport: Transport layer instance
+ * @ctx: IRC context structure
+ *
+ * Initializes the network management structure, associating it with a
+ * transport layer and IRC context. Zeros the buffer and state.
+ *
+ * Return: 0 on success, -1 if any parameter is NULL
+ */
 int network_init(struct network *network, 
         struct transport *transport, struct kirc_context *ctx)
 {
@@ -289,6 +392,15 @@ int network_init(struct network *network,
     return 0;
 }
 
+/**
+ * network_free() - Free network resources
+ * @network: Network structure to clean up
+ *
+ * Releases resources associated with the network connection by freeing
+ * the transport layer.
+ *
+ * Return: 0 on success, -1 if transport cleanup fails
+ */
 int network_free(struct network *network)
 {
     if (transport_free(network->transport) < 0) {

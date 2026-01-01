@@ -7,6 +7,16 @@
 
 #include "terminal.h"
 
+/**
+ * terminal_get_cursor_column() - Query terminal cursor column position
+ * @in_fd: File descriptor to read response from
+ * @out_fd: File descriptor to send query to
+ *
+ * Queries the terminal for the current cursor position using ANSI escape
+ * sequences and parses the response to extract the column number.
+ *
+ * Return: Current column position (1-based), or -1 on error
+ */
 static int terminal_get_cursor_column(int in_fd, int out_fd)
 {
     char buf[32];
@@ -41,6 +51,16 @@ static int terminal_get_cursor_column(int in_fd, int out_fd)
     return col;
 }
 
+/**
+ * terminal_columns() - Determine terminal width in columns
+ * @tty_fd: TTY file descriptor
+ *
+ * Determines the terminal width using ioctl(TIOCGWINSZ) if available,
+ * or falls back to manual probing by moving cursor and querying position.
+ * Returns KIRC_DEFAULT_COLUMNS if detection fails.
+ *
+ * Return: Terminal width in columns
+ */
 int terminal_columns(int tty_fd)
 {
     struct winsize ws;
@@ -84,6 +104,17 @@ int terminal_columns(int tty_fd)
     return (end > 0) ? end : KIRC_DEFAULT_COLUMNS;
 }
 
+/**
+ * terminal_enable_raw() - Enable raw terminal mode
+ * @terminal: Terminal state structure
+ *
+ * Configures the terminal for raw (non-canonical) input mode, disabling
+ * line buffering, echo, and signal generation. Saves the original terminal
+ * settings for later restoration. Required for character-by-character input
+ * processing.
+ *
+ * Return: 0 on success, -1 if stdin is not a TTY or configuration fails
+ */
 int terminal_enable_raw(struct terminal *terminal)
 {
     if (!isatty(STDIN_FILENO)) {
@@ -117,6 +148,14 @@ int terminal_enable_raw(struct terminal *terminal)
     return 0;
 }
 
+/**
+ * terminal_disable_raw() - Restore normal terminal mode
+ * @terminal: Terminal state structure
+ *
+ * Restores the terminal to its original configuration, re-enabling
+ * line buffering, echo, and signal generation. Should be called before
+ * program exit or when switching away from raw mode.
+ */
 void terminal_disable_raw(struct terminal *terminal)
 {
     if (!terminal->raw_mode_enabled) {
@@ -127,6 +166,16 @@ void terminal_disable_raw(struct terminal *terminal)
     terminal->raw_mode_enabled = 0;
 }
 
+/**
+ * terminal_init() - Initialize terminal management structure
+ * @terminal: Terminal structure to initialize
+ * @ctx: IRC context structure
+ *
+ * Initializes the terminal state structure, zeroing all fields and
+ * associating it with an IRC context.
+ *
+ * Return: 0 on success, -1 if terminal or ctx is NULL
+ */
 int terminal_init(struct terminal *terminal,
         struct kirc_context *ctx)
 {

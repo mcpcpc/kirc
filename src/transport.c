@@ -7,6 +7,16 @@
 
 #include "transport.h"
 
+/**
+ * poll_wait_write() - Wait for socket to be writable
+ * @fd: File descriptor to poll
+ * @timeout_ms: Timeout in milliseconds
+ *
+ * Polls a file descriptor for write readiness, handling EINTR by retrying.
+ * Used during non-blocking connect() to wait for connection completion.
+ *
+ * Return: 0 if ready for write, -1 on timeout or error
+ */
 static int poll_wait_write(int fd, int timeout_ms)
 {
     struct pollfd pfd;
@@ -25,6 +35,17 @@ static int poll_wait_write(int fd, int timeout_ms)
     }
 }
 
+/**
+ * transport_send() - Send data over transport connection
+ * @transport: Transport structure
+ * @buffer: Data buffer to send
+ * @len: Number of bytes to send
+ *
+ * Writes data to the transport file descriptor. Does not guarantee
+ * that all data is sent in one call (partial writes possible).
+ *
+ * Return: Number of bytes written, or -1 on error
+ */
 ssize_t transport_send(struct transport *transport,
         const char *buffer, size_t len)
 {
@@ -43,6 +64,18 @@ ssize_t transport_send(struct transport *transport,
     return rc;
 }
 
+/**
+ * transport_receive() - Receive data from transport connection
+ * @transport: Transport structure
+ * @buffer: Buffer to store received data
+ * @len: Maximum number of bytes to receive
+ *
+ * Reads data from the transport file descriptor. Handles non-blocking
+ * I/O by distinguishing between EAGAIN/EWOULDBLOCK (no data available)
+ * and other errors. Returns -1 on connection close (nread == 0).
+ *
+ * Return: Number of bytes read, 0 if would block, -1 on error or disconnect
+ */
 ssize_t transport_receive(struct transport *transport,
         char *buffer, size_t len)
 {
@@ -71,6 +104,17 @@ ssize_t transport_receive(struct transport *transport,
 }
 
 
+/**
+ * transport_connect() - Establish transport connection to server
+ * @transport: Transport structure with server details
+ *
+ * Creates a socket and connects to the server specified in the transport
+ * context (server name and port). Uses getaddrinfo() for address resolution,
+ * supporting both IPv4 and IPv6. Configures socket for non-blocking I/O
+ * and handles EINPROGRESS for asynchronous connection with timeout.
+ *
+ * Return: 0 on successful connection, -1 on failure
+ */
 int transport_connect(struct transport *transport)
 {
     struct addrinfo hints, *res = NULL, *p = NULL;
@@ -147,6 +191,17 @@ int transport_connect(struct transport *transport)
     return 0;
 }
 
+/**
+ * transport_init() - Initialize transport structure
+ * @transport: Transport structure to initialize
+ * @ctx: IRC context containing connection details
+ *
+ * Initializes the transport layer, zeroing the structure and setting
+ * the file descriptor to -1 (not connected). Associates transport with
+ * IRC context for server and port information.
+ *
+ * Return: 0 on success, -1 if transport or ctx is NULL
+ */
 int transport_init(struct transport *transport,
         struct kirc_context *ctx)
 {
@@ -162,6 +217,15 @@ int transport_init(struct transport *transport,
     return 0;
 }
 
+/**
+ * transport_free() - Close and cleanup transport connection
+ * @transport: Transport structure to free
+ *
+ * Closes the transport socket if open and resets the file descriptor
+ * to -1. Should be called during cleanup to release resources.
+ *
+ * Return: 0 on success, -1 if transport is NULL
+ */
 int transport_free(struct transport *transport)
 {
     if (transport == NULL) {

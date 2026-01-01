@@ -7,6 +7,14 @@
 
 #include "editor.h"
 
+/**
+ * editor_backspace() - Delete the character before the cursor
+ * @editor: Editor state structure
+ *
+ * Removes the UTF-8 character immediately before the cursor position,
+ * properly handling multi-byte UTF-8 sequences. Does nothing if cursor
+ * is at the beginning of the line.
+ */
 static void editor_backspace(struct editor *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -30,12 +38,28 @@ static void editor_backspace(struct editor *editor)
         len - (editor->cursor + bytes) + 1);
 }
 
+/**
+ * editor_delete_line() - Clear the entire input line
+ * @editor: Editor state structure
+ *
+ * Erases all text from the scratch buffer and resets the cursor to the
+ * beginning of the line.
+ */
 static void editor_delete_line(struct editor *editor)
 {
     editor->scratch[0] = '\0';
     editor->cursor = 0;
 }
 
+/**
+ * editor_enter() - Process enter key to submit current line
+ * @editor: Editor state structure
+ *
+ * Saves the current line to history, advances the history pointer, and
+ * clears the scratch buffer. Does nothing if the line is empty.
+ *
+ * Return: 1 if line was submitted, 0 if line was empty
+ */
 static int editor_enter(struct editor *editor)
 {
     if (editor->scratch[0] == '\0') {
@@ -58,6 +82,14 @@ static int editor_enter(struct editor *editor)
     return 1;
 }
 
+/**
+ * editor_delete() - Delete the character at the cursor
+ * @editor: Editor state structure
+ *
+ * Removes the UTF-8 character at the current cursor position, properly
+ * handling multi-byte UTF-8 sequences. Does nothing if cursor is at the
+ * end of the line.
+ */
 static void editor_delete(struct editor *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -79,6 +111,15 @@ static void editor_delete(struct editor *editor)
         len - (editor->cursor + bytes) + 1);
 }
 
+/**
+ * editor_history() - Navigate through command history
+ * @editor: Editor state structure
+ * @dir: Direction to navigate (positive for previous, negative for next)
+ *
+ * Allows browsing through the command history using up/down arrows. Loads
+ * the previous or next history entry into the scratch buffer and updates
+ * the cursor position. Handles wraparound at history boundaries.
+ */
 static void editor_history(struct editor *editor, int dir)
 {
     int siz = KIRC_HISTORY_SIZE;
@@ -129,6 +170,13 @@ static void editor_history(struct editor *editor, int dir)
     }
 }
 
+/**
+ * editor_move_right() - Move cursor one character to the right
+ * @editor: Editor state structure
+ *
+ * Advances the cursor by one UTF-8 character, properly handling multi-byte
+ * sequences. Does nothing if cursor is at the end of the line.
+ */
 static void editor_move_right(struct editor *editor)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -149,6 +197,13 @@ static void editor_move_right(struct editor *editor)
     }
 }
 
+/**
+ * editor_move_left() - Move cursor one character to the left
+ * @editor: Editor state structure
+ *
+ * Moves the cursor back by one UTF-8 character, properly handling multi-byte
+ * sequences. Does nothing if cursor is at the beginning of the line.
+ */
 static void editor_move_left(struct editor *editor)
 {
     if (editor->cursor <= 0) {
@@ -163,11 +218,23 @@ static void editor_move_left(struct editor *editor)
     }
 }
 
+/**
+ * editor_move_home() - Move cursor to beginning of line
+ * @editor: Editor state structure
+ *
+ * Sets the cursor position to the start of the input line.
+ */
 static void editor_move_home(struct editor *editor)
 {
     editor->cursor = 0;
 }
 
+/**
+ * editor_move_end() - Move cursor to end of line
+ * @editor: Editor state structure
+ *
+ * Sets the cursor position to the end of the current input line.
+ */
 static void editor_move_end(struct editor *editor)
 {
     size_t siz = sizeof(editor->scratch) - 1;
@@ -175,6 +242,15 @@ static void editor_move_end(struct editor *editor)
     editor->cursor = strnlen(editor->scratch, siz);
 }
 
+/**
+ * editor_escape() - Handle escape sequences for special keys
+ * @editor: Editor state structure
+ *
+ * Processes ANSI escape sequences for cursor movement and special keys
+ * (arrow keys, Home, End, Delete). Reads additional bytes from stdin
+ * to determine the complete escape sequence and executes the appropriate
+ * editor action.
+ */
 static void editor_escape(struct editor *editor)
 {
     char seq[3];
@@ -226,6 +302,15 @@ static void editor_escape(struct editor *editor)
     }
 }
 
+/**
+ * editor_insert() - Insert a single character at cursor position
+ * @editor: Editor state structure
+ * @c: Character to insert
+ *
+ * Inserts a single byte character at the current cursor position, shifting
+ * existing text to the right. Advances the cursor after insertion. Does
+ * nothing if the buffer is full.
+ */
 static void editor_insert(struct editor *editor, char c)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -247,6 +332,16 @@ static void editor_insert(struct editor *editor, char c)
     editor->cursor++;
 }
 
+/**
+ * editor_insert_bytes() - Insert multiple bytes at cursor position
+ * @editor: Editor state structure
+ * @buf: Buffer containing bytes to insert
+ * @n: Number of bytes to insert
+ *
+ * Inserts a sequence of bytes (typically a multi-byte UTF-8 character) at
+ * the current cursor position. Validates UTF-8 encoding before insertion.
+ * Shifts existing text to the right and advances the cursor.
+ */
 static void editor_insert_bytes(struct editor *editor, const char *buf, int n)
 {
     int siz = sizeof(editor->scratch) - 1;
@@ -273,11 +368,29 @@ static void editor_insert_bytes(struct editor *editor, const char *buf, int n)
     editor->cursor += n;
 }
 
+/**
+ * editor_clear() - Clear the current line on terminal
+ * @editor: Editor state structure (unused)
+ *
+ * Sends ANSI escape codes to clear the current terminal line, moving
+ * the cursor to the beginning.
+ */
 static void editor_clear(struct editor *editor)
 {
     printf("\r" CLEAR_LINE);
 }
 
+/**
+ * display_width_bytes() - Calculate display width of UTF-8 string
+ * @s: UTF-8 encoded string
+ * @bytes: Number of bytes to measure
+ *
+ * Computes the display width (number of terminal columns) occupied by
+ * a UTF-8 string, accounting for wide characters (e.g., CJK characters).
+ * Handles invalid sequences by treating them as width 1.
+ *
+ * Return: Display width in terminal columns
+ */
 static int display_width_bytes(const char *s, int bytes)
 {
     mbstate_t st;
@@ -308,6 +421,13 @@ static int display_width_bytes(const char *s, int bytes)
     return wsum;
 }
 
+/**
+ * editor_tab() - Insert tab as spaces
+ * @editor: Editor state structure
+ *
+ * Inserts KIRC_TAB_WIDTH spaces at the cursor position to simulate
+ * a tab character.
+ */
 static void editor_tab(struct editor *editor)
 {
     int width = KIRC_TAB_WIDTH;
@@ -317,6 +437,14 @@ static void editor_tab(struct editor *editor)
     } 
 }
 
+/**
+ * editor_last_entry() - Get the most recent history entry
+ * @editor: Editor state structure
+ *
+ * Returns a pointer to the last command entered in the history buffer.
+ *
+ * Return: Pointer to the most recent history string
+ */
 char *editor_last_entry(struct editor *editor)
 {
     int head = editor->head;
@@ -325,6 +453,17 @@ char *editor_last_entry(struct editor *editor)
     return editor->history[last];
 }
 
+/**
+ * editor_init() - Initialize the editor state
+ * @editor: Editor structure to initialize
+ * @ctx: IRC context structure
+ *
+ * Initializes the editor with zeroed state, sets up locale for UTF-8
+ * support, and associates it with the IRC context. Prepares the editor
+ * for input processing.
+ *
+ * Return: 0 on success, -1 if editor or ctx is NULL
+ */
 int editor_init(struct editor *editor, struct kirc_context *ctx)
 {
     if ((editor == NULL) || (ctx == NULL)) {
@@ -342,6 +481,16 @@ int editor_init(struct editor *editor, struct kirc_context *ctx)
     return 0;
 }
 
+/**
+ * editor_process_key() - Process a single keystroke
+ * @editor: Editor state structure
+ *
+ * Reads and processes one character from stdin. Handles control characters,
+ * escape sequences, and UTF-8 multi-byte input. Updates editor state
+ * (SEND, TERMINATE, or NONE) based on the key pressed.
+ *
+ * Return: 0 on success, 1 if read failed
+ */
 int editor_process_key(struct editor *editor)
 {
     char c;
@@ -440,6 +589,17 @@ int editor_process_key(struct editor *editor)
     return 0;
 }
 
+/**
+ * editor_handle() - Render the editor display
+ * @editor: Editor state structure
+ *
+ * Renders the current editor state to the terminal, displaying the target
+ * channel/user and the input text. Handles line scrolling when text exceeds
+ * terminal width and positions the cursor correctly. Accounts for UTF-8
+ * character widths for proper display alignment.
+ *
+ * Return: 0 on success
+ */
 int editor_handle(struct editor *editor)
 {
     int cols = terminal_columns(STDIN_FILENO);

@@ -7,6 +7,16 @@
 
 #include "dcc.h"
 
+/**
+ * sanitize_filename() - Validate filename for security
+ * @filename: Filename string to validate
+ *
+ * Checks a filename for security issues: rejects empty names, dotfiles,
+ * path traversal attempts (..), path separators (/ or \\), and names
+ * exceeding NAME_MAX length.
+ *
+ * Return: 0 if filename is safe, -1 if unsafe or invalid
+ */
 static int sanitize_filename(char *filename)
 {
     if (filename == NULL) {
@@ -36,6 +46,17 @@ static int sanitize_filename(char *filename)
     return 0;
 }
 
+/**
+ * dcc_init() - Initialize DCC transfer management structure
+ * @dcc: DCC structure to initialize
+ * @ctx: IRC context structure
+ *
+ * Initializes the DCC transfer manager, setting all file descriptors to -1
+ * and transfer states to idle. Prepares the structure for handling up to
+ * KIRC_DCC_TRANSFERS_MAX concurrent transfers.
+ *
+ * Return: 0 on success, -1 if dcc or ctx is NULL
+ */
 int dcc_init(struct dcc *dcc, struct kirc_context *ctx)
 {
     if ((dcc == NULL) || (ctx == NULL)) {
@@ -57,6 +78,15 @@ int dcc_init(struct dcc *dcc, struct kirc_context *ctx)
     return 0;
 }
 
+/**
+ * dcc_free() - Free DCC resources and close connections
+ * @dcc: DCC structure to clean up
+ *
+ * Closes all open socket and file descriptors associated with DCC transfers.
+ * Should be called before program termination to release resources.
+ *
+ * Return: 0 on success, -1 if dcc is NULL
+ */
 int dcc_free(struct dcc *dcc)
 {
     if (dcc == NULL) {
@@ -80,6 +110,17 @@ int dcc_free(struct dcc *dcc)
     return 0;
 }
 
+/**
+ * dcc_send() - Send data for an active DCC SEND transfer
+ * @dcc: DCC structure containing transfer state
+ * @transfer_id: ID of the transfer to send data for
+ *
+ * Reads a chunk from the source file and sends it over the network socket
+ * for the specified transfer. Updates transfer state and progress. Handles
+ * transfer completion when all data is sent.
+ *
+ * Return: Number of bytes sent, 0 if complete, -1 on error
+ */
 int dcc_send(struct dcc *dcc, int transfer_id)
 {
     if ((dcc == NULL) || (transfer_id < 0) ||
@@ -144,6 +185,17 @@ int dcc_send(struct dcc *dcc, int transfer_id)
     return nsent;
 }
 
+/**
+ * dcc_process() - Process pending DCC transfers
+ * @dcc: DCC structure containing active transfers
+ *
+ * Polls all active DCC transfer sockets for I/O readiness and processes
+ * data transfer, connection establishment, and error handling. Should be
+ * called periodically in the main event loop. Handles both SEND and
+ * RECEIVE transfers, cleaning up completed or failed transfers.
+ *
+ * Return: 0 on success, -1 on error
+ */
 int dcc_process(struct dcc *dcc)
 {
     if (dcc == NULL) {
@@ -280,6 +332,19 @@ int dcc_process(struct dcc *dcc)
     return 0;
 }
 
+/**
+ * dcc_request() - Handle incoming DCC SEND request
+ * @dcc: DCC structure to register the transfer
+ * @sender: Nickname of the user initiating the transfer
+ * @params: DCC SEND parameters (filename, IP, port, filesize)
+ *
+ * Parses a DCC SEND request and initiates a file receive transfer. Creates
+ * the destination file, establishes a network connection to the sender, and
+ * registers the transfer for processing. Handles quoted filenames and
+ * validates parameters for security.
+ *
+ * Return: Transfer ID on success, -1 on error
+ */
 int dcc_request(struct dcc *dcc, const char *sender, const char *params)
 {
     if ((dcc == NULL) || (sender == NULL) || (params == NULL)) {
@@ -462,6 +527,17 @@ int dcc_request(struct dcc *dcc, const char *sender, const char *params)
     return transfer_id;
 }
 
+/**
+ * dcc_cancel() - Cancel an active DCC transfer
+ * @dcc: DCC structure containing the transfer
+ * @transfer_id: ID of the transfer to cancel
+ *
+ * Cancels a DCC transfer by closing associated socket and file descriptors
+ * and resetting the transfer state to idle. Decrements the active transfer
+ * count.
+ *
+ * Return: 0 on success, -1 if parameters are invalid
+ */
 int dcc_cancel(struct dcc *dcc, int transfer_id)
 {
     if ((dcc == NULL) || (transfer_id < 0) ||
@@ -494,6 +570,15 @@ int dcc_cancel(struct dcc *dcc, int transfer_id)
     return 0;
 }
 
+/**
+ * dcc_handle() - Handle DCC-related IRC events
+ * @dcc: DCC structure for managing transfers
+ * @network: Network connection structure
+ * @event: Event structure containing DCC command
+ *
+ * Processes DCC events from IRC messages. Currently handles DCC SEND
+ * requests by calling dcc_request() when a CTCP DCC PRIVMSG is received.
+ */
 void dcc_handle(struct dcc *dcc, struct network *network, struct event *event)
 {
     (void)network;

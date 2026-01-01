@@ -7,6 +7,16 @@
 
 #include "ctcp.h"
 
+/**
+ * ctcp_handle_clientinfo() - Handle CTCP CLIENTINFO request
+ * @network: Network connection structure
+ * @event: Event structure containing request details
+ * @output: Output buffer structure (unused)
+ *
+ * Responds to CTCP CLIENTINFO queries with a list of supported CTCP
+ * commands: PING, ACTION, CLIENTINFO, DCC, PING, TIME, VERSION.
+ * Only responds to PRIVMSG, not NOTICE.
+ */
 void ctcp_handle_clientinfo(struct network *network, struct event *event, struct output *output)
 {
     (void)output;
@@ -20,6 +30,15 @@ void ctcp_handle_clientinfo(struct network *network, struct event *event, struct
     }
 }
 
+/**
+ * ctcp_handle_ping() - Handle CTCP PING request
+ * @network: Network connection structure
+ * @event: Event structure containing ping data
+ * @output: Output buffer structure (unused)
+ *
+ * Responds to CTCP PING queries by echoing back any provided arguments.
+ * Only responds to PRIVMSG, not NOTICE.
+ */
 void ctcp_handle_ping(struct network *network, struct event *event, struct output *output)
 {
     (void)output;
@@ -40,6 +59,15 @@ void ctcp_handle_ping(struct network *network, struct event *event, struct outpu
     }
 }
 
+/**
+ * ctcp_handle_time() - Handle CTCP TIME request
+ * @network: Network connection structure
+ * @event: Event structure containing request details
+ * @output: Output buffer structure (unused)
+ *
+ * Responds to CTCP TIME queries with the current local time in a formatted
+ * string. Only responds to PRIVMSG, not NOTICE.
+ */
 void ctcp_handle_time(struct network *network, struct event *event, struct output *output)
 {
     (void)output;
@@ -58,6 +86,15 @@ void ctcp_handle_time(struct network *network, struct event *event, struct outpu
     }
 }
 
+/**
+ * ctcp_handle_version() - Handle CTCP VERSION request
+ * @network: Network connection structure
+ * @event: Event structure containing request details
+ * @output: Output buffer structure (unused)
+ *
+ * Responds to CTCP VERSION queries with the client name and version number.
+ * Only responds to PRIVMSG, not NOTICE.
+ */
 void ctcp_handle_version(struct network *network, struct event *event, struct output *output)
 {
     (void)output;
