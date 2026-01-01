@@ -277,6 +277,10 @@ int network_send_credentials(struct network *network)
 int network_init(struct network *network, 
         struct transport *transport, struct kirc_context *ctx)
 {
+    if ((network == NULL) || (transport == NULL) || (ctx == NULL)) {
+        return -1;
+    }
+
     memset(network, 0, sizeof(*network));
 
     network->ctx = ctx;

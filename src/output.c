@@ -10,7 +10,7 @@
 int output_init(struct output *output,
         struct kirc_context *ctx)
 {
-    if (output == NULL || ctx == NULL) {
+    if ((output == NULL) || (ctx == NULL)) {
         return -1;
     }
 

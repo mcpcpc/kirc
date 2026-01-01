@@ -130,6 +130,10 @@ void terminal_disable_raw(struct terminal *terminal)
 int terminal_init(struct terminal *terminal,
         struct kirc_context *ctx)
 {
+    if ((terminal == NULL) || (ctx == NULL)) {
+        return -1;
+    }
+
     memset(terminal, 0, sizeof(*terminal));   
 
     terminal->ctx = ctx;

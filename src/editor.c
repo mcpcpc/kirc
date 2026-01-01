@@ -327,6 +327,10 @@ char *editor_last_entry(struct editor *editor)
 
 int editor_init(struct editor *editor, struct kirc_context *ctx)
 {
+    if ((editor == NULL) || (ctx == NULL)) {
+        return -1;
+    }
+
     memset(editor, 0, sizeof(*editor));
     
     editor->ctx = ctx;

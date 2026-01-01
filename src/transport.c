@@ -150,6 +150,10 @@ int transport_connect(struct transport *transport)
 int transport_init(struct transport *transport,
         struct kirc_context *ctx)
 {
+    if ((transport == NULL) || (ctx == NULL)) {
+        return -1;
+    }
+
     memset(transport, 0, sizeof(*transport));
 
     transport->ctx = ctx;

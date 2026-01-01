@@ -25,6 +25,10 @@ void handler_register(struct handler *handler, enum event_type type,
 
 int handler_init(struct handler *handler, struct kirc_context *ctx)
 {
+    if ((handler == NULL) || (ctx == NULL)) {
+        return -1;
+    }
+
     memset(handler, 0, sizeof(*handler));
 
     handler->ctx = ctx;
