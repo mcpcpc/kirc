@@ -17,21 +17,15 @@ struct output {
     int len;
 };
 
-/* Initialize output buffer */
 int output_init(struct output *output,
         struct kirc_context *ctx);
 
-/* Append formatted output to buffer */
 int output_append(struct output *output,
         const char *fmt, ...);
 
-/* Flush buffer to stdout and reset */
 void output_flush(struct output *output);
-
-/* Clear buffer without flushing */
 void output_clear(struct output *output);
 
-/* Get current buffer usage for monitoring */
 int output_pending(struct output *output);
 
 #endif  // __KIRC_OUTPUT_H

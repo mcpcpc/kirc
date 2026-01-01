@@ -10,13 +10,8 @@
 
 #include "kirc.h"
 
-/* Get byte length of previous UTF-8 character before pos */
 int utf8_prev_char_len(const char *s, int pos);
-
-/* Get byte length of next UTF-8 character at pos */
 int utf8_next_char_len(const char *s, int pos, int maxlen);
-
-/* Validate UTF-8 sequence */
 int utf8_validate(const char *s, int len);
 
 #endif  // __KIRC_UTF8_H
