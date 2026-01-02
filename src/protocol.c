@@ -315,7 +315,7 @@ void protocol_part(struct network *network, struct event *event, struct output *
             DIM "%s you left %s" RESET "\r\n",
             timestamp, event->message);
     } else {
-        protocol_noop(network, event, output)
+        protocol_noop(network, event, output);
     }
 }
 
