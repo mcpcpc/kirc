@@ -44,7 +44,7 @@
 
 #define KIRC_VERSION_MAJOR       "1"
 #define KIRC_VERSION_MINOR       "2"
-#define KIRC_VERSION_PATCH       "2"
+#define KIRC_VERSION_PATCH       "3"
 
 #define KIRC_CHANNEL_LIMIT       256
 #define KIRC_DCC_BUFFER_SIZE     8192
