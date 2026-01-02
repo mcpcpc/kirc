@@ -144,6 +144,16 @@ static void network_send_private_msg(struct network *network,
         username, message);
 }
 
+/**
+ * network_send_topic() - Send TOPIC command for channel
+ * @network: Network connection structure
+ * @msg: Topic command arguments (channel and optional new topic)
+ * @output: Output buffer for error messages
+ *
+ * Parses and sends IRC TOPIC command. If only channel is provided,
+ * requests the current topic. If topic text is included, sets a new topic.
+ * Displays usage error if channel is missing.
+ */
 static void network_send_topic(struct network *network,
         char *msg, struct output *output)
 {
