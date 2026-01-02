@@ -161,6 +161,15 @@ All subsequent messages entered without an explicit target will be sent to this
 channel or user. The current target is typically displayed in the status line or
 prompt area.
 .TP
+.BI /topic " <channel> [<topic>]"
+Query or set the topic for the specified
+.I <channel>.
+When invoked with only a channel name, the command requests and displays the
+current channel topic. When a
+.I <topic>
+string is provided, it sets the channel topic to the specified text (subject to
+channel mode restrictions and operator privileges).
+.TP
 .BI <message>
 Send a PRIVMSG to the currently set target (channel or nickname) with
 .I <message>
