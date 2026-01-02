@@ -144,6 +144,30 @@ static void network_send_private_msg(struct network *network,
         username, message);
 }
 
+static void network_send_topic(struct network *network,
+        char *msg, struct output *output)
+{
+    char msg_copy[MESSAGE_MAX_LEN];
+    safecpy(msg_copy, msg, sizeof(msg_copy));
+
+    char *channel = strtok(msg_copy, " ");
+
+    if (channel == NULL) {
+        const char *err = "usage: /topic <channel> [<topic>]";
+        output_append(output, "\r" CLEAR_LINE DIM "%s" RESET "\r\n", err);
+        return;
+    }
+ 
+    char *topic = strtok(NULL, "");
+
+    if (topic == NULL) {
+        network_send(network, "TOPIC %s\r\n", channel);
+        return;
+    }
+
+    network_send(network, "TOPIC %s :%s\r\n", channel, topic);
+}
+
 /**
  * network_send_ctcp_action() - Send CTCP ACTION to current target
  * @network: Network connection structure
@@ -271,6 +295,14 @@ int network_command_handler(struct network *network, char *msg, struct output *o
             if (strncmp(msg + 1, "set ", 4) == 0) {
                 size_t siz = sizeof(network->ctx->target);
                 safecpy(network->ctx->target, msg + 5, siz);
+            } else {
+                network_send(network, "%s\r\n", msg + 1);
+            }
+            break;
+
+        case 't':  /* send TOPIC command */
+            if (strncmp(msg + 1, "topic ", 6) == 0) {
+                network_send_topic(network, msg + 7, output);
             } else {
                 network_send(network, "%s\r\n", msg + 1);
             }
