@@ -306,13 +306,10 @@ void protocol_join(struct network *network, struct event *event, struct output *
 {
     (void)network;
 
-    struct kirc_context *ctx = event->ctx;
-    const char *timestamp = protocol_get_time();
-
-    if (strcmp(event->nickname, ctx->nickname) == 0) {
+    if (strcmp(event->nickname, event->ctx->nickname) == 0) {
         output_append(output, "\r" CLEAR_LINE
-            DIM "%s you joined %s" RESET "\r\n",
-            timestamp, event->channel);
+            DIM "kirc: you've joined %s" RESET "\r\n",
+            event->channel);
     } else {
         protocol_noop(network, event, output);
     }
@@ -322,13 +319,10 @@ void protocol_part(struct network *network, struct event *event, struct output *
 {
     (void)network;
 
-    struct kirc_context *ctx = event->ctx;
-    const char *timestamp = protocol_get_time();
-
-    if (strcmp(event->nickname, ctx->nickname) == 0) {
+    if (strcmp(event->nickname, event->ctx->nickname) == 0) {
         output_append(output, "\r" CLEAR_LINE
-            DIM "%s you left %s" RESET "\r\n",
-            timestamp, event->channel);
+            DIM "kirc: you left %s" RESET "\r\n",
+            event->channel);
     } else {
         protocol_noop(network, event, output);
     }
