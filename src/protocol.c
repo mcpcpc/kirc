@@ -309,7 +309,6 @@ void protocol_part(struct network *network, struct event *event, struct output *
     struct kirc_context *ctx = event->ctx;
     const char *timestamp = protocol_get_time();
 
-    struct kirc_context *ctx = event->ctx;
     if (strcmp(event->nickname, ctx->nickname) == 0) {
         output_append(output, "\r" CLEAR_LINE
             DIM "%s you left %s" RESET "\r\n",
