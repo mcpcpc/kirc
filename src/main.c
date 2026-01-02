@@ -37,7 +37,7 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_ERROR, protocol_error);
     handler_register(handler, EVENT_EXT_AUTHENTICATE, protocol_authenticate);
     handler_register(handler, EVENT_JOIN, protocol_noop);
-    handler_register(handler, EVENT_PART, protocol_raw);
+    handler_register(handler, EVENT_PART, protocol_part);
     handler_register(handler, EVENT_PING, protocol_ping);
     handler_register(handler, EVENT_QUIT, protocol_noop);
     handler_register(handler, EVENT_PRIVMSG, protocol_privmsg);

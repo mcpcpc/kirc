@@ -25,6 +25,7 @@ void protocol_error(struct network *network, struct event *event, struct output 
 void protocol_notice(struct network *network, struct event *event, struct output *output);
 void protocol_privmsg(struct network *network, struct event *event, struct output *output);
 void protocol_nick(struct network *network, struct event *event, struct output *output);
+void protocol_part(struct network *network, struct event *event, struct output *output);
 void protocol_ctcp_action(struct network *network, struct event *event, struct output *output);
 void protocol_ctcp_info(struct network *network, struct event *event, struct output *output);
 

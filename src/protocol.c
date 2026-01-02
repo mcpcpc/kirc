@@ -302,6 +302,23 @@ void protocol_nick(struct network *network, struct event *event, struct output *
 
 }
 
+void protocol_part(struct network *network, struct event *event, struct output *output)
+{
+    (void)network;
+
+    struct kirc_context *ctx = event->ctx;
+    const char *timestamp = protocol_get_time();
+
+    struct kirc_context *ctx = event->ctx;
+    if (strcmp(event->nickname, ctx->nickname) == 0) {
+        output_append(output, "\r" CLEAR_LINE
+            DIM "%s you left %s" RESET "\r\n",
+            timestamp, event->message);
+    } else {
+        protocol_noop(network, event, output)
+    }
+}
+
 /**
  * protocol_ctcp_action() - Display CTCP ACTION message
  * @network: Network connection (unused)
