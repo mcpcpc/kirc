@@ -18,14 +18,23 @@
 #include "terminal.h"
 #include "transport.h"
 
+/**
+ * kirc_register_handlers() - Register all IRC event handlers
+ * @handler: Handler structure to configure
+ *
+ * Registers handler functions for all supported IRC events and CTCP commands.
+ * Sets the default handler to protocol_raw for displaying unhandled events.
+ * Maps event types to their corresponding protocol and CTCP handler functions.
+ */
 static void kirc_register_handlers(struct handler *handler) {
     handler_default(handler, protocol_raw);
-    handler_register(handler, EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo);
+    handler_register(handler, EVENT_CTCP_CLIENTINFO, ctcp_handle_clientinfo); 
     handler_register(handler, EVENT_CTCP_PING, ctcp_handle_ping);
     handler_register(handler, EVENT_CTCP_TIME, ctcp_handle_time);
     handler_register(handler, EVENT_CTCP_VERSION, ctcp_handle_version);
     handler_register(handler, EVENT_CTCP_ACTION, protocol_ctcp_action);
     handler_register(handler, EVENT_CTCP_DCC, protocol_ctcp_info);
+    handler_register(handler, EVENT_ERROR, protocol_error);
     handler_register(handler, EVENT_EXT_AUTHENTICATE, protocol_authenticate);
     handler_register(handler, EVENT_JOIN, protocol_noop);
     handler_register(handler, EVENT_PART, protocol_noop);
@@ -139,7 +148,6 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_901_RPL_LOGGEDOUT, protocol_info);
     handler_register(handler, EVENT_903_RPL_SASLSUCCESS, protocol_info);
     handler_register(handler, EVENT_908_RPL_SASLMECHS, protocol_info);
-    handler_register(handler, EVENT_ERROR, protocol_error);
     handler_register(handler, EVENT_400_ERR_UNKNOWNERROR, protocol_error);
     handler_register(handler, EVENT_401_ERR_NOSUCHNICK, protocol_error);
     handler_register(handler, EVENT_402_ERR_NOSUCHSERVER, protocol_error);
@@ -200,6 +208,17 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_907_ERR_SASLALREADY, protocol_error);
 }
 
+/**
+ * kirc_run() - Main IRC client event loop
+ * @ctx: IRC context structure with connection settings
+ *
+ * Initializes all subsystems (editor, transport, network, DCC, handlers,
+ * terminal, output), establishes the IRC connection, and runs the main
+ * event loop. Polls stdin and network socket for events, processing user
+ * input and IRC messages. Handles terminal raw mode and cleanup on exit.
+ *
+ * Return: 0 on clean exit, -1 on initialization or runtime error
+ */
 static int kirc_run(struct kirc_context *ctx)
 {
     struct editor editor;
@@ -391,6 +410,17 @@ static int kirc_run(struct kirc_context *ctx)
     return 0;
 }
 
+/**
+ * main() - Program entry point
+ * @argc: Argument count
+ * @argv: Argument vector
+ *
+ * Initializes configuration from environment and command-line arguments,
+ * runs the IRC client, and cleans up on exit. Ensures secure cleanup of
+ * sensitive data.
+ *
+ * Return: EXIT_SUCCESS on normal termination, EXIT_FAILURE on error
+ */
 int main(int argc, char *argv[])
 {
     struct kirc_context ctx;

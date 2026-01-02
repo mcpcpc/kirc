@@ -182,6 +182,16 @@ static const struct event_dispatch_table event_table[] = {
     { NULL,      EVENT_NONE }
 };
 
+/**
+ * event_init() - Initialize an event structure
+ * @event: Event structure to initialize
+ * @ctx: IRC context structure
+ *
+ * Zeros out the event structure and associates it with an IRC context.
+ * Sets the event type to EVENT_NONE.
+ *
+ * Return: 0 on success
+ */
 int event_init(struct event *event, struct kirc_context *ctx)
 {
     memset(event, 0, sizeof(*event));
@@ -192,6 +202,17 @@ int event_init(struct event *event, struct kirc_context *ctx)
     return 0;
 }
 
+/**
+ * event_ctcp_parse() - Parse CTCP commands from message
+ * @event: Event structure containing the message to parse
+ *
+ * Detects and parses CTCP (Client-To-Client Protocol) commands embedded
+ * in PRIVMSG or NOTICE events. CTCP commands are delimited by \001 characters.
+ * Supports ACTION, VERSION, PING, TIME, CLIENTINFO, and DCC commands.
+ * Updates the event type and extracts command parameters.
+ *
+ * Return: 0 on success
+ */
 static int event_ctcp_parse(struct event *event)
 {
     if (((event->type == EVENT_PRIVMSG) ||
@@ -269,6 +290,19 @@ static int event_ctcp_parse(struct event *event)
     return 0;
 }
 
+/**
+ * event_parse() - Parse IRC message into event structure
+ * @event: Event structure to populate
+ * @line: Raw IRC message line to parse
+ *
+ * Parses a raw IRC protocol message into structured event data. Handles
+ * special cases (PING, AUTHENTICATE, ERROR) and general IRC message format.
+ * Extracts prefix, command, channel, nickname, and message components.
+ * Determines event type from command using the event dispatch table.
+ * Calls event_ctcp_parse() to detect CTCP commands.
+ *
+ * Return: 0 on success, -1 if parsing fails
+ */
 int event_parse(struct event *event, char *line)
 {
 

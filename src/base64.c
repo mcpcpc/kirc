@@ -7,24 +7,24 @@
 
 #include "base64.h"
 
-size_t base64_encoded_size(size_t len) {
-    size_t ret = len;
-
-    if (len % 3 != 0) {
-        ret += 3 - (len % 3);
-    }
-
-    ret = (ret / 3) * 4;
-
-    return ret;
-}
-
+/**
+ * base64_encode() - Encode data to base64 format
+ * @out: Output buffer to store the base64-encoded string
+ * @in: Input data buffer to encode
+ * @in_len: Length of the input data in bytes
+ *
+ * Encodes binary data into base64 ASCII representation. The output buffer
+ * must be large enough to hold the encoded data (use base64_encoded_size()
+ * to determine the required size). Uses the standard base64 alphabet with
+ * '+' and '/' characters.
+ *
+ * Return: 0 on success, -1 if input/output is NULL or input length is 0
+ */
 int base64_encode(char *out, const char *in, size_t in_len)
 {
     size_t i, j, v;
     char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                          "abcdefghijklmnopqrstuvwxyz"
-                          "0123456789+/";
+        "abcdefghijklmnopqrstuvwxyz0123456789+/";
 
     if (in == NULL || in_len == 0 || out == NULL) {
         return -1;

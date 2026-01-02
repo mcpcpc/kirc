@@ -7,6 +7,15 @@
 
 #include "config.h"
 
+/**
+ * config_validate_port() - Validate a port number string
+ * @value: String representation of the port number
+ *
+ * Validates that the given string is a valid port number. Checks for
+ * non-numeric characters, range limits, and conversion errors.
+ *
+ * Return: 0 if valid port, -1 if invalid or out of range
+ */
 static int config_validate_port(const char *value)
 {
     if ((value == NULL) || (*value == '\0')) {
@@ -40,6 +49,15 @@ static int config_validate_port(const char *value)
     return 0;
 }
 
+/**
+ * config_parse_channels() - Parse comma or pipe-separated channel list
+ * @ctx: IRC context structure to store parsed channels
+ * @value: String containing channel names separated by ',' or '|'
+ *
+ * Parses a string of channel names and stores them in the context structure.
+ * Supports both comma and pipe delimiters. Limited to KIRC_CHANNEL_LIMIT
+ * channels.
+ */
 static void config_parse_channels(struct kirc_context *ctx, char *value)
 {
     char *tok = NULL;
@@ -52,6 +70,15 @@ static void config_parse_channels(struct kirc_context *ctx, char *value)
     }
 }
 
+/**
+ * config_parse_mechanism() - Parse SASL authentication mechanism
+ * @ctx: IRC context structure to store authentication settings
+ * @value: String containing mechanism and credentials
+ *
+ * Parses SASL authentication mechanism (EXTERNAL or PLAIN) with optional
+ * credentials. For PLAIN, expects format "PLAIN:authzid:authcid:password"
+ * and base64-encodes the credentials. For EXTERNAL, no additional data needed.
+ */
 static void config_parse_mechanism(struct kirc_context *ctx, char *value)
 {
     char *mechanism = strtok(value, ":");
@@ -127,6 +154,18 @@ static void config_parse_mechanism(struct kirc_context *ctx, char *value)
     }
 }
 
+/**
+ * config_apply_env() - Apply environment variable to configuration
+ * @ctx: IRC context structure (unused)
+ * @env_name: Name of the environment variable to read
+ * @dest: Destination buffer for the value
+ * @dest_size: Size of the destination buffer
+ *
+ * Reads an environment variable and copies its value to the destination
+ * buffer if the variable exists and is non-empty.
+ *
+ * Return: 0 on success or if variable doesn't exist, error code from safecpy
+ */
 static int config_apply_env(struct kirc_context *ctx, const char *env_name, 
         char *dest, size_t dest_size)
 {
@@ -137,6 +176,17 @@ static int config_apply_env(struct kirc_context *ctx, const char *env_name,
     return 0;
 }
 
+/**
+ * config_init() - Initialize configuration with defaults and environment
+ * @ctx: IRC context structure to initialize
+ *
+ * Initializes the configuration context with default values and applies
+ * settings from environment variables (KIRC_SERVER, KIRC_PORT, KIRC_CHANNELS,
+ * KIRC_REALNAME, KIRC_USERNAME, KIRC_PASSWORD, KIRC_AUTH). Validates port
+ * numbers and parses authentication mechanisms.
+ *
+ * Return: 0 on success, -1 if port validation fails
+ */
 int config_init(struct kirc_context *ctx)
 {
     memset(ctx, 0, sizeof(*ctx));
@@ -184,6 +234,19 @@ int config_init(struct kirc_context *ctx)
     return 0;
 }
 
+/**
+ * config_parse_args() - Parse command-line arguments
+ * @ctx: IRC context structure to populate with parsed values
+ * @argc: Argument count
+ * @argv: Argument vector
+ *
+ * Parses command-line options using getopt. Supports:
+ *   -s server, -p port, -r realname, -u username, -k password,
+ *   -c channels, -a auth_mechanism
+ * The nickname is required as a positional argument.
+ *
+ * Return: 0 on success, -1 on error or invalid arguments
+ */
 int config_parse_args(struct kirc_context *ctx, int argc, char *argv[])
 {
     if (argc < 2) {
@@ -251,6 +314,15 @@ int config_parse_args(struct kirc_context *ctx, int argc, char *argv[])
     return 0;
 }
 
+/**
+ * config_free() - Securely clear sensitive configuration data
+ * @ctx: IRC context structure to clean up
+ *
+ * Securely zeroes out sensitive fields (auth token and password) from the
+ * configuration context to prevent them from remaining in memory.
+ *
+ * Return: 0 on success, -1 if secure clearing fails
+ */
 int config_free(struct kirc_context *ctx)
 {
     if (memzero(ctx->auth, sizeof(ctx->auth)) < 0) {
