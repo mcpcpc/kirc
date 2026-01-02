@@ -35,17 +35,17 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_CTCP_ACTION, protocol_ctcp_action);
     handler_register(handler, EVENT_CTCP_DCC, protocol_ctcp_info);
     handler_register(handler, EVENT_ERROR, protocol_error);
+    handler_register(handler, EVENT_EXT_CAP, protocol_info);
     handler_register(handler, EVENT_EXT_AUTHENTICATE, protocol_authenticate);
-    handler_register(handler, EVENT_JOIN, protocol_noop);
-    handler_register(handler, EVENT_PART, protocol_noop);
-    handler_register(handler, EVENT_PING, protocol_ping);
-    handler_register(handler, EVENT_QUIT, protocol_noop);
-    handler_register(handler, EVENT_PRIVMSG, protocol_privmsg);
+    handler_register(handler, EVENT_JOIN, protocol_join);
+    handler_register(handler, EVENT_KICK, protocol_info);
+    handler_register(handler, EVENT_MODE, protocol_info);
     handler_register(handler, EVENT_NICK, protocol_nick);
     handler_register(handler, EVENT_NOTICE, protocol_notice);
-    handler_register(handler, EVENT_KICK, protocol_info);
-    handler_register(handler, EVENT_EXT_CAP, protocol_info);
-    handler_register(handler, EVENT_MODE, protocol_info);
+    handler_register(handler, EVENT_PART, protocol_part);
+    handler_register(handler, EVENT_PING, protocol_ping);
+    handler_register(handler, EVENT_PRIVMSG, protocol_privmsg);
+    handler_register(handler, EVENT_QUIT, protocol_noop);
     handler_register(handler, EVENT_TOPIC, protocol_info);
     handler_register(handler, EVENT_001_RPL_WELCOME, protocol_welcome);
     handler_register(handler, EVENT_002_RPL_YOURHOST, protocol_info);
@@ -141,13 +141,6 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_394_RPL_ENDOFUSERS, protocol_info);
     handler_register(handler, EVENT_395_RPL_NOUSERS, protocol_info);
     handler_register(handler, EVENT_396_RPL_HOSTHIDDEN, protocol_info);
-    handler_register(handler, EVENT_704_RPL_HELPSTART, protocol_info);
-    handler_register(handler, EVENT_705_RPL_HELPTXT, protocol_info);
-    handler_register(handler, EVENT_706_RPL_ENDOFHELP, protocol_info);
-    handler_register(handler, EVENT_900_RPL_LOGGEDIN, protocol_info);
-    handler_register(handler, EVENT_901_RPL_LOGGEDOUT, protocol_info);
-    handler_register(handler, EVENT_903_RPL_SASLSUCCESS, protocol_info);
-    handler_register(handler, EVENT_908_RPL_SASLMECHS, protocol_info);
     handler_register(handler, EVENT_400_ERR_UNKNOWNERROR, protocol_error);
     handler_register(handler, EVENT_401_ERR_NOSUCHNICK, protocol_error);
     handler_register(handler, EVENT_402_ERR_NOSUCHSERVER, protocol_error);
@@ -201,11 +194,18 @@ static void kirc_register_handlers(struct handler *handler) {
     handler_register(handler, EVENT_501_ERR_UMODEUNKNOWNFLAG, protocol_error);
     handler_register(handler, EVENT_502_ERR_USERSDONTMATCH, protocol_error);
     handler_register(handler, EVENT_524_ERR_HELPNOTFOUND, protocol_error);
+    handler_register(handler, EVENT_704_RPL_HELPSTART, protocol_info);
+    handler_register(handler, EVENT_705_RPL_HELPTXT, protocol_info);
+    handler_register(handler, EVENT_706_RPL_ENDOFHELP, protocol_info);
+    handler_register(handler, EVENT_900_RPL_LOGGEDIN, protocol_info);
+    handler_register(handler, EVENT_901_RPL_LOGGEDOUT, protocol_info);
     handler_register(handler, EVENT_902_ERR_NICKLOCKED, protocol_error);
+    handler_register(handler, EVENT_903_RPL_SASLSUCCESS, protocol_info);
     handler_register(handler, EVENT_904_ERR_SASLFAIL, protocol_error);
     handler_register(handler, EVENT_905_ERR_SASLTOOLONG, protocol_error);
     handler_register(handler, EVENT_906_ERR_SASLABORTED, protocol_error);
     handler_register(handler, EVENT_907_ERR_SASLALREADY, protocol_error);
+    handler_register(handler, EVENT_908_RPL_SASLMECHS, protocol_info);
 }
 
 /**

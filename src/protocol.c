@@ -303,6 +303,50 @@ void protocol_nick(struct network *network, struct event *event, struct output *
 }
 
 /**
+ * protocol_join() - Handle JOIN channel event
+ * @network: Network connection (unused)
+ * @event: Event containing JOIN details
+ * @output: Output buffer for display
+ *
+ * Processes IRC JOIN events. If the joining user is the client itself,
+ * displays a confirmation message. Otherwise, delegates to protocol_noop().
+ */
+void protocol_join(struct network *network, struct event *event, struct output *output)
+{
+    (void)network;
+
+    if (strcmp(event->nickname, event->ctx->nickname) == 0) {
+        output_append(output, "\r" CLEAR_LINE
+            DIM "kirc: you've joined %s" RESET "\r\n",
+            event->channel);
+    } else {
+        protocol_noop(network, event, output);
+    }
+}
+
+/**
+ * protocol_part() - Handle PART channel event
+ * @network: Network connection (unused)
+ * @event: Event containing PART details
+ * @output: Output buffer for display
+ *
+ * Processes IRC PART events. If the leaving user is the client itself,
+ * displays a confirmation message. Otherwise, delegates to protocol_noop().
+ */
+void protocol_part(struct network *network, struct event *event, struct output *output)
+{
+    (void)network;
+
+    if (strcmp(event->nickname, event->ctx->nickname) == 0) {
+        output_append(output, "\r" CLEAR_LINE
+            DIM "kirc: you left %s" RESET "\r\n",
+            event->channel);
+    } else {
+        protocol_noop(network, event, output);
+    }
+}
+
+/**
  * protocol_ctcp_action() - Display CTCP ACTION message
  * @network: Network connection (unused)
  * @event: Event containing ACTION details
